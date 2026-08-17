@@ -3,73 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者画面 - 欠席連絡一覧</title>
+    <title>管理者画面 - 予定作成と連絡確認</title>
     <style>
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .admin-container { background: white; max-width: 800px; margin: 0 auto; border: 2px solid #333; border-radius: 10px; padding: 20px; box-shadow: 5px 5px 0px #333; }
-        h1 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .admin-container { background: white; max-width: 900px; margin: 0 auto; border: 2px solid #333; border-radius: 10px; padding: 20px; box-shadow: 5px 5px 0px #333; }
+        h1, h2 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .section { margin-bottom: 40px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
         
-        /* 絞り込み部分 */
-        .filter-section { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        select { padding: 10px; border: 1px solid #333; border-radius: 5px; font-size: 16px; flex: 1; min-width: 150px; }
-        
-        /* テーブル（表）部分 */
+        /* 予定作成フォーム */
+        .form-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        input, select { padding: 10px; border: 1px solid #333; border-radius: 5px; flex: 1; min-width: 120px; }
+        .add-btn { background: #2ed573; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+
+        /* テーブル */
         .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; white-space: nowrap; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
         th, td { border: 1px solid #333; padding: 10px; text-align: left; }
         th { background-color: #333; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        
-        /* 文字色 */
         .status-absent { color: #ff4757; font-weight: bold; }
         .status-late { color: #ffa502; font-weight: bold; }
         
-        .login-btn { padding: 15px 30px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; display: block; margin: 20px auto; }
         #admin-content { display: none; }
+        .login-btn { padding: 15px 30px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; }
     </style>
 </head>
 <body>
 
 <div class="admin-container">
-    <h1>連絡一覧（管理者用）</h1>
+    <h1>生徒会・管理者画面</h1>
 
-    <!-- ログイン画面 -->
     <div id="login-screen">
-        <p style="text-align: center;">管理者アカウント（Google）でログインしてください。</p>
-        <button class="login-btn" id="loginBtn">ログインする</button>
+        <button class="login-btn" id="loginBtn">管理者ログイン</button>
     </div>
 
-    <!-- 一覧画面 -->
     <div id="admin-content">
-        <div class="filter-section">
-            <select id="filterEvent">
-                <option value="すべて">すべてのイベント</option>
-                <option value="ミーティング">ミーティングのみ</option>
-                <option value="文化祭準備">文化祭準備のみ</option>
-            </select>
-            <select id="filterStatus">
-                <option value="すべて">欠席・遅刻すべて</option>
-                <option value="欠席">欠席のみ</option>
-                <option value="遅刻">遅刻のみ</option>
-            </select>
+        <!-- 1. 予定の作成セクション -->
+        <div class="section">
+            <h2>① 活動予定の追加</h2>
+            <div class="form-group">
+                <select id="eventYear">
+                    <option value="令和6年度">令和6年度</option>
+                    <option value="令和7年度">令和7年度</option>
+                </select>
+                <input type="text" id="eventTitle" placeholder="例：全体ミーティング">
+                <input type="datetime-local" id="eventDate">
+                <select id="eventCategory">
+                    <option value="ミーティング">ミーティング</option>
+                    <option value="文化祭準備">文化祭準備</option>
+                </select>
+                <button class="add-btn" id="addEventBtn">予定を登録</button>
+            </div>
         </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>送信日時</th>
-                        <th>名前</th>
-                        <th>イベント</th>
-                        <th>状態</th>
-                        <th>理由</th>
-                        <th>到着予定</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- ここにデータが自動で入ります -->
-                </tbody>
-            </table>
+        <!-- 2. 連絡一覧セクション -->
+        <div class="section">
+            <h2>② 届いた欠席連絡</h2>
+            <div class="form-group">
+                <select id="filterYear">
+                    <option value="令和6年度">令和6年度</option>
+                    <option value="令和7年度">令和7年度</option>
+                </select>
+                <select id="filterEvent">
+                    <option value="すべて">すべてのイベント</option>
+                </select>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>名前</th>
+                            <th>イベント名</th>
+                            <th>状態</th>
+                            <th>理由</th>
+                            <th>詳細/到着予定</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -77,7 +88,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
@@ -93,74 +104,78 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  let allReports = [];
-
-  document.getElementById('loginBtn').addEventListener('click', () => {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).catch(error => alert("ログインエラー: " + error.message));
-  });
-
   onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('admin-content').style.display = 'block';
-      fetchData(); // ログインしたらデータ取得を開始
+      listenToEvents();
+      listenToReports();
     }
   });
 
-  // データベースからデータを取ってくる（リアルタイム更新）
-  function fetchData() {
+  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+
+  // 予定を登録する処理
+  document.getElementById('addEventBtn').onclick = async () => {
+      const year = document.getElementById('eventYear').value;
+      const title = document.getElementById('eventTitle').value;
+      const date = document.getElementById('eventDate').value;
+      const category = document.getElementById('eventCategory').value;
+
+      if(!title || !date) return alert("タイトルと日時を入力してください");
+
+      try {
+          await addDoc(collection(db, "events"), {
+              year, title, date, category, createdAt: serverTimestamp()
+          });
+          alert("予定を登録しました");
+          document.getElementById('eventTitle').value = "";
+      } catch (e) { alert("エラー: " + e.message); }
+  };
+
+  // 予定一覧を読み込んでセレクトボックスに反映
+  function listenToEvents() {
+      const q = query(collection(db, "events"), orderBy("date", "desc"));
+      onSnapshot(q, (snapshot) => {
+          const filter = document.getElementById('filterEvent');
+          filter.innerHTML = '<option value="すべて">すべてのイベント</option>';
+          snapshot.forEach(doc => {
+              const data = doc.data();
+              const option = document.createElement('option');
+              option.value = data.title;
+              option.innerText = `${data.year} ${data.date.replace('T',' ')} ${data.title}`;
+              filter.appendChild(option);
+          });
+      });
+  }
+
+  // 報告をリアルタイムで読み込む
+  function listenToReports() {
       const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
       onSnapshot(q, (snapshot) => {
-          allReports = [];
-          snapshot.forEach((doc) => {
-              allReports.push(doc.data());
+          const tbody = document.getElementById('tableBody');
+          const fYear = document.getElementById('filterYear').value;
+          const fEvent = document.getElementById('filterEvent').value;
+          tbody.innerHTML = "";
+
+          snapshot.forEach(doc => {
+              const data = doc.data();
+              // 簡易フィルター
+              if(fYear !== "すべて" && data.year && data.year !== fYear) return;
+              if(fEvent !== "すべて" && data.eventTitle && data.eventTitle !== fEvent) return;
+
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${data.kanjiName}<br><small>${data.kanaName}</small></td>
+                <td>${data.eventTitle || "旧データ"}</td>
+                <td class="${data.status === '欠席' ? 'status-absent' : 'status-late'}">${data.status}</td>
+                <td>${data.reason === 'その他' ? data.otherReason : data.reason}</td>
+                <td>${data.arrival || "-"}</td>
+              `;
+              tbody.appendChild(tr);
           });
-          renderTable();
       });
   }
-
-  // テーブル（表）を作る処理
-  function renderTable() {
-      const filterEvent = document.getElementById('filterEvent').value;
-      const filterStatus = document.getElementById('filterStatus').value;
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = "";
-
-      allReports.forEach(data => {
-          // 絞り込み
-          if(filterEvent !== "すべて" && data.eventType !== filterEvent) return;
-          if(filterStatus !== "すべて" && data.status !== filterStatus) return;
-
-          // 日時の整理
-          let dateStr = "不明";
-          if(data.timestamp) {
-              const d = data.timestamp.toDate();
-              dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-          }
-
-          // 文字の色と理由の整理
-          const statusClass = data.status === "欠席" ? "status-absent" : "status-late";
-          const reasonText = data.reason === "その他" ? `その他 (${data.otherReason})` : data.reason;
-
-          // 行を追加
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-              <td>${dateStr}</td>
-              <td>${data.kanjiName || "不明"}<br><span style="font-size:12px; color:#666;">${data.kanaName || ""}</span></td>
-              <td>${data.eventType}</td>
-              <td class="${statusClass}">${data.status}</td>
-              <td>${reasonText}</td>
-              <td>${data.arrival || "-"}</td>
-          `;
-          tbody.appendChild(tr);
-      });
-  }
-
-  // 絞り込み条件が変わったら、表を作り直す
-  document.getElementById('filterEvent').addEventListener('change', renderTable);
-  document.getElementById('filterStatus').addEventListener('change', renderTable);
-
 </script>
 </body>
 </html>
