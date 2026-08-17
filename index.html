@@ -8,14 +8,14 @@
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .app-container { background: white; width: 100%; max-width: 400px; border: 2px solid #333; border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px #333; }
         .calendar-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: bold; }
-        .info-text { font-size: 16px; margin-bottom: 15px; }
+        .info-text { font-size: 16px; margin-bottom: 15px; font-weight: bold; }
         .btn-status { width: 48%; padding: 15px; border: 2px solid #333; border-radius: 10px; background: white; font-weight: bold; cursor: pointer; display: inline-block; text-align: center; box-sizing: border-box; margin-bottom: 15px; }
         .btn-status.active { background: #333; color: white; }
         .reason-title { font-size: 14px; margin-bottom: 8px; font-weight: bold; }
         .reason-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .chip { padding: 8px 15px; border: 1px solid #333; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; }
         .chip.active { background: #333; color: white; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
         .submit-btn, .login-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; margin-top: 20px; cursor: pointer; }
         .login-btn { background: #4285F4; }
         .hidden { display: none !important; }
@@ -29,16 +29,23 @@
 
     <!-- ログイン画面 -->
     <div id="login-screen">
-        <p>Googleアカウントでログインしてください。</p>
+        <p style="text-align: center;">Googleアカウントで<br>ログインしてください。</p>
         <button class="login-btn" id="loginBtn">ログインする</button>
     </div>
 
     <!-- 入力画面 -->
     <div id="app-content">
-        <p id="userNameDisplay"></p>
+        <p id="userNameDisplay" style="text-align: right; font-size: 12px; color: #666; margin-top: 0;"></p>
+        
+        <div class="info-text">
+            あなたのお名前<br>
+            <input type="text" id="userNameKanji" placeholder="漢字（例：山田 太郎）" style="margin-top: 5px;">
+            <input type="text" id="userNameKana" placeholder="ふりがな（例：やまだ たろう）">
+        </div>
+
         <div class="info-text">
             イベント種類：<br>
-            <select id="eventType" style="padding:5px; width:100%; margin-top:5px; margin-bottom:15px; border: 1px solid #333;">
+            <select id="eventType">
                 <option value="ミーティング">ミーティング</option>
                 <option value="文化祭準備">文化祭準備</option>
             </select>
@@ -50,9 +57,7 @@
         </div>
 
         <div class="reason-title">理由</div>
-        <div class="reason-chips" id="reasonContainer">
-            <!-- JSで自動生成されます -->
-        </div>
+        <div class="reason-chips" id="reasonContainer"></div>
 
         <input type="text" id="otherReason" class="hidden" placeholder="「その他」の理由を入力">
 
@@ -60,7 +65,7 @@
             <div class="reason-title">到着予定時刻</div>
             <div style="display: flex; gap: 10px;">
                 <input type="number" id="arriveMin" placeholder="何分後？" style="width: 50%;">
-                <div class="chip" id="btnUndecided" style="width: 50%; text-align: center;">未定</div>
+                <div class="chip" id="btnUndecided" style="width: 50%; text-align: center; box-sizing: border-box;">未定</div>
             </div>
         </div>
 
@@ -69,20 +74,19 @@
 </div>
 
 <script type="module">
-  // Firebaseの読み込み
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-  // ★★★ ここにステップ1で取得した firebaseConfig の中身を貼り付けます ★★★
+  // 提供いただいたFirebase設定
   const firebaseConfig = {
-  apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
-  authDomain: "kesseki-appointment.firebaseapp.com",
-  projectId: "kesseki-appointment",
-  storageBucket: "kesseki-appointment.firebasestorage.app",
-  messagingSenderId: "1043634407845",
-  appId: "1:1043634407845:web:4a0f7bd36079dd6858c04c",
-  measurementId: "G-H6BWPXJTFQ"
+    apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
+    authDomain: "kesseki-appointment.firebaseapp.com",
+    projectId: "kesseki-appointment",
+    storageBucket: "kesseki-appointment.firebasestorage.app",
+    messagingSenderId: "1043634407845",
+    appId: "1:1043634407845:web:4a0f7bd36079dd6858c04c",
+    measurementId: "G-H6BWPXJTFQ"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -93,28 +97,30 @@
   let currentStatus = "欠席"; 
   let selectedReason = "";
 
-  // ログイン処理
+  // 端末に保存された名前を復元
+  const savedKanji = localStorage.getItem('userKanji');
+  const savedKana = localStorage.getItem('userKana');
+  if(savedKanji) document.getElementById('userNameKanji').value = savedKanji;
+  if(savedKana) document.getElementById('userNameKana').value = savedKana;
+
   document.getElementById('loginBtn').addEventListener('click', () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider).catch(error => alert("ログインエラー: " + error.message));
   });
 
-  // ログイン状態の監視
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app-content').style.display = 'block';
-      document.getElementById('userNameDisplay').innerText = `こんにちは、${user.displayName}さん`;
+      document.getElementById('userNameDisplay').innerText = `ログイン中: ${user.email}`;
       updateReasons();
     }
   });
 
-  // 理由ボタンの生成ロジック（要望の分岐を実装）
   function updateReasons() {
     const eventType = document.getElementById('eventType').value;
     let reasons = [];
-
     if (eventType === "ミーティング") {
         reasons = currentStatus === "欠席" ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"];
     } else {
@@ -144,7 +150,6 @@
     });
   }
 
-  // 欠席・遅刻の切り替え
   document.getElementById('btnAbsent').onclick = (e) => {
       currentStatus = "欠席";
       e.target.classList.add('active');
@@ -152,6 +157,7 @@
       document.getElementById('arrivalSection').classList.add('hidden');
       updateReasons();
   };
+  
   document.getElementById('btnLate').onclick = (e) => {
       currentStatus = "遅刻";
       e.target.classList.add('active');
@@ -162,7 +168,6 @@
 
   document.getElementById('eventType').onchange = updateReasons;
 
-  // 未定ボタン
   document.getElementById('btnUndecided').onclick = (e) => {
       e.target.classList.toggle('active');
       const inputMin = document.getElementById('arriveMin');
@@ -174,22 +179,33 @@
       }
   };
 
-  // データベースへ送信
   document.getElementById('submitBtn').onclick = async () => {
-      if(!selectedReason) return alert("理由を選択してください");
-      
+      const kanji = document.getElementById('userNameKanji').value;
+      const kana = document.getElementById('userNameKana').value;
       const eventType = document.getElementById('eventType').value;
       const otherText = document.getElementById('otherReason').value;
-      let arrivalInfo = "";
+
+      // 入力チェック（バリデーション）
+      if(!kanji || !kana) return alert("お名前（漢字とふりがな）を入力してください");
+      if(!selectedReason) return alert("理由を選択してください");
+      if(selectedReason === "その他" && !otherText) return alert("その他の理由を入力してください");
       
+      let arrivalInfo = "";
       if(currentStatus === "遅刻") {
           const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
-          arrivalInfo = isUndecided ? "未定" : `${document.getElementById('arriveMin').value}分後`;
+          const min = document.getElementById('arriveMin').value;
+          if(!isUndecided && !min) return alert("到着予定時刻を入力するか、未定を選択してください");
+          arrivalInfo = isUndecided ? "未定" : `${min}分後`;
       }
+
+      // 送信ボタンを連打できないようにする
+      document.getElementById('submitBtn').innerText = "送信中...";
+      document.getElementById('submitBtn').disabled = true;
 
       try {
           await addDoc(collection(db, "reports"), {
-              name: currentUser.displayName,
+              kanjiName: kanji,
+              kanaName: kana,
               email: currentUser.email,
               eventType: eventType,
               status: currentStatus,
@@ -198,9 +214,19 @@
               arrival: arrivalInfo,
               timestamp: serverTimestamp()
           });
+
+          // 次回入力が楽になるように名前を保存
+          localStorage.setItem('userKanji', kanji);
+          localStorage.setItem('userKana', kana);
+
+          // ★ 送信完了のポップアップを表示し、画面をリロード（初期状態に戻す）
           alert("送信が完了しました！");
+          location.reload();
+
       } catch (e) {
-          alert("エラーが発生しました: " + e.message);
+          alert("送信エラー: Firebaseの設定を確認してください。\n" + e.message);
+          document.getElementById('submitBtn').innerText = "報告する";
+          document.getElementById('submitBtn').disabled = false;
       }
   };
 </script>
