@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欠席連絡アプリ</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .app-container { background: white; width: 100%; max-width: 400px; border: 2px solid #333; border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px #333; }
+        .calendar-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: bold; }
+        .info-text { font-size: 16px; margin-bottom: 15px; }
+        .btn-status { width: 48%; padding: 15px; border: 2px solid #333; border-radius: 10px; background: white; font-weight: bold; cursor: pointer; display: inline-block; text-align: center; box-sizing: border-box; margin-bottom: 15px; }
+        .btn-status.active { background: #333; color: white; }
+        .reason-title { font-size: 14px; margin-bottom: 8px; font-weight: bold; }
+        .reason-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .chip { padding: 8px 15px; border: 1px solid #333; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; }
+        .chip.active { background: #333; color: white; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; }
+        .submit-btn, .login-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; margin-top: 20px; cursor: pointer; }
+        .login-btn { background: #4285F4; }
+        .hidden { display: none !important; }
+        #app-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="calendar-header">連絡フォーム</div>
+
+    <!-- ログイン画面 -->
+    <div id="login-screen">
+        <p>Googleアカウントでログインしてください。</p>
+        <button class="login-btn" id="loginBtn">ログインする</button>
+    </div>
+
+    <!-- 入力画面 -->
+    <div id="app-content">
+        <p id="userNameDisplay"></p>
+        <div class="info-text">
+            イベント種類：<br>
+            <select id="eventType" style="padding:5px; width:100%; margin-top:5px; margin-bottom:15px; border: 1px solid #333;">
+                <option value="ミーティング">ミーティング</option>
+                <option value="文化祭準備">文化祭準備</option>
+            </select>
+        </div>
+
+        <div style="display: flex; justify-content: space-between;">
+            <div class="btn-status active" id="btnAbsent">欠席</div>
+            <div class="btn-status" id="btnLate">遅刻</div>
+        </div>
+
+        <div class="reason-title">理由</div>
+        <div class="reason-chips" id="reasonContainer">
+            <!-- JSで自動生成されます -->
+        </div>
+
+        <input type="text" id="otherReason" class="hidden" placeholder="「その他」の理由を入力">
+
+        <div id="arrivalSection" class="hidden">
+            <div class="reason-title">到着予定時刻</div>
+            <div style="display: flex; gap: 10px;">
+                <input type="number" id="arriveMin" placeholder="何分後？" style="width: 50%;">
+                <div class="chip" id="btnUndecided" style="width: 50%; text-align: center;">未定</div>
+            </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn">報告する</button>
+    </div>
+</div>
+
+<script type="module">
+  // Firebaseの読み込み
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  // ★★★ ここにステップ1で取得した firebaseConfig の中身を貼り付けます ★★★
+  const firebaseConfig = {
+  apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
+  authDomain: "kesseki-appointment.firebaseapp.com",
+  projectId: "kesseki-appointment",
+  storageBucket: "kesseki-appointment.firebasestorage.app",
+  messagingSenderId: "1043634407845",
+  appId: "1:1043634407845:web:4a0f7bd36079dd6858c04c",
+  measurementId: "G-H6BWPXJTFQ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let currentStatus = "欠席"; 
+  let selectedReason = "";
+
+  // ログイン処理
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(error => alert("ログインエラー: " + error.message));
+  });
+
+  // ログイン状態の監視
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-content').style.display = 'block';
+      document.getElementById('userNameDisplay').innerText = `こんにちは、${user.displayName}さん`;
+      updateReasons();
+    }
+  });
+
+  // 理由ボタンの生成ロジック（要望の分岐を実装）
+  function updateReasons() {
+    const eventType = document.getElementById('eventType').value;
+    let reasons = [];
+
+    if (eventType === "ミーティング") {
+        reasons = currentStatus === "欠席" ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"];
+    } else {
+        reasons = currentStatus === "欠席" ? ["体調不良", "部活動", "家庭の用事", "その他"] : ["部活動", "家庭の用事", "その他"];
+    }
+
+    const container = document.getElementById('reasonContainer');
+    container.innerHTML = "";
+    selectedReason = "";
+    document.getElementById('otherReason').classList.add('hidden');
+
+    reasons.forEach(reason => {
+        const div = document.createElement('div');
+        div.className = 'chip';
+        div.innerText = reason;
+        div.onclick = () => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            div.classList.add('active');
+            selectedReason = reason;
+            if (reason === "その他") {
+                document.getElementById('otherReason').classList.remove('hidden');
+            } else {
+                document.getElementById('otherReason').classList.add('hidden');
+            }
+        };
+        container.appendChild(div);
+    });
+  }
+
+  // 欠席・遅刻の切り替え
+  document.getElementById('btnAbsent').onclick = (e) => {
+      currentStatus = "欠席";
+      e.target.classList.add('active');
+      document.getElementById('btnLate').classList.remove('active');
+      document.getElementById('arrivalSection').classList.add('hidden');
+      updateReasons();
+  };
+  document.getElementById('btnLate').onclick = (e) => {
+      currentStatus = "遅刻";
+      e.target.classList.add('active');
+      document.getElementById('btnAbsent').classList.remove('active');
+      document.getElementById('arrivalSection').classList.remove('hidden');
+      updateReasons();
+  };
+
+  document.getElementById('eventType').onchange = updateReasons;
+
+  // 未定ボタン
+  document.getElementById('btnUndecided').onclick = (e) => {
+      e.target.classList.toggle('active');
+      const inputMin = document.getElementById('arriveMin');
+      if(e.target.classList.contains('active')) {
+          inputMin.value = "";
+          inputMin.disabled = true;
+      } else {
+          inputMin.disabled = false;
+      }
+  };
+
+  // データベースへ送信
+  document.getElementById('submitBtn').onclick = async () => {
+      if(!selectedReason) return alert("理由を選択してください");
+      
+      const eventType = document.getElementById('eventType').value;
+      const otherText = document.getElementById('otherReason').value;
+      let arrivalInfo = "";
+      
+      if(currentStatus === "遅刻") {
+          const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
+          arrivalInfo = isUndecided ? "未定" : `${document.getElementById('arriveMin').value}分後`;
+      }
+
+      try {
+          await addDoc(collection(db, "reports"), {
+              name: currentUser.displayName,
+              email: currentUser.email,
+              eventType: eventType,
+              status: currentStatus,
+              reason: selectedReason,
+              otherReason: otherText,
+              arrival: arrivalInfo,
+              timestamp: serverTimestamp()
+          });
+          alert("送信が完了しました！");
+      } catch (e) {
+          alert("エラーが発生しました: " + e.message);
+      }
+  };
+</script>
+</body>
+</html>
