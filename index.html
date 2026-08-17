@@ -10,7 +10,6 @@
         .calendar-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 15px; text-align: center; font-size: 22px; font-weight: bold; }
         .info-text { font-size: 14px; margin-bottom: 8px; font-weight: bold; }
         
-        /* 画面切り替え */
         .screen { display: none; }
         .user-badge { background: #f1f2f6; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
         .change-name-link { font-size: 12px; color: #1e90ff; text-decoration: underline; cursor: pointer; }
@@ -31,17 +30,19 @@
         .cal-day.selectable:hover { background-color: #f1f2f6; }
         .cal-day.selected { background-color: #ffeaa7 !important; border: 2px solid #333 !important; }
 
-        /* 手書き風の赤丸・青丸スタイル */
-        .circle-mark { width: 28px; height: 28px; line-height: 26px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; }
-        .circle-meeting { border: 2px solid #ff4757; color: #ff4757; }
-        .circle-prep { border: 2px solid #1e90ff; color: #1e90ff; }
+        /* ★薄い色 ＋ 黒文字統一 */
+        .circle-mark { width: 30px; height: 30px; line-height: 30px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; color: #222222; }
+        .circle-meeting { background-color: #ffb8c6; } /* 薄ピンク */
+        .circle-prep { background-color: #bbf2c8; }    /* 薄緑 */
+        .circle-other { background-color: #fff099; }   /* 薄黄色 */
 
         /* 凡例 */
-        .cal-legend { display: flex; justify-content: center; gap: 15px; font-size: 12px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc; font-weight: bold; }
+        .cal-legend { display: flex; justify-content: center; gap: 10px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc; font-weight: bold; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .dot.meeting { border: 2px solid #ff4757; }
-        .dot.prep { border: 2px solid #1e90ff; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .dot.meeting { background-color: #ffb8c6; border: 1px solid #ff8fa3; }
+        .dot.prep { background-color: #bbf2c8; border: 1px solid #7fe59c; }
+        .dot.other { background-color: #fff099; border: 1px solid #ffd747; }
 
         /* 選択中のイベント表示カード */
         .selected-event-card { background: #fdfbf7; border: 2px dashed #333; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; }
@@ -63,13 +64,11 @@
 <div class="app-container">
     <div class="calendar-header">欠席連絡フォーム</div>
 
-    <!-- 画面1: ログイン画面 -->
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <p style="margin-bottom: 25px; color: #555;">Googleアカウントで<br>ログインしてください。</p>
         <button class="login-btn" id="loginBtn">Googleでログイン</button>
     </div>
 
-    <!-- 画面2: 名前登録画面（初回のみ） -->
     <div id="profile-screen" class="screen">
         <p style="font-size: 14px; color: #666; margin-bottom: 15px;">初回登録です。あなたのお名前を入力してください。</p>
         <div class="info-text">お名前（フルネーム）</div>
@@ -77,14 +76,12 @@
         <button class="next-btn" id="saveProfileBtn">登録して次へ進む</button>
     </div>
 
-    <!-- 画面3: 欠席連絡画面 -->
     <div id="app-content" class="screen">
         <div class="user-badge">
             <div><strong><span id="displayName"></span></strong> さん</div>
             <span class="change-name-link" id="editProfileBtn">名前変更</span>
         </div>
 
-        <!-- 月間カレンダー -->
         <div class="calendar-box">
             <div class="cal-nav">
                 <button id="prevMonthBtn">＜</button>
@@ -100,23 +97,20 @@
                 <div class="cal-head">金</div>
                 <div class="cal-head sat">土</div>
             </div>
-            <div class="cal-grid" id="calDaysContainer" style="margin-top: 4px;">
-                <!-- 日付がJSで生成されます -->
-            </div>
-            <!-- 凡例 -->
+            <div class="cal-grid" id="calDaysContainer" style="margin-top: 4px;"></div>
+            
             <div class="cal-legend">
                 <div class="legend-item"><span class="dot meeting"></span> ミーティング</div>
                 <div class="legend-item"><span class="dot prep"></span> 文化祭準備</div>
+                <div class="legend-item"><span class="dot other"></span> その他</div>
             </div>
         </div>
 
-        <!-- 選択した予定の表示エリア -->
         <div class="selected-event-card" id="selectedEventCard">
             <div style="font-size: 12px; color: #666;">カレンダーの丸がついた日をタップしてください</div>
             <div class="selected-event-title" id="selectedEventTitle">予定が未選択です</div>
         </div>
 
-        <!-- フォーム部分（予定選択後に有効化） -->
         <div id="formSection" style="opacity: 0.4; pointer-events: none;">
             <div style="display: flex; justify-content: space-between;">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
@@ -165,17 +159,14 @@
   let selectedReason = "";
   let allEvents = [];
   let selectedEvent = null;
-
-  let viewDate = new Date(); // 現在表示している年月
+  let viewDate = new Date();
 
   function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
     document.getElementById(screenId).style.display = 'block';
   }
 
-  document.getElementById('loginBtn').onclick = () => {
-    signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
-  };
+  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -197,7 +188,7 @@
         showScreen('profile-screen');
       }
     } catch (e) {
-      alert("ユーザー情報の確認に失敗しました: " + e.message);
+      alert("エラー: " + e.message);
     }
   }
 
@@ -223,7 +214,6 @@
     loadEvents();
   }
 
-  // 予定一覧を読み込み
   function loadEvents() {
     const q = query(collection(db, "events"), orderBy("date", "asc"));
     onSnapshot(q, (snapshot) => {
@@ -235,21 +225,18 @@
     });
   }
 
-  // カレンダー描画ロジック
   function renderCalendar() {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-    
     document.getElementById('calMonthDisplay').innerText = `${year}年 ${month + 1}月`;
 
-    const firstDay = new Date(year, month, 1).getDay(); // 1日の曜日
-    const lastDate = new Date(year, month + 1, 0).getDate(); // 当月末日
-    const prevLastDate = new Date(year, month, 0).getDate(); // 前月末日
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const prevLastDate = new Date(year, month, 0).getDate();
 
     const container = document.getElementById('calDaysContainer');
     container.innerHTML = "";
 
-    // 前月の日付埋め
     for (let i = firstDay - 1; i >= 0; i--) {
       const div = document.createElement('div');
       div.className = "cal-day other-month";
@@ -257,21 +244,22 @@
       container.appendChild(div);
     }
 
-    // 当月の日付
     for (let d = 1; d <= lastDate; d++) {
       const div = document.createElement('div');
       div.className = "cal-day";
-      
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      // この日にある予定を検索
-      const dayEvents = allEvents.filter(e => e.date && e.date.startsWith(dateStr));
+      const dayEvents = allEvents.filter(e => e.date === dateStr);
 
       if (dayEvents.length > 0) {
-        const ev = dayEvents[0]; // 該当イベント
+        const ev = dayEvents[0];
         div.classList.add('selectable');
 
+        let circleClass = 'circle-meeting';
+        if (ev.category === '文化祭準備') circleClass = 'circle-prep';
+        else if (ev.category === 'その他') circleClass = 'circle-other';
+
         const circle = document.createElement('div');
-        circle.className = `circle-mark ${ev.category === 'ミーティング' ? 'circle-meeting' : 'circle-prep'}`;
+        circle.className = `circle-mark ${circleClass}`;
         circle.innerText = d;
         div.appendChild(circle);
 
@@ -287,7 +275,6 @@
       container.appendChild(div);
     }
 
-    // 翌月の余白埋め
     const totalCells = firstDay + lastDate;
     const nextDays = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
     for (let i = 1; i <= nextDays; i++) {
@@ -298,32 +285,23 @@
     }
   }
 
-  // 月切り替えボタン
-  document.getElementById('prevMonthBtn').onclick = () => {
-    viewDate.setMonth(viewDate.getMonth() - 1);
-    renderCalendar();
-  };
-  document.getElementById('nextMonthBtn').onclick = () => {
-    viewDate.setMonth(viewDate.getMonth() + 1);
-    renderCalendar();
-  };
+  document.getElementById('prevMonthBtn').onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); };
+  document.getElementById('nextMonthBtn').onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); };
 
-  // カレンダーの日付がタップされた時
   function selectEvent(ev, dayElement) {
     selectedEvent = ev;
-    
-    // ハイライト更新
     document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
     dayElement.classList.add('selected');
 
-    // 選択中の予定表示を更新
-    const dateFormatted = ev.date.replace('T', ' ');
+    let catBg = '#ffb8c6';
+    if (ev.category === '文化祭準備') catBg = '#bbf2c8';
+    else if (ev.category === 'その他') catBg = '#fff099';
+
     document.getElementById('selectedEventCard').innerHTML = `
-      <div style="font-size: 12px; color: ${ev.category === 'ミーティング' ? '#ff4757' : '#1e90ff'}; font-weight:bold;">● ${ev.category}</div>
-      <div class="selected-event-title">${dateFormatted}<br>${ev.title}</div>
+      <div style="font-size: 13px; font-weight:bold; display:inline-block; padding: 2px 10px; border-radius: 12px; background:${catBg}; color:#222; margin-bottom:4px;">● ${ev.category}</div>
+      <div class="selected-event-title">${ev.date} (${ev.timeText || '時間指定なし'})<br>${ev.title}</div>
     `;
 
-    // フォームを有効化
     const formSection = document.getElementById('formSection');
     formSection.style.opacity = "1";
     formSection.style.pointerEvents = "auto";
@@ -331,14 +309,18 @@
     updateStatusUI();
   }
 
-  // 理由ボタンの表示
   function updateReasons() {
     if (!selectedEvent) return;
     const category = selectedEvent.category || "ミーティング";
 
-    let reasons = (category === "ミーティング")
-        ? (currentStatus === "欠席" ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"])
-        : (currentStatus === "欠席" ? ["体調不良", "部活動", "家庭の用事", "その他"] : ["部活動", "家庭の用事", "その他"]);
+    let reasons = [];
+    if (category === "ミーティング") {
+        reasons = (currentStatus === "欠席") ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"];
+    } else if (category === "文化祭準備") {
+        reasons = (currentStatus === "欠席") ? ["体調不良", "部活動", "家庭の用事", "その他"] : ["部活動", "家庭の用事", "その他"];
+    } else {
+        reasons = (currentStatus === "欠席") ? ["体調不良", "部活動", "家庭の用事", "委員会", "その他"] : ["部活動", "家庭の用事", "委員会", "その他"];
+    }
 
     const container = document.getElementById('reasonContainer');
     container.innerHTML = "";
@@ -380,7 +362,6 @@
     }
   };
 
-  // 送信処理
   document.getElementById('submitBtn').onclick = async () => {
     if (!selectedEvent) return alert("カレンダーから予定を選択してください");
     if (!selectedReason) return alert("理由を選択してください");
@@ -402,6 +383,7 @@
         email: currentUser.email,
         eventTitle: selectedEvent.title,
         eventDate: selectedEvent.date,
+        timeText: selectedEvent.timeText || "",
         year: selectedEvent.year || "令和6年度",
         status: currentStatus,
         reason: selectedReason,
