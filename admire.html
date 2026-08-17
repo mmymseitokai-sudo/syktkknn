@@ -20,11 +20,11 @@
         .cal-day:hover { background-color: #f1f2f6; }
         .cal-day.selected { background-color: #ffeaa7 !important; border: 2px solid #333; font-weight: bold; }
         
-        /* ★薄い色 ＋ 黒文字統一 */
+        /* 丸マーク */
         .circle-mark { width: 26px; height: 26px; line-height: 26px; border-radius: 50%; font-weight: bold; text-align: center; color: #222222; }
-        .circle-meeting { background-color: #ffb8c6; } /* 薄ピンク */
-        .circle-prep { background-color: #bbf2c8; }    /* 薄緑 */
-        .circle-other { background-color: #fff099; }   /* 薄黄色 */
+        .circle-meeting { background-color: #ffb8c6; }
+        .circle-prep { background-color: #bbf2c8; }
+        .circle-other { background-color: #fff099; }
 
         /* フォーム */
         .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; align-items: center; }
@@ -37,8 +37,11 @@
         table { width: 100%; border-collapse: collapse; white-space: nowrap; }
         th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 14px; }
         th { background-color: #333; color: white; }
+        
+        /* 状態ごとの色 */
         .status-absent { color: #ff4757; font-weight: bold; }
         .status-late { color: #ffa502; font-weight: bold; }
+        .status-leave { color: #8854d0; font-weight: bold; } /* 早退（紫） */
         
         #admin-content { display: none; }
         .login-btn { padding: 15px 30px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; }
@@ -120,7 +123,7 @@
                             <th>イベント名</th>
                             <th>状態</th>
                             <th>理由</th>
-                            <th>到着予定</th>
+                            <th>詳細/時刻</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -269,14 +272,27 @@
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        
+        let statusClass = "status-absent";
+        if (data.status === "遅刻") statusClass = "status-late";
+        else if (data.status === "早退") statusClass = "status-leave";
+
+        // 詳細（遅刻時間 or 早退時間）
+        let timeDetail = "-";
+        if (data.status === "遅刻") {
+          timeDetail = `到着: ${data.arrival || "未定"}`;
+        } else if (data.status === "早退") {
+          timeDetail = `早退: ${data.leaveTime || "未入力"}`;
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${data.name}</strong></td>
           <td>${data.eventDate || '-'} <small>(${data.timeText || ''})</small></td>
           <td>${data.eventTitle}</td>
-          <td class="${data.status === '欠席' ? 'status-absent' : 'status-late'}">${data.status}</td>
+          <td class="${statusClass}">${data.status}</td>
           <td>${data.reason === 'その他' ? data.otherReason : data.reason}</td>
-          <td>${data.arrival || "-"}</td>
+          <td>${timeDetail}</td>
         `;
         tbody.appendChild(tr);
       });
