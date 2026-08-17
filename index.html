@@ -14,7 +14,7 @@
         .user-badge { background: #f1f2f6; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
         .change-name-link { font-size: 12px; color: #1e90ff; text-decoration: underline; cursor: pointer; }
 
-        /* カレンダー全体のスタイル */
+        /* カレンダー */
         .calendar-box { border: 2px solid #333; border-radius: 12px; padding: 10px; margin-bottom: 15px; background: #fff; }
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 18px; }
         .cal-nav button { background: none; border: 1px solid #333; border-radius: 5px; padding: 4px 10px; cursor: pointer; font-weight: bold; }
@@ -23,20 +23,18 @@
         .cal-head.sun { color: #ff4757; }
         .cal-head.sat { color: #1e90ff; }
         
-        /* 日付マス */
         .cal-day { min-height: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; border-radius: 6px; cursor: default; position: relative; }
         .cal-day.other-month { color: #ccc; }
         .cal-day.selectable { cursor: pointer; }
         .cal-day.selectable:hover { background-color: #f1f2f6; }
         .cal-day.selected { background-color: #ffeaa7 !important; border: 2px solid #333 !important; }
 
-        /* パステルカラー ＋ 黒文字 */
+        /* パステルカラー丸マーク */
         .circle-mark { width: 30px; height: 30px; line-height: 30px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; color: #222222; }
         .circle-meeting { background-color: #ffb8c6; }
         .circle-prep { background-color: #bbf2c8; }
         .circle-other { background-color: #fff099; }
 
-        /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: 10px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc; font-weight: bold; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
@@ -44,11 +42,14 @@
         .dot.prep { background-color: #bbf2c8; border: 1px solid #7fe59c; }
         .dot.other { background-color: #fff099; border: 1px solid #ffd747; }
 
-        /* 選択中のイベント表示カード */
         .selected-event-card { background: #fdfbf7; border: 2px dashed #333; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; }
         .selected-event-title { font-size: 16px; font-weight: bold; margin-top: 4px; }
 
-        /* ★3つのステータスボタン */
+        /* 送信済みバナー */
+        .already-sent-box { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; text-align: center; }
+        .cancel-btn { background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 8px; }
+
+        /* フォームパーツ */
         .status-group { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
         .btn-status { flex: 1; padding: 12px 5px; border: 2px solid #333; border-radius: 10px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 15px; }
         .btn-status.active { background: #333; color: white; }
@@ -92,11 +93,7 @@
             </div>
             <div class="cal-grid">
                 <div class="cal-head sun">日</div>
-                <div class="cal-head">月</div>
-                <div class="cal-head">火</div>
-                <div class="cal-head">水</div>
-                <div class="cal-head">木</div>
-                <div class="cal-head">金</div>
+                <div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div>
                 <div class="cal-head sat">土</div>
             </div>
             <div class="cal-grid" id="calDaysContainer" style="margin-top: 4px;"></div>
@@ -113,8 +110,14 @@
             <div class="selected-event-title" id="selectedEventTitle">予定が未選択です</div>
         </div>
 
+        <!-- 既に連絡送信済みの場合のメッセージと取消ボタン -->
+        <div id="alreadySentBox" class="already-sent-box" style="display:none;">
+            <div>📌 あなたはこの予定に連絡済みです：<strong id="sentStatusText"></strong></div>
+            <button class="cancel-btn" id="cancelReportBtn">🗑️ この連絡を取り消す（削除）</button>
+        </div>
+
+        <!-- 入力フォーム -->
         <div id="formSection" style="opacity: 0.4; pointer-events: none;">
-            <!-- ★欠席・遅刻・早退の3つボタン -->
             <div class="status-group">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
                 <div class="btn-status" id="btnLate">遅刻</div>
@@ -125,7 +128,6 @@
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
-            <!-- 遅刻の場合 -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定（遅刻の場合）</div>
                 <div style="display: flex; gap: 10px;">
@@ -134,7 +136,6 @@
                 </div>
             </div>
 
-            <!-- ★早退の場合 -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
                 <input type="time" id="leaveTime" style="width: 100%;">
@@ -148,7 +149,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
@@ -166,10 +167,12 @@
 
   let currentUser = null;
   let userData = null;
-  let currentStatus = "欠席"; // 欠席, 遅刻, 早退
+  let currentStatus = "欠席";
   let selectedReason = "";
   let allEvents = [];
+  let allReports = [];
   let selectedEvent = null;
+  let existingReport = null;
   let viewDate = new Date();
 
   function showScreen(screenId) {
@@ -223,6 +226,7 @@
     document.getElementById('displayName').innerText = userData.name || "";
     showScreen('app-content');
     loadEvents();
+    loadReports();
   }
 
   function loadEvents() {
@@ -233,6 +237,17 @@
         allEvents.push({ id: docSnap.id, ...docSnap.data() });
       });
       renderCalendar();
+    });
+  }
+
+  function loadReports() {
+    const q = query(collection(db, "reports"));
+    onSnapshot(q, (snapshot) => {
+      allReports = [];
+      snapshot.forEach(docSnap => {
+        allReports.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      if (selectedEvent) checkExistingReport();
     });
   }
 
@@ -313,14 +328,48 @@
       <div class="selected-event-title">${ev.date} (${ev.timeText || '時間指定なし'})<br>${ev.title}</div>
     `;
 
-    const formSection = document.getElementById('formSection');
-    formSection.style.opacity = "1";
-    formSection.style.pointerEvents = "auto";
-
+    checkExistingReport();
     updateStatusUI();
   }
 
-  // 理由ボタンの表示
+  // 送信済み連絡のチェック
+  function checkExistingReport() {
+    if (!selectedEvent || !currentUser) return;
+    existingReport = allReports.find(r => r.eventDate === selectedEvent.date && r.email === currentUser.email);
+
+    const alreadyBox = document.getElementById('alreadySentBox');
+    const formSection = document.getElementById('formSection');
+
+    if (existingReport) {
+      alreadyBox.style.display = 'block';
+      let detail = existingReport.status;
+      if (existingReport.status === '遅刻') detail += ` (${existingReport.arrival || ''})`;
+      if (existingReport.status === '早退') detail += ` (${existingReport.leaveTime || ''})`;
+      detail += ` - 理由: ${existingReport.reason}`;
+      document.getElementById('sentStatusText').innerText = detail;
+
+      formSection.style.opacity = "0.4";
+      formSection.style.pointerEvents = "none";
+    } else {
+      alreadyBox.style.display = 'none';
+      formSection.style.opacity = "1";
+      formSection.style.pointerEvents = "auto";
+    }
+  }
+
+  // 連絡取り消し（削除）処理
+  document.getElementById('cancelReportBtn').onclick = async () => {
+    if (!existingReport) return;
+    if (!confirm("この予定への連絡を取り消しますか？")) return;
+
+    try {
+      await deleteDoc(doc(db, "reports", existingReport.id));
+      alert("連絡を取り消しました！");
+    } catch (e) {
+      alert("削除エラー: " + e.message);
+    }
+  };
+
   function updateReasons() {
     if (!selectedEvent) return;
     const category = selectedEvent.category || "ミーティング";
@@ -359,7 +408,6 @@
     });
   }
 
-  // 欠席・遅刻・早退の切り替え
   document.getElementById('btnAbsent').onclick = () => { currentStatus = "欠席"; updateStatusUI(); };
   document.getElementById('btnLate').onclick = () => { currentStatus = "遅刻"; updateStatusUI(); };
   document.getElementById('btnLeave').onclick = () => { currentStatus = "早退"; updateStatusUI(); };
