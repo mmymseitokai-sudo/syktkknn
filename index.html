@@ -8,77 +8,82 @@
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
         .app-container { background: white; width: 100%; max-width: 400px; border: 2px solid #333; border-radius: 20px; padding: 20px; box-shadow: 5px 5px 0px #333; }
         .calendar-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: bold; }
-        .info-text { font-size: 16px; margin-bottom: 15px; font-weight: bold; }
+        .info-text { font-size: 14px; margin-bottom: 8px; font-weight: bold; }
         .btn-status { width: 48%; padding: 15px; border: 2px solid #333; border-radius: 10px; background: white; font-weight: bold; cursor: pointer; display: inline-block; text-align: center; box-sizing: border-box; margin-bottom: 15px; }
         .btn-status.active { background: #333; color: white; }
-        .reason-title { font-size: 14px; margin-bottom: 8px; font-weight: bold; }
-        .reason-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-        .chip { padding: 8px 15px; border: 1px solid #333; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; }
+        .chip { padding: 8px 12px; border: 1px solid #333; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; margin-bottom: 8px; display: inline-block; }
         .chip.active { background: #333; color: white; }
-        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
-        .submit-btn, .login-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; margin-top: 20px; cursor: pointer; }
-        .login-btn { background: #4285F4; }
-        .hidden { display: none !important; }
-        #app-content { display: none; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
+        .submit-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; margin-top: 10px; cursor: pointer; }
+        .next-btn { width: 100%; padding: 15px; background: #2ed573; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; margin-top: 10px; cursor: pointer; }
+        .login-btn { width: 100%; padding: 15px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        
+        .screen { display: none; }
+        .user-badge { background: #f1f2f6; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
+        .change-name-link { font-size: 12px; color: #1e90ff; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="calendar-header">連絡フォーム</div>
+    <div class="calendar-header" id="headerTitle">欠席連絡フォーム</div>
 
-    <!-- ログイン画面 -->
-    <div id="login-screen">
-        <p style="text-align: center;">Googleアカウントで<br>ログインしてください。</p>
-        <button class="login-btn" id="loginBtn">ログインする</button>
+    <!-- 画面1: ログイン画面 -->
+    <div id="login-screen" class="screen" style="display: block; text-align: center;">
+        <p style="margin-bottom: 25px; color: #555;">Googleアカウントで<br>ログインしてください。</p>
+        <button class="login-btn" id="loginBtn">Googleでログイン</button>
     </div>
 
-    <!-- 入力画面 -->
-    <div id="app-content">
-        <p id="userNameDisplay" style="text-align: right; font-size: 12px; color: #666; margin-top: 0;"></p>
+    <!-- 画面2: 名前登録画面（初回のみ） -->
+    <div id="profile-screen" class="screen">
+        <p style="font-size: 14px; color: #666; margin-bottom: 15px;">初回登録です。あなたのお名前を入力してください。</p>
+        <div class="info-text">お名前（フルネーム）</div>
+        <input type="text" id="regName" placeholder="例：山田 太郎">
         
-        <div class="info-text">
-            あなたのお名前<br>
-            <input type="text" id="userNameKanji" placeholder="漢字（例：山田 太郎）" style="margin-top: 5px;">
-            <input type="text" id="userNameKana" placeholder="ふりがな（例：やまだ たろう）">
+        <button class="next-btn" id="saveProfileBtn">登録して次へ進む</button>
+    </div>
+
+    <!-- 画面3: 欠席連絡画面 -->
+    <div id="app-content" class="screen">
+        <!-- ログイン中の名前表示バッジ -->
+        <div class="user-badge">
+            <div>
+                <strong><span id="displayName"></span></strong> さん
+            </div>
+            <span class="change-name-link" id="editProfileBtn">名前変更</span>
         </div>
 
-        <div class="info-text">
-            イベント種類：<br>
-            <select id="eventType">
-                <option value="ミーティング">ミーティング</option>
-                <option value="文化祭準備">文化祭準備</option>
-            </select>
-        </div>
+        <div class="info-text">対象の活動予定を選択</div>
+        <select id="eventSelect">
+            <option value="">予定を読み込み中...</option>
+        </select>
 
         <div style="display: flex; justify-content: space-between;">
             <div class="btn-status active" id="btnAbsent">欠席</div>
             <div class="btn-status" id="btnLate">遅刻</div>
         </div>
 
-        <div class="reason-title">理由</div>
-        <div class="reason-chips" id="reasonContainer"></div>
+        <div class="info-text">理由</div>
+        <div id="reasonContainer"></div>
+        <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
-        <input type="text" id="otherReason" class="hidden" placeholder="「その他」の理由を入力">
-
-        <div id="arrivalSection" class="hidden">
-            <div class="reason-title">到着予定時刻</div>
+        <div id="arrivalSection" style="display:none;">
+            <div class="info-text">到着予定（遅刻の場合）</div>
             <div style="display: flex; gap: 10px;">
-                <input type="number" id="arriveMin" placeholder="何分後？" style="width: 50%;">
-                <div class="chip" id="btnUndecided" style="width: 50%; text-align: center; box-sizing: border-box;">未定</div>
+                <input type="number" id="arriveMin" placeholder="分後" style="width: 60%;">
+                <div class="chip" id="btnUndecided" style="width: 35%; text-align: center; box-sizing: border-box;">未定</div>
             </div>
         </div>
 
-        <button class="submit-btn" id="submitBtn">報告する</button>
+        <button class="submit-btn" id="submitBtn">報告を送信する</button>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-  // 提供いただいたFirebase設定
   const firebaseConfig = {
     apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
     authDomain: "kesseki-appointment.firebaseapp.com",
@@ -94,140 +99,179 @@
   const db = getFirestore(app);
 
   let currentUser = null;
-  let currentStatus = "欠席"; 
+  let userData = null;
+  let currentStatus = "欠席";
   let selectedReason = "";
+  let eventsData = {};
 
-  // 端末に保存された名前を復元
-  const savedKanji = localStorage.getItem('userKanji');
-  const savedKana = localStorage.getItem('userKana');
-  if(savedKanji) document.getElementById('userNameKanji').value = savedKanji;
-  if(savedKana) document.getElementById('userNameKana').value = savedKana;
+  function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+    document.getElementById(screenId).style.display = 'block';
+  }
 
-  document.getElementById('loginBtn').addEventListener('click', () => {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).catch(error => alert("ログインエラー: " + error.message));
-  });
+  document.getElementById('loginBtn').onclick = () => {
+    signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
+  };
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app-content').style.display = 'block';
-      document.getElementById('userNameDisplay').innerText = `ログイン中: ${user.email}`;
-      updateReasons();
+      checkUserProfile();
+    } else {
+      showScreen('login-screen');
     }
   });
 
-  function updateReasons() {
-    const eventType = document.getElementById('eventType').value;
-    let reasons = [];
-    if (eventType === "ミーティング") {
-        reasons = currentStatus === "欠席" ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"];
-    } else {
-        reasons = currentStatus === "欠席" ? ["体調不良", "部活動", "家庭の用事", "その他"] : ["部活動", "家庭の用事", "その他"];
+  async function checkUserProfile() {
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (docSnap.exists()) {
+        userData = docSnap.data();
+        showAppContent();
+      } else {
+        showScreen('profile-screen');
+      }
+    } catch (e) {
+      alert("ユーザー情報の確認に失敗しました: " + e.message);
     }
+  }
+
+  // 名前登録（フルネーム1つだけ）
+  document.getElementById('saveProfileBtn').onclick = async () => {
+    const name = document.getElementById('regName').value.trim();
+
+    if (!name) return alert("お名前を入力してください");
+
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      userData = {
+        name: name,
+        email: currentUser.email,
+        updatedAt: serverTimestamp()
+      };
+      await setDoc(userDocRef, userData);
+      showAppContent();
+    } catch (e) {
+      alert("登録エラー: " + e.message);
+    }
+  };
+
+  // 名前変更リンク
+  document.getElementById('editProfileBtn').onclick = () => {
+    document.getElementById('regName').value = userData.name || userData.kanjiName || "";
+    showScreen('profile-screen');
+  };
+
+  function showAppContent() {
+    document.getElementById('displayName').innerText = userData.name || userData.kanjiName || "";
+    showScreen('app-content');
+    loadEvents();
+    updateStatusUI();
+  }
+
+  function loadEvents() {
+    const q = query(collection(db, "events"), orderBy("date", "desc"));
+    onSnapshot(q, (snapshot) => {
+      const select = document.getElementById('eventSelect');
+      select.innerHTML = '<option value="">予定を選択してください</option>';
+      eventsData = {};
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const option = document.createElement('option');
+        const dateShort = data.date ? data.date.replace('T', ' ') : "";
+        option.value = data.title;
+        option.innerText = `[${data.category}] ${dateShort} - ${data.title}`;
+        select.appendChild(option);
+        eventsData[data.title] = { category: data.category, year: data.year };
+      });
+    });
+  }
+
+  function updateReasons() {
+    const ev = document.getElementById('eventSelect').value;
+    const category = eventsData[ev] ? eventsData[ev].category : "ミーティング";
+
+    let reasons = (category === "ミーティング")
+        ? (currentStatus === "欠席" ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"])
+        : (currentStatus === "欠席" ? ["体調不良", "部活動", "家庭の用事", "その他"] : ["部活動", "家庭の用事", "その他"]);
 
     const container = document.getElementById('reasonContainer');
     container.innerHTML = "";
     selectedReason = "";
-    document.getElementById('otherReason').classList.add('hidden');
+    document.getElementById('otherReason').style.display = "none";
 
-    reasons.forEach(reason => {
-        const div = document.createElement('div');
-        div.className = 'chip';
-        div.innerText = reason;
-        div.onclick = () => {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            div.classList.add('active');
-            selectedReason = reason;
-            if (reason === "その他") {
-                document.getElementById('otherReason').classList.remove('hidden');
-            } else {
-                document.getElementById('otherReason').classList.add('hidden');
-            }
-        };
-        container.appendChild(div);
+    reasons.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.innerText = r;
+      div.onclick = () => {
+        document.querySelectorAll('#reasonContainer .chip').forEach(c => c.classList.remove('active'));
+        div.classList.add('active');
+        selectedReason = r;
+        document.getElementById('otherReason').style.display = (r === "その他") ? "block" : "none";
+      };
+      container.appendChild(div);
     });
   }
 
-  document.getElementById('btnAbsent').onclick = (e) => {
-      currentStatus = "欠席";
-      e.target.classList.add('active');
-      document.getElementById('btnLate').classList.remove('active');
-      document.getElementById('arrivalSection').classList.add('hidden');
-      updateReasons();
-  };
-  
-  document.getElementById('btnLate').onclick = (e) => {
-      currentStatus = "遅刻";
-      e.target.classList.add('active');
-      document.getElementById('btnAbsent').classList.remove('active');
-      document.getElementById('arrivalSection').classList.remove('hidden');
-      updateReasons();
-  };
+  document.getElementById('eventSelect').onchange = updateReasons;
 
-  document.getElementById('eventType').onchange = updateReasons;
+  document.getElementById('btnAbsent').onclick = () => { currentStatus = "欠席"; updateStatusUI(); };
+  document.getElementById('btnLate').onclick = () => { currentStatus = "遅刻"; updateStatusUI(); };
+
+  function updateStatusUI() {
+    document.getElementById('btnAbsent').className = currentStatus === "欠席" ? "btn-status active" : "btn-status";
+    document.getElementById('btnLate').className = currentStatus === "遅刻" ? "btn-status active" : "btn-status";
+    document.getElementById('arrivalSection').style.display = currentStatus === "遅刻" ? "block" : "none";
+    updateReasons();
+  }
 
   document.getElementById('btnUndecided').onclick = (e) => {
-      e.target.classList.toggle('active');
-      const inputMin = document.getElementById('arriveMin');
-      if(e.target.classList.contains('active')) {
-          inputMin.value = "";
-          inputMin.disabled = true;
-      } else {
-          inputMin.disabled = false;
-      }
+    e.target.classList.toggle('active');
+    const inputMin = document.getElementById('arriveMin');
+    if (e.target.classList.contains('active')) {
+      inputMin.value = "";
+      inputMin.disabled = true;
+    } else {
+      inputMin.disabled = false;
+    }
   };
 
   document.getElementById('submitBtn').onclick = async () => {
-      const kanji = document.getElementById('userNameKanji').value;
-      const kana = document.getElementById('userNameKana').value;
-      const eventType = document.getElementById('eventType').value;
-      const otherText = document.getElementById('otherReason').value;
+    const eventTitle = document.getElementById('eventSelect').value;
+    if (!eventTitle) return alert("予定を選択してください");
+    if (!selectedReason) return alert("理由を選択してください");
+    
+    const otherText = document.getElementById('otherReason').value;
+    if (selectedReason === "その他" && !otherText) return alert("その他の具体的な理由を入力してください");
 
-      // 入力チェック（バリデーション）
-      if(!kanji || !kana) return alert("お名前（漢字とふりがな）を入力してください");
-      if(!selectedReason) return alert("理由を選択してください");
-      if(selectedReason === "その他" && !otherText) return alert("その他の理由を入力してください");
-      
-      let arrivalInfo = "";
-      if(currentStatus === "遅刻") {
-          const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
-          const min = document.getElementById('arriveMin').value;
-          if(!isUndecided && !min) return alert("到着予定時刻を入力するか、未定を選択してください");
-          arrivalInfo = isUndecided ? "未定" : `${min}分後`;
-      }
+    let arrivalInfo = "";
+    if (currentStatus === "遅刻") {
+      const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
+      const min = document.getElementById('arriveMin').value;
+      if (!isUndecided && !min) return alert("到着予定時刻（分後）を入力するか、未定を選択してください");
+      arrivalInfo = isUndecided ? "未定" : `${min}分後`;
+    }
 
-      // 送信ボタンを連打できないようにする
-      document.getElementById('submitBtn').innerText = "送信中...";
-      document.getElementById('submitBtn').disabled = true;
-
-      try {
-          await addDoc(collection(db, "reports"), {
-              kanjiName: kanji,
-              kanaName: kana,
-              email: currentUser.email,
-              eventType: eventType,
-              status: currentStatus,
-              reason: selectedReason,
-              otherReason: otherText,
-              arrival: arrivalInfo,
-              timestamp: serverTimestamp()
-          });
-
-          // 次回入力が楽になるように名前を保存
-          localStorage.setItem('userKanji', kanji);
-          localStorage.setItem('userKana', kana);
-
-          // ★ 送信完了のポップアップを表示し、画面をリロード（初期状態に戻す）
-          alert("送信が完了しました！");
-          location.reload();
-
-      } catch (e) {
-          alert("送信エラー: Firebaseの設定を確認してください。\n" + e.message);
-          document.getElementById('submitBtn').innerText = "報告する";
-          document.getElementById('submitBtn').disabled = false;
-      }
+    try {
+      await addDoc(collection(db, "reports"), {
+        name: userData.name || userData.kanjiName,
+        email: currentUser.email,
+        eventTitle: eventTitle,
+        year: eventsData[eventTitle] ? eventsData[eventTitle].year : "令和6年度",
+        status: currentStatus,
+        reason: selectedReason,
+        otherReason: otherText,
+        arrival: arrivalInfo,
+        timestamp: serverTimestamp()
+      });
+      alert("送信が完了しました！");
+      location.reload();
+    } catch (e) {
+      alert("送信エラー: " + e.message);
+    }
   };
 </script>
 </body>
