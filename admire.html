@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者画面 - 欠席連絡一覧</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .admin-container { background: white; max-width: 800px; margin: 0 auto; border: 2px solid #333; border-radius: 10px; padding: 20px; box-shadow: 5px 5px 0px #333; }
+        h1 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        
+        /* 絞り込み部分 */
+        .filter-section { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        select { padding: 10px; border: 1px solid #333; border-radius: 5px; font-size: 16px; flex: 1; min-width: 150px; }
+        
+        /* テーブル（表）部分 */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; white-space: nowrap; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+        th { background-color: #333; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        /* 文字色 */
+        .status-absent { color: #ff4757; font-weight: bold; }
+        .status-late { color: #ffa502; font-weight: bold; }
+        
+        .login-btn { padding: 15px 30px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; display: block; margin: 20px auto; }
+        #admin-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h1>連絡一覧（管理者用）</h1>
+
+    <!-- ログイン画面 -->
+    <div id="login-screen">
+        <p style="text-align: center;">管理者アカウント（Google）でログインしてください。</p>
+        <button class="login-btn" id="loginBtn">ログインする</button>
+    </div>
+
+    <!-- 一覧画面 -->
+    <div id="admin-content">
+        <div class="filter-section">
+            <select id="filterEvent">
+                <option value="すべて">すべてのイベント</option>
+                <option value="ミーティング">ミーティングのみ</option>
+                <option value="文化祭準備">文化祭準備のみ</option>
+            </select>
+            <select id="filterStatus">
+                <option value="すべて">欠席・遅刻すべて</option>
+                <option value="欠席">欠席のみ</option>
+                <option value="遅刻">遅刻のみ</option>
+            </select>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>送信日時</th>
+                        <th>名前</th>
+                        <th>イベント</th>
+                        <th>状態</th>
+                        <th>理由</th>
+                        <th>到着予定</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- ここにデータが自動で入ります -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
+    authDomain: "kesseki-appointment.firebaseapp.com",
+    projectId: "kesseki-appointment",
+    storageBucket: "kesseki-appointment.firebasestorage.app",
+    messagingSenderId: "1043634407845",
+    appId: "1:1043634407845:web:4a0f7bd36079dd6858c04c",
+    measurementId: "G-H6BWPXJTFQ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allReports = [];
+
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(error => alert("ログインエラー: " + error.message));
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-content').style.display = 'block';
+      fetchData(); // ログインしたらデータ取得を開始
+    }
+  });
+
+  // データベースからデータを取ってくる（リアルタイム更新）
+  function fetchData() {
+      const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+          allReports = [];
+          snapshot.forEach((doc) => {
+              allReports.push(doc.data());
+          });
+          renderTable();
+      });
+  }
+
+  // テーブル（表）を作る処理
+  function renderTable() {
+      const filterEvent = document.getElementById('filterEvent').value;
+      const filterStatus = document.getElementById('filterStatus').value;
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = "";
+
+      allReports.forEach(data => {
+          // 絞り込み
+          if(filterEvent !== "すべて" && data.eventType !== filterEvent) return;
+          if(filterStatus !== "すべて" && data.status !== filterStatus) return;
+
+          // 日時の整理
+          let dateStr = "不明";
+          if(data.timestamp) {
+              const d = data.timestamp.toDate();
+              dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+          }
+
+          // 文字の色と理由の整理
+          const statusClass = data.status === "欠席" ? "status-absent" : "status-late";
+          const reasonText = data.reason === "その他" ? `その他 (${data.otherReason})` : data.reason;
+
+          // 行を追加
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+              <td>${dateStr}</td>
+              <td>${data.kanjiName || "不明"}<br><span style="font-size:12px; color:#666;">${data.kanaName || ""}</span></td>
+              <td>${data.eventType}</td>
+              <td class="${statusClass}">${data.status}</td>
+              <td>${reasonText}</td>
+              <td>${data.arrival || "-"}</td>
+          `;
+          tbody.appendChild(tr);
+      });
+  }
+
+  // 絞り込み条件が変わったら、表を作り直す
+  document.getElementById('filterEvent').addEventListener('change', renderTable);
+  document.getElementById('filterStatus').addEventListener('change', renderTable);
+
+</script>
+</body>
+</html>
