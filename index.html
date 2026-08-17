@@ -30,11 +30,11 @@
         .cal-day.selectable:hover { background-color: #f1f2f6; }
         .cal-day.selected { background-color: #ffeaa7 !important; border: 2px solid #333 !important; }
 
-        /* ★薄い色 ＋ 黒文字統一 */
+        /* パステルカラー ＋ 黒文字 */
         .circle-mark { width: 30px; height: 30px; line-height: 30px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; color: #222222; }
-        .circle-meeting { background-color: #ffb8c6; } /* 薄ピンク */
-        .circle-prep { background-color: #bbf2c8; }    /* 薄緑 */
-        .circle-other { background-color: #fff099; }   /* 薄黄色 */
+        .circle-meeting { background-color: #ffb8c6; }
+        .circle-prep { background-color: #bbf2c8; }
+        .circle-other { background-color: #fff099; }
 
         /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: 10px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #ccc; font-weight: bold; flex-wrap: wrap; }
@@ -48,9 +48,11 @@
         .selected-event-card { background: #fdfbf7; border: 2px dashed #333; border-radius: 8px; padding: 10px; margin-bottom: 15px; text-align: center; }
         .selected-event-title { font-size: 16px; font-weight: bold; margin-top: 4px; }
 
-        /* フォームパーツ */
-        .btn-status { width: 48%; padding: 12px; border: 2px solid #333; border-radius: 10px; background: white; font-weight: bold; cursor: pointer; display: inline-block; text-align: center; box-sizing: border-box; margin-bottom: 12px; }
+        /* ★3つのステータスボタン */
+        .status-group { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
+        .btn-status { flex: 1; padding: 12px 5px; border: 2px solid #333; border-radius: 10px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 15px; }
         .btn-status.active { background: #333; color: white; }
+
         .chip { padding: 8px 12px; border: 1px solid #333; border-radius: 20px; font-size: 13px; background: white; cursor: pointer; margin-bottom: 8px; display: inline-block; }
         .chip.active { background: #333; color: white; }
         input { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; margin-bottom: 12px; font-size: 15px; }
@@ -112,21 +114,30 @@
         </div>
 
         <div id="formSection" style="opacity: 0.4; pointer-events: none;">
-            <div style="display: flex; justify-content: space-between;">
+            <!-- ★欠席・遅刻・早退の3つボタン -->
+            <div class="status-group">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
                 <div class="btn-status" id="btnLate">遅刻</div>
+                <div class="btn-status" id="btnLeave">早退</div>
             </div>
 
             <div class="info-text">理由</div>
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
+            <!-- 遅刻の場合 -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定（遅刻の場合）</div>
                 <div style="display: flex; gap: 10px;">
                     <input type="number" id="arriveMin" placeholder="分後" style="width: 60%;">
                     <div class="chip" id="btnUndecided" style="width: 35%; text-align: center; box-sizing: border-box;">未定</div>
                 </div>
+            </div>
+
+            <!-- ★早退の場合 -->
+            <div id="leaveSection" style="display:none;">
+                <div class="info-text">早退予定時刻</div>
+                <input type="time" id="leaveTime" style="width: 100%;">
             </div>
 
             <button class="submit-btn" id="submitBtn">報告を送信する</button>
@@ -155,7 +166,7 @@
 
   let currentUser = null;
   let userData = null;
-  let currentStatus = "欠席";
+  let currentStatus = "欠席"; // 欠席, 遅刻, 早退
   let selectedReason = "";
   let allEvents = [];
   let selectedEvent = null;
@@ -309,17 +320,24 @@
     updateStatusUI();
   }
 
+  // 理由ボタンの表示
   function updateReasons() {
     if (!selectedEvent) return;
     const category = selectedEvent.category || "ミーティング";
 
     let reasons = [];
     if (category === "ミーティング") {
-        reasons = (currentStatus === "欠席") ? ["体調不良", "部活動", "委員会", "その他"] : ["部活動", "委員会", "その他"];
+        reasons = (currentStatus === "欠席" || currentStatus === "早退")
+            ? ["体調不良", "部活動", "委員会", "その他"]
+            : ["部活動", "委員会", "その他"];
     } else if (category === "文化祭準備") {
-        reasons = (currentStatus === "欠席") ? ["体調不良", "部活動", "家庭の用事", "その他"] : ["部活動", "家庭の用事", "その他"];
+        reasons = (currentStatus === "欠席" || currentStatus === "早退")
+            ? ["体調不良", "部活動", "家庭の用事", "その他"]
+            : ["部活動", "家庭の用事", "その他"];
     } else {
-        reasons = (currentStatus === "欠席") ? ["体調不良", "部活動", "家庭の用事", "委員会", "その他"] : ["部活動", "家庭の用事", "委員会", "その他"];
+        reasons = (currentStatus === "欠席" || currentStatus === "早退")
+            ? ["体調不良", "部活動", "家庭の用事", "委員会", "その他"]
+            : ["部活動", "家庭の用事", "委員会", "その他"];
     }
 
     const container = document.getElementById('reasonContainer');
@@ -341,13 +359,19 @@
     });
   }
 
+  // 欠席・遅刻・早退の切り替え
   document.getElementById('btnAbsent').onclick = () => { currentStatus = "欠席"; updateStatusUI(); };
   document.getElementById('btnLate').onclick = () => { currentStatus = "遅刻"; updateStatusUI(); };
+  document.getElementById('btnLeave').onclick = () => { currentStatus = "早退"; updateStatusUI(); };
 
   function updateStatusUI() {
     document.getElementById('btnAbsent').className = currentStatus === "欠席" ? "btn-status active" : "btn-status";
     document.getElementById('btnLate').className = currentStatus === "遅刻" ? "btn-status active" : "btn-status";
+    document.getElementById('btnLeave').className = currentStatus === "早退" ? "btn-status active" : "btn-status";
+
     document.getElementById('arrivalSection').style.display = currentStatus === "遅刻" ? "block" : "none";
+    document.getElementById('leaveSection').style.display = currentStatus === "早退" ? "block" : "none";
+
     updateReasons();
   }
 
@@ -362,6 +386,7 @@
     }
   };
 
+  // 送信処理
   document.getElementById('submitBtn').onclick = async () => {
     if (!selectedEvent) return alert("カレンダーから予定を選択してください");
     if (!selectedReason) return alert("理由を選択してください");
@@ -370,11 +395,17 @@
     if (selectedReason === "その他" && !otherText) return alert("その他の具体的な理由を入力してください");
 
     let arrivalInfo = "";
+    let leaveInfo = "";
+
     if (currentStatus === "遅刻") {
       const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
       const min = document.getElementById('arriveMin').value;
       if (!isUndecided && !min) return alert("到着予定時刻（分後）を入力するか、未定を選択してください");
       arrivalInfo = isUndecided ? "未定" : `${min}分後`;
+    } else if (currentStatus === "早退") {
+      const lTime = document.getElementById('leaveTime').value;
+      if (!lTime) return alert("早退予定時刻を入力してください");
+      leaveInfo = `${lTime}頃`;
     }
 
     try {
@@ -389,6 +420,7 @@
         reason: selectedReason,
         otherReason: otherText,
         arrival: arrivalInfo,
+        leaveTime: leaveInfo,
         timestamp: serverTimestamp()
       });
       alert("送信が完了しました！");
