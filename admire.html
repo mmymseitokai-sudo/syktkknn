@@ -3,134 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理者画面 - 予定作成と連絡確認</title>
+    <title>生徒会 管理者ポータル</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
-        .admin-container { background: white; max-width: 900px; margin: 0 auto; border: 2px solid #333; border-radius: 12px; padding: 20px; box-shadow: 5px 5px 0px #333; box-sizing: border-box; }
-        h1, h2 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
-        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; background: #fafafa; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .admin-container { background: white; width: 100%; max-width: 800px; border: 2px solid #333; border-radius: 15px; padding: 20px; box-shadow: 5px 5px 0px #333; box-sizing: border-box; }
         
-        /* カレンダー */
-        .cal-box { background: #fff; border: 2px solid #333; border-radius: 8px; padding: 10px; max-width: 400px; margin: 0 auto 20px auto; }
+        .screen { display: none; }
+        h1, h2 { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 0; }
+        
+        /* 共通ボタン */
+        .btn-back { background: none; border: 1px solid #333; border-radius: 6px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; }
+        .btn-back:hover { background: #eee; }
+        
+        /* ホーム画面メニュー */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .menu-card { border: 2px solid #333; border-radius: 12px; padding: 30px 15px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 3px 3px 0px #333; background: #fafafa; }
+        .menu-card:hover { transform: translateY(-3px); background: #fff; }
+        .menu-icon { font-size: 36px; margin-bottom: 10px; }
+        .menu-title { font-size: 18px; font-weight: bold; }
+
+        /* カレンダー共通 */
+        .cal-box { background: #fff; border: 2px solid #333; border-radius: 10px; padding: 10px; max-width: 420px; margin: 0 auto 15px auto; }
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; }
         .cal-nav button { background: none; border: 1px solid #333; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 4px; }
-        .cal-head { font-size: 12px; font-weight: bold; border-bottom: 1px solid #333; }
+        .cal-head { font-size: 12px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 3px; }
         .cal-day { min-height: 35px; display: flex; align-items: center; justify-content: center; font-size: 13px; border-radius: 4px; cursor: pointer; }
-        .cal-day:hover { background-color: #f1f2f6; }
-        .cal-day.selected { background-color: #ffeaa7 !important; border: 2px solid #333; font-weight: bold; }
+        .cal-day.selectable:hover { background-color: #f1f2f6; }
+        .cal-day.selected { background-color: #ffeaa7 !important; border: 2px solid #333 !important; font-weight: bold; }
         
-        /* 丸マーク */
+        /* パステルカラー丸マーク */
         .circle-mark { width: 26px; height: 26px; line-height: 26px; border-radius: 50%; font-weight: bold; text-align: center; color: #222222; }
         .circle-meeting { background-color: #ffb8c6; }
         .circle-prep { background-color: #bbf2c8; }
         .circle-other { background-color: #fff099; }
 
-        /* フォーム */
-        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; align-items: center; }
+        /* 追加画面フォーム */
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
         input, select { padding: 10px; border: 1px solid #333; border-radius: 5px; font-size: 15px; }
         .time-options { display: flex; gap: 15px; margin: 5px 0 10px 0; font-weight: bold; }
-        .add-btn { background: #2ed573; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .add-btn { width: 100%; background: #2ed573; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
 
-        /* テーブル */
-        .table-wrapper { overflow-x: auto; background: white; }
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 14px; }
-        th { background-color: #333; color: white; }
+        /* ★確認画面：2カラムレイアウト */
+        .board-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        @media (max-width: 600px) { .board-container { grid-template-columns: 1fr; } }
         
-        /* 状態ごとの色 */
-        .status-absent { color: #ff4757; font-weight: bold; }
-        .status-late { color: #ffa502; font-weight: bold; }
-        .status-leave { color: #8854d0; font-weight: bold; } /* 早退（紫） */
+        .board-card { border: 2px solid #333; border-radius: 10px; padding: 12px; background: #fff; min-height: 200px; }
+        .board-header { font-size: 16px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 6px; margin-bottom: 10px; text-align: center; }
         
-        #admin-content { display: none; }
-        .login-btn { padding: 15px 30px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; }
+        /* リストアイテム */
+        .report-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 6px; border-bottom: 1px dashed #ddd; font-size: 14px; }
+        .report-item:last-child { border-bottom: none; }
+        
+        /* [早] [遅] バッジ */
+        .badge-icon { width: 24px; height: 24px; line-height: 24px; border-radius: 50%; font-size: 12px; font-weight: bold; text-align: center; color: white; display: inline-block; margin-right: 6px; flex-shrink: 0; }
+        .badge-leave { background: #8854d0; } /* 早退（紫） */
+        .badge-late { background: #ffa502; }  /* 遅刻（オレンジ） */
+
+        .login-btn { padding: 15px 30px; background: #4285F4; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; display: block; margin: 30px auto; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div class="admin-container">
-    <h1>生徒会 管理者画面</h1>
 
-    <div id="login-screen">
+    <!-- ログイン画面 -->
+    <div id="login-screen" class="screen" style="display: block; text-align: center;">
+        <h1>生徒会 管理者ポータル</h1>
+        <p>Googleアカウントでログインしてください。</p>
         <button class="login-btn" id="loginBtn">管理者ログイン</button>
     </div>
 
-    <div id="admin-content">
-        <!-- 1. 予定追加 -->
-        <div class="section">
-            <h2>① 活動予定の追加</h2>
-            
-            <div class="cal-box">
-                <div style="font-size: 12px; color:#666; text-align:center; margin-bottom:5px;">カレンダーの日付をタップして選択できます</div>
-                <div class="cal-nav">
-                    <button id="prevMonthBtn">＜</button>
-                    <span id="calMonthDisplay">0月</span>
-                    <button id="nextMonthBtn">＞</button>
-                </div>
-                <div class="cal-grid">
-                    <div class="cal-head" style="color:#ff4757;">日</div>
-                    <div class="cal-head">月</div>
-                    <div class="cal-head">火</div>
-                    <div class="cal-head">水</div>
-                    <div class="cal-head">木</div>
-                    <div class="cal-head">金</div>
-                    <div class="cal-head" style="color:#1e90ff;">土</div>
-                </div>
-                <div class="cal-grid" id="calDaysContainer" style="margin-top: 4px;"></div>
+    <!-- 画面1: ホーム画面 -->
+    <div id="admin-home" class="screen">
+        <h1>生徒会 管理者メニュー</h1>
+        <div class="menu-grid">
+            <div class="menu-card" id="toAddScreenBtn">
+                <div class="menu-icon">📅</div>
+                <div class="menu-title">予定の追加</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">ミーティング等の日時作成</div>
             </div>
-
-            <!-- 予定作成フォーム -->
-            <div class="form-row">
-                <select id="eventYear">
-                    <option value="令和6年度">令和6年度</option>
-                    <option value="令和7年度">令和7年度</option>
-                </select>
-                <select id="eventCategory">
-                    <option value="ミーティング">🌸 ミーティング（ピンク）</option>
-                    <option value="文化祭準備">🌿 文化祭準備（緑）</option>
-                    <option value="その他">🍋 その他（黄色）</option>
-                </select>
-                <input type="date" id="selectedDateInput" required>
-                <input type="text" id="eventTitle" placeholder="予定タイトル（例：リハーサル、買い出し）" style="flex: 2; min-width: 200px;">
-            </div>
-
-            <div style="margin-bottom: 8px; font-weight: bold; font-size: 14px;">時間設定：</div>
-            <div class="time-options">
-                <label><input type="radio" name="timeType" value="custom" checked> 時間指定</label>
-                <label><input type="radio" name="timeType" value="lunch"> 昼休み</label>
-                <label><input type="radio" name="timeType" value="afterschool"> 放課後</label>
-            </div>
-
-            <div id="customTimeBox" class="form-row">
-                <input type="time" id="startTime" value="13:00">
-                <span>〜</span>
-                <input type="time" id="endTime" value="14:00">
-            </div>
-
-            <button class="add-btn" id="addEventBtn">この予定をカレンダーに登録</button>
-        </div>
-
-        <!-- 2. 連絡確認一覧 -->
-        <div class="section">
-            <h2>② 届いた連絡一覧</h2>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>名前</th>
-                            <th>予定日・時間</th>
-                            <th>イベント名</th>
-                            <th>状態</th>
-                            <th>理由</th>
-                            <th>詳細/時刻</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+            <div class="menu-card" id="toViewScreenBtn">
+                <div class="menu-icon">📋</div>
+                <div class="menu-title">連絡の確認</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">欠席・遅刻・早退の一覧</div>
             </div>
         </div>
     </div>
+
+    <!-- 画面2: 予定追加画面 -->
+    <div id="admin-add" class="screen">
+        <button class="btn-back" onclick="showScreen('admin-home')">← ホームに戻る</button>
+        <h2>活動予定の追加</h2>
+        
+        <!-- 追加用カレンダー -->
+        <div class="cal-box">
+            <div style="font-size: 12px; color:#666; text-align:center; margin-bottom:5px;">カレンダーの日付をタップして選択</div>
+            <div class="cal-nav">
+                <button onclick="changeMonth(-1, 'add')">＜</button>
+                <span id="addCalMonthDisplay">0月</span>
+                <button onclick="changeMonth(1, 'add')">＞</button>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-head" style="color:#ff4757;">日</div>
+                <div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div>
+                <div class="cal-head" style="color:#1e90ff;">土</div>
+            </div>
+            <div class="cal-grid" id="addCalDays" style="margin-top: 4px;"></div>
+        </div>
+
+        <div class="form-row">
+            <select id="eventYear" style="flex: 1;">
+                <option value="令和6年度">令和6年度</option>
+                <option value="令和7年度">令和7年度</option>
+            </select>
+            <select id="eventCategory" style="flex: 1;">
+                <option value="ミーティング">🌸 ミーティング（ピンク）</option>
+                <option value="文化祭準備">🌿 文化祭準備（緑）</option>
+                <option value="その他">🍋 その他（黄色）</option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <input type="date" id="selectedDateInput" required style="flex: 1;">
+            <input type="text" id="eventTitle" placeholder="タイトル（例：第1回全体MTG）" style="flex: 2;">
+        </div>
+
+        <div style="font-weight: bold; font-size: 14px; margin-top: 5px;">時間設定：</div>
+        <div class="time-options">
+            <label><input type="radio" name="timeType" value="custom" checked> 時間指定</label>
+            <label><input type="radio" name="timeType" value="lunch"> 昼休み</label>
+            <label><input type="radio" name="timeType" value="afterschool"> 放課後</label>
+        </div>
+
+        <div id="customTimeBox" class="form-row">
+            <input type="time" id="startTime" value="13:00">
+            <span style="line-height: 40px;">〜</span>
+            <input type="time" id="endTime" value="14:00">
+        </div>
+
+        <button class="add-btn" id="addEventBtn">予定をカレンダーに登録する</button>
+    </div>
+
+    <!-- 画面3: 確認画面（スケッチの再現） -->
+    <div id="admin-view" class="screen">
+        <button class="btn-back" onclick="showScreen('admin-home')">← ホームに戻る</button>
+        <h2>出欠確認ダッシュボード</h2>
+
+        <!-- 確認用カレンダー -->
+        <div class="cal-box">
+            <div class="cal-nav">
+                <button onclick="changeMonth(-1, 'view')">＜</button>
+                <span id="viewCalMonthDisplay">0月</span>
+                <button onclick="changeMonth(1, 'view')">＞</button>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-head" style="color:#ff4757;">日</div>
+                <div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div>
+                <div class="cal-head" style="color:#1e90ff;">土</div>
+            </div>
+            <div class="cal-grid" id="viewCalDays" style="margin-top: 4px;"></div>
+        </div>
+
+        <div id="viewSelectedInfo" style="text-align: center; font-weight: bold; margin-bottom: 10px; color: #333;">
+            日付をタップして確認してください
+        </div>
+
+        <!-- 左右2カラムボード -->
+        <div class="board-container">
+            <!-- 左：欠席者 -->
+            <div class="board-card">
+                <div class="board-header" style="color: #ff4757;">欠席者</div>
+                <div id="absentList">
+                    <p style="color: #888; font-size: 13px; text-align: center;">予定を選択してください</p>
+                </div>
+            </div>
+
+            <!-- 右：遅刻・早退 -->
+            <div class="board-card">
+                <div class="board-header" style="color: #ffa502;">遅刻・早退</div>
+                <div id="lateLeaveList">
+                    <p style="color: #888; font-size: 13px; text-align: center;">予定を選択してください</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
@@ -154,32 +212,73 @@
 
   let viewDate = new Date();
   let allEvents = [];
+  let allReports = [];
+  let selectedDateForView = "";
+
+  // 画面切り替え
+  window.showScreen = (screenId) => {
+    document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+    document.getElementById(screenId).style.display = 'block';
+    if (screenId === 'admin-add') renderCalendar('add');
+    if (screenId === 'admin-view') renderCalendar('view');
+  };
+
+  document.getElementById('toAddScreenBtn').onclick = () => showScreen('admin-add');
+  document.getElementById('toViewScreenBtn').onclick = () => showScreen('admin-view');
+
+  // ログイン
+  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-content').style.display = 'block';
-      listenToEvents();
-      listenToReports();
+      showScreen('admin-home');
+      listenData();
+    } else {
+      showScreen('login-screen');
     }
   });
 
-  document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+  // データ受信
+  function listenData() {
+    onSnapshot(query(collection(db, "events"), orderBy("date", "desc")), (snap) => {
+      allEvents = [];
+      snap.forEach(d => allEvents.push({ id: d.id, ...d.data() }));
+      renderCalendar('add');
+      renderCalendar('view');
+    });
 
+    onSnapshot(query(collection(db, "reports"), orderBy("timestamp", "desc")), (snap) => {
+      allReports = [];
+      snap.forEach(d => allReports.push(d.data()));
+      if (selectedDateForView) updateBoard(selectedDateForView);
+    });
+  }
+
+  // 時間ラジオボタンの切り替え
   document.querySelectorAll('input[name="timeType"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       document.getElementById('customTimeBox').style.display = (e.target.value === 'custom') ? 'flex' : 'none';
     });
   });
 
-  function renderCalendar() {
+  // 月変更
+  window.changeMonth = (diff, mode) => {
+    viewDate.setMonth(viewDate.getMonth() + diff);
+    renderCalendar(mode);
+  };
+
+  // カレンダー描画（共通）
+  function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-    document.getElementById('calMonthDisplay').innerText = `${year}年 ${month + 1}月`;
+    const displayId = mode === 'add' ? 'addCalMonthDisplay' : 'viewCalMonthDisplay';
+    const containerId = mode === 'add' ? 'addCalDays' : 'viewCalDays';
+    
+    document.getElementById(displayId).innerText = `${year}年 ${month + 1}月`;
 
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
-    const container = document.getElementById('calDaysContainer');
+    const container = document.getElementById(containerId);
     container.innerHTML = "";
 
     for (let i = 0; i < firstDay; i++) {
@@ -190,7 +289,7 @@
 
     for (let d = 1; d <= lastDate; d++) {
       const div = document.createElement('div');
-      div.className = "cal-day";
+      div.className = "cal-day selectable";
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const dayEvents = allEvents.filter(e => e.date === dateStr);
 
@@ -208,19 +307,95 @@
         div.innerText = d;
       }
 
-      div.onclick = () => {
-        document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
-        div.classList.add('selected');
-        document.getElementById('selectedDateInput').value = dateStr;
-      };
+      if (mode === 'add') {
+        div.onclick = () => {
+          container.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          document.getElementById('selectedDateInput').value = dateStr;
+        };
+      } else {
+        // 確認画面でのクリック
+        if (selectedDateForView === dateStr) div.classList.add('selected');
+        div.onclick = () => {
+          container.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedDateForView = dateStr;
+          updateBoard(dateStr);
+        };
+      }
 
       container.appendChild(div);
     }
   }
 
-  document.getElementById('prevMonthBtn').onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); };
-  document.getElementById('nextMonthBtn').onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); };
+  // ★ボード（欠席 / 遅刻・早退）の更新
+  function updateBoard(dateStr) {
+    const dayEvents = allEvents.filter(e => e.date === dateStr);
+    const dayReports = allReports.filter(r => r.eventDate === dateStr);
 
+    const infoEl = document.getElementById('viewSelectedInfo');
+    if (dayEvents.length > 0) {
+      const ev = dayEvents[0];
+      infoEl.innerText = `【${dateStr}】 ${ev.title} (${ev.timeText || '時間指定なし'})`;
+    } else {
+      infoEl.innerText = `【${dateStr}】 （登録された予定はありません）`;
+    }
+
+    const absentList = document.getElementById('absentList');
+    const lateLeaveList = document.getElementById('lateLeaveList');
+    absentList.innerHTML = "";
+    lateLeaveList.innerHTML = "";
+
+    const absents = dayReports.filter(r => r.status === '欠席');
+    const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
+
+    // 欠席者の描画
+    if (absents.length === 0) {
+      absentList.innerHTML = '<p style="color: #999; font-size: 13px; text-align: center;">欠席者はいません</p>';
+    } else {
+      absents.forEach(r => {
+        const item = document.createElement('div');
+        item.className = "report-item";
+        item.innerHTML = `
+          <div><strong>${r.name}</strong></div>
+          <div style="font-size: 12px; color: #666;">${r.reason === 'その他' ? r.otherReason : r.reason}</div>
+        `;
+        absentList.appendChild(item);
+      });
+    }
+
+    // 遅刻・早退者の描画
+    if (lateLeaves.length === 0) {
+      lateLeaveList.innerHTML = '<p style="color: #999; font-size: 13px; text-align: center;">遅刻・早退者はいません</p>';
+    } else {
+      lateLeaves.forEach(r => {
+        const item = document.createElement('div');
+        item.className = "report-item";
+        
+        let badgeHtml = "";
+        let timeStr = "";
+        
+        if (r.status === '早退') {
+          badgeHtml = `<span class="badge-icon badge-leave">早</span>`;
+          timeStr = `〜 ${r.leaveTime || '時間未定'}`;
+        } else {
+          badgeHtml = `<span class="badge-icon badge-late">遅</span>`;
+          timeStr = `〜 ${r.arrival || '時間未定'}`;
+        }
+
+        item.innerHTML = `
+          <div style="display: flex; align-items: center;">
+            ${badgeHtml}
+            <strong>${r.name}</strong>
+          </div>
+          <div style="font-size: 13px; font-weight: bold; color: #333;">${timeStr}</div>
+        `;
+        lateLeaveList.appendChild(item);
+      });
+    }
+  }
+
+  // 予定登録
   document.getElementById('addEventBtn').onclick = async () => {
     const year = document.getElementById('eventYear').value;
     const category = document.getElementById('eventCategory').value;
@@ -248,56 +423,11 @@
       });
       alert(`【${date}】の予定を登録しました！`);
       document.getElementById('eventTitle').value = "";
+      showScreen('admin-home'); // 登録後はホームへ戻る
     } catch (e) {
       alert("登録エラー: " + e.message);
     }
   };
-
-  function listenToEvents() {
-    const q = query(collection(db, "events"), orderBy("date", "desc"));
-    onSnapshot(q, (snapshot) => {
-      allEvents = [];
-      snapshot.forEach(docSnap => {
-        allEvents.push(docSnap.data());
-      });
-      renderCalendar();
-    });
-  }
-
-  function listenToReports() {
-    const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = "";
-
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        
-        let statusClass = "status-absent";
-        if (data.status === "遅刻") statusClass = "status-late";
-        else if (data.status === "早退") statusClass = "status-leave";
-
-        // 詳細（遅刻時間 or 早退時間）
-        let timeDetail = "-";
-        if (data.status === "遅刻") {
-          timeDetail = `到着: ${data.arrival || "未定"}`;
-        } else if (data.status === "早退") {
-          timeDetail = `早退: ${data.leaveTime || "未入力"}`;
-        }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${data.name}</strong></td>
-          <td>${data.eventDate || '-'} <small>(${data.timeText || ''})</small></td>
-          <td>${data.eventTitle}</td>
-          <td class="${statusClass}">${data.status}</td>
-          <td>${data.reason === 'その他' ? data.otherReason : data.reason}</td>
-          <td>${timeDetail}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    });
-  }
 </script>
 </body>
 </html>
