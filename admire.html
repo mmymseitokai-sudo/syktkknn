@@ -48,7 +48,7 @@
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
 
-        /* パステル6色の丸 */
+        /* パステル6色 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; text-align: center; box-sizing: border-box; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -118,7 +118,7 @@
         .color-sample-box { width: 30px; height: 30px; border-radius: 4px; border: 1px solid #ced4da; flex-shrink: 0; }
 
         .login-btn { padding: 12px 30px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; font-size: 14px; }
-        .group-setup-card { border: 1px solid #111111; padding: 20px; border-radius: 6px; margin-bottom: 15px; }
+        .group-setup-card { border: 1px solid #111111; padding: 20px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
     </style>
 </head>
 <body>
@@ -141,24 +141,26 @@
         <button class="submit-btn" id="saveAdminProfileBtn">保存して進む</button>
     </div>
 
-    <!-- 画面0.5: グループ作成・参加選択画面 -->
+    <!-- ★画面0.5: 共通グループ参加・作成画面（生徒側と統一） -->
     <div id="group-setup-screen" class="screen">
         <button class="btn-back" id="setupBackBtn" style="display:none;" onclick="window.showScreen('admin-home')">← メニューへ戻る</button>
         <h2>グループの追加・設定</h2>
-        <p style="font-size: 13px; color: #555; text-align: center; margin-bottom: 20px;">新しいグループを作成するか、管理者コードで参加してください。</p>
+        <p style="font-size: 13px; color: #555; text-align: center; margin-bottom: 20px;">新しいグループを作成するか、参加コードで参加してください。</p>
 
+        <!-- A: 参加コード入力（メンバー・管理者自動判定） -->
         <div class="group-setup-card">
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">A. 新しいグループを作成する</div>
-            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">グループ名を入力して作成すると、専用のコードが自動発行されます。</div>
-            <input type="text" id="newGroupNameInput" placeholder="例：生徒会執行部、1年A組">
-            <button class="add-btn" id="createGroupBtn" style="margin-top: 8px;">グループを新規作成</button>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">A. コードを入力して参加</div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">案内された参加コードを入力してください。<br>（メンバー用コード、管理者用コードのどちらでも自動判定されます）</div>
+            <input type="text" id="joinAdminCodeInput" placeholder="例：M-XXXXXX または A-XXXXXX">
+            <button class="add-btn" id="joinAdminBtn" style="margin-top: 8px;">グループに参加</button>
         </div>
 
+        <!-- B: 新規グループ作成（作成者は管理者になります） -->
         <div class="group-setup-card">
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">B. 管理者コードで参加する</div>
-            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">他の管理者が作成したグループの「管理者用コード」を入力してください。</div>
-            <input type="text" id="joinAdminCodeInput" placeholder="例：A-XXXXXX">
-            <button class="add-btn" id="joinAdminBtn" style="margin-top: 8px;">管理者として参加</button>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">B. 新しいグループを作成する</div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">グループ名を入力して作成すると、自動的にあなたがこのグループの管理者になります。</div>
+            <input type="text" id="newGroupNameInput" placeholder="例：生徒会執行部、1年A組">
+            <button class="add-btn" id="createGroupBtn" style="margin-top: 8px; background:#212529;">グループを新規作成</button>
         </div>
     </div>
 
@@ -173,7 +175,7 @@
                     <select id="adminGroupSelect" style="font-weight:bold;"></select>
                     <button class="btn-leave-group" onclick="leaveCurrentAdminGroup()">脱会</button>
                 </div>
-                <button type="button" class="btn-back" style="margin-bottom:0; font-size:11px;" onclick="openGroupSetup()">＋ グループ追加</button>
+                <button type="button" class="btn-back" style="margin-bottom:0; font-size:11px;" onclick="openGroupSetup()">＋ 追加・作成</button>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
                 <div>管理者：<strong><span id="adminDisplayName">-</span></strong> さん</div>
@@ -539,7 +541,6 @@
 
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
 
-  // ★ログイン処理（グローバル定義）
   window.handleLogin = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider).catch(e => {
@@ -803,13 +804,23 @@
     }
   };
 
+  // ★共通コード判定によるグループ参加（メンバー用・管理者用両対応）
   document.getElementById('joinAdminBtn').onclick = async () => {
     const code = document.getElementById('joinAdminCodeInput').value.trim().toUpperCase();
-    if (!code) return alert("管理者コードを入力してください");
+    if (!code) return alert("参加コードを入力してください");
 
     try {
-      const q = query(collection(db, "groups"), where("adminCode", "==", code));
-      const snap = await getDocs(q);
+      // 1. 管理者コード検索
+      let q = query(collection(db, "groups"), where("adminCode", "==", code));
+      let snap = await getDocs(q);
+      let isCodeAdmin = true;
+
+      // 2. なければメンバーコード検索
+      if (snap.empty) {
+        q = query(collection(db, "groups"), where("memberCode", "==", code));
+        snap = await getDocs(q);
+        isCodeAdmin = false;
+      }
 
       if (snap.empty) {
         return alert("該当するグループが見つかりませんでした。コードを確認してください。");
@@ -831,7 +842,7 @@
         }, { merge: true });
       }
 
-      alert(`グループ「${targetGroupDoc.data().name}」の管理者に参加しました！`);
+      alert(`グループ「${targetGroupDoc.data().name}」に【${isCodeAdmin ? '管理者' : 'メンバー'}】として参加しました！`);
       document.getElementById('joinAdminCodeInput').value = "";
       updateGroupSelectUI();
       showAdminDashboard();
