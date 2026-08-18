@@ -105,13 +105,23 @@
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         
+        /* 12色設定行 */
         .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
 
+        /* ★パステル限定カラーホイール モーダル */
         .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
-        .swatch-modal { background: #fff; padding: 16px; border-radius: 8px; width: 90%; max-width: 320px; border: 1px solid #111; }
-        .swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 10px; }
-        .swatch-tile { width: 100%; aspect-ratio: 1; border-radius: 4px; border: 1px solid #ced4da; cursor: pointer; }
+        .swatch-modal { background: #fff; padding: 16px; border-radius: 10px; width: 92%; max-width: 360px; border: 1px solid #111; box-shadow: 0 4px 20px rgba(0,0,0,0.25); text-align: center; }
+        
+        .wheel-container { position: relative; width: 200px; height: 200px; margin: 8px auto; touch-action: none; user-select: none; }
+        #colorWheelCanvas { width: 200px; height: 200px; border-radius: 50%; cursor: crosshair; border: 1px solid #ced4da; }
+        .wheel-handle { position: absolute; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #111111; box-shadow: 0 0 3px rgba(255,255,255,0.9); pointer-events: none; transform: translate(-50%, -50%); top: 100px; left: 100px; background: transparent; }
+
+        .preview-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
+        .preview-circle { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #111111; }
+        
+        .swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px; }
+        .swatch-tile { width: 100%; aspect-ratio: 1; border-radius: 3px; border: 1px solid rgba(0,0,0,0.15); cursor: pointer; }
     </style>
 </head>
 <body>
@@ -122,7 +132,7 @@
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">出欠連絡・管理システム</div>
         <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
-        <button class="submit-btn" id="loginBtn" onclick="window.handleLoginClick()">ログイン</button>
+        <button class="submit-btn" id="loginBtn" onclick="window.doLogin()">ログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -207,7 +217,7 @@
             </div>
             <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
-                <div class="menu-sub">パステルカラー12色の項目名・配色変更</div>
+                <div class="menu-sub">パステル専用カラーホイールで項目名変更</div>
             </div>
         </div>
     </div>
@@ -233,7 +243,6 @@
         <div class="selected-event-card" id="reportSelectedEventCard">
             <div style="font-size: 12px; color: #555;">カレンダーの日付を選択してください</div>
             <div class="selected-event-title" id="reportSelectedEventTitle">予定が未選択です</div>
-            <!-- ★予定の詳細文表示エリア -->
             <div id="reportSelectedEventDesc" class="event-desc-box" style="display: none;"></div>
         </div>
 
@@ -366,7 +375,6 @@
             <input type="text" id="eventTitle" placeholder="予定タイトル（例：全体ミーティング）" style="flex: 2; min-width: 160px; font-size:16px;">
         </div>
 
-        <!-- ★予定詳細文入力欄 -->
         <textarea id="eventDescription" placeholder="詳細・連絡事項・持ち物など（任意）" rows="2" style="width: 100%; padding: 8px 10px; border: 1px solid #111111; border-radius: 4px; font-size: 15px; margin-bottom: 10px;"></textarea>
 
         <div style="font-weight: bold; font-size: 12px; margin-top: 4px;">登録方法：</div>
@@ -434,48 +442,59 @@
         <button class="add-btn" id="addEventBtn">この予定をカレンダーに登録</button>
     </div>
 
-    <!-- 画面6: （管理者用）パステルカラー限定12色スロット設定画面 -->
+    <!-- 画面6: （管理者用）パステルカラー限定12色設定画面 -->
     <div id="admin-color-settings" class="screen">
         <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">カテゴリ・色設定（最大12色）</div>
-        <p style="font-size: 12px; color: #555; margin-bottom: 15px;">
-            四角をタップして<strong>パステルカラーパレットから好きな色を選択</strong>し、項目名を入力してください。（空欄にした枠は非表示になります）
+        <p style="font-size: 12px; color: #555; margin-bottom: 12px;">
+            四角をタップして<strong>パステル専用カラーホイールから色を選択</strong>し、項目名を入力してください。（空欄にした枠は非表示になります）
         </p>
 
         <div style="border: 1px solid #ced4da; padding: 12px; border-radius: 6px; background: #fafafa;">
             <div id="colorSlotsContainer"></div>
             <div style="display: flex; gap: 8px; margin-top: 15px;">
                 <button class="add-btn" id="saveCustomCategoriesBtn" style="flex: 2; margin-top: 0;">設定を保存する</button>
-                <button type="button" class="btn-back" style="flex: 1; margin-bottom: 0; padding: 10px 0; font-size: 12px;" onclick="resetToDefault12Colors()">基本色にリセット</button>
+                <button type="button" class="btn-back" style="flex: 1; margin-bottom: 0; padding: 10px 0; font-size: 12px;" onclick="resetToDefault12Colors()">基本12色にリセット</button>
             </div>
         </div>
     </div>
 
 </div>
 
-<!-- パステルスウォッチポップアップモーダル -->
+<!-- ★パステル限定カラーホイール モーダル -->
 <div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
     <div class="swatch-modal" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-weight:bold; font-size:13px;">パステルカラーを選択</div>
+            <div style="font-weight:bold; font-size:13px;">パステルカラーホイール</div>
             <button type="button" class="btn-back" style="padding:2px 8px; margin-bottom:0;" onclick="closeSwatchModalDirect()">閉じる</button>
         </div>
+
+        <!-- 虹色のパステル円 -->
+        <div class="wheel-container" id="wheelContainer">
+            <canvas id="colorWheelCanvas" width="200" height="200"></canvas>
+            <div class="wheel-handle" id="wheelHandle"></div>
+        </div>
+
+        <!-- パステルの濃さ調整スライダー -->
+        <div style="margin: 6px 0 10px 0;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-bottom:2px;">
+                <span>パステルのあざやかさ</span>
+                <span id="saturationValText">35%</span>
+            </div>
+            <input type="range" id="saturationSlider" min="15" max="45" value="35" style="width:100%; margin-bottom:0;">
+        </div>
+
+        <!-- プレビュー＆決定ボタン -->
+        <div class="preview-bar">
+            <div class="preview-circle" id="wheelColorPreview" style="background-color: #ffb8c6;"></div>
+            <button class="submit-btn" style="width:auto; padding:6px 18px; margin-top:0; font-size:13px;" onclick="applyWheelColor()">この色に決定</button>
+        </div>
+
+        <!-- 定番パステルスウォッチ -->
+        <div style="font-size:11px; color:#666; text-align:left; margin-top:8px;">定番パステルから選ぶ：</div>
         <div class="swatch-grid" id="swatchPaletteGrid"></div>
     </div>
 </div>
-
-<!-- 早期クリック即応ハンドラ -->
-<script>
-  window.isFirebaseReady = false;
-  window.handleLoginClick = function() {
-    const btn = document.getElementById('loginBtn');
-    if (!window.isFirebaseReady) {
-      if (btn) btn.innerText = "通信準備中...";
-      return;
-    }
-    if (window.doLogin) window.doLogin();
-  };
-</script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -495,29 +514,6 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
-  window.isFirebaseReady = true;
-
-  window.doLogin = () => {
-    const btn = document.getElementById('loginBtn');
-    if (btn) {
-      btn.innerText = "ログイン中...";
-      btn.disabled = true;
-    }
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).catch(e => {
-      alert("ログインエラー: " + e.message);
-      if (btn) {
-        btn.innerText = "ログイン";
-        btn.disabled = false;
-      }
-    });
-  };
-
-  const loginBtn = document.getElementById('loginBtn');
-  if (loginBtn && loginBtn.innerText === "通信準備中...") {
-    window.doLogin();
-  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const isLineEntry = urlParams.has('openExternalBrowser') || document.referrer.includes('line.me') || document.referrer.includes('naver');
@@ -545,8 +541,9 @@
 
   let currentScreenId = 'login-screen';
   let activeEditingSlotIndex = -1;
+  let currentPickedHex = "#ffb8c6";
 
-  // 基本の12色パステルカラープリセット
+  // 基本12色パステルカラープリセット
   const defaultCategorySlots12 = [
     { color: '#ffb8c6', name: 'ミーティング' },
     { color: '#ffd1dc', name: '企画準備' },
@@ -562,15 +559,227 @@
     { color: '#ced4da', name: '提出締切' }
   ];
 
-  // アイビスペイント風 厳選24色パステルパレット
-  const pastelPalette24 = [
-    '#ffb8c6', '#ffc2d1', '#ffd1dc', '#ffe5ec',
-    '#ffc6b8', '#ffd8a8', '#ffe8cc', '#fff3b0',
-    '#fff9db', '#d9f99d', '#e2fcd6', '#bbf2c8',
-    '#c3fae8', '#b4f8ff', '#c5f6fa', '#b4d9ff',
-    '#d0ebff', '#e0cffc', '#eebefa', '#f0d9ff',
-    '#f8f0fc', '#e9ecef', '#ced4da', '#495057'
+  // 厳選36色パステルスウォッチ
+  const pastelPalette36 = [
+    '#ffb8c6', '#ffccd5', '#ffc2d1', '#ffd1dc', '#ffe5ec', '#ffccd8',
+    '#ffc6b8', '#ffd8a8', '#ffe8cc', '#ffeaa7', '#fed7aa', '#ffedd5',
+    '#fff3b0', '#fff9db', '#fef08a', '#fef9c3', '#fef3c7', '#fefce8',
+    '#d9f99d', '#e2fcd6', '#bbf2c8', '#c3fae8', '#d1fae5', '#a7f3d0',
+    '#b4f8ff', '#c5f6fa', '#a5f3fc', '#b4d9ff', '#d0ebff', '#bae6fd',
+    '#e0cffc', '#eebefa', '#f0d9ff', '#f8f0fc', '#f3e8ff', '#ced4da'
   ];
+
+  window.doLogin = async () => {
+    const btn = document.getElementById('loginBtn');
+    const notice = document.getElementById('loginNoticeText');
+    if (btn) {
+      btn.innerText = "ログイン中...";
+      btn.disabled = true;
+    }
+    if (notice) notice.innerText = "Google認証画面を開いています...";
+
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      if (btn) {
+        btn.innerText = "ログイン";
+        btn.disabled = false;
+      }
+      if (notice) notice.innerText = "Googleアカウントでログインしてください。";
+      if (e.code !== 'auth/popup-closed-by-user') {
+        alert("ログインエラー: " + e.message);
+      }
+    }
+  };
+
+  // ★HSVからRGB変換
+  function hsvToRgb(h, s, v) {
+    let r, g, b;
+    let i = Math.floor((h / 60) % 6);
+    let f = (h / 60) - Math.floor(h / 60);
+    let p = v * (1 - s);
+    let q = v * (1 - f * s);
+    let t = v * (1 - (1 - f) * s);
+    switch (i) {
+      case 0: r = v; g = t; b = p; break;
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+
+  function rgbToHex(r, g, b) {
+    return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ★パステルカラー専用カラーホイール描画（絶対に濃い色・暗い色にならない）
+  function drawColorWheel() {
+    const canvas = document.getElementById('colorWheelCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = width / 2;
+
+    const imgData = ctx.createImageData(width, height);
+    const data = imgData.data;
+    
+    // パステルのあざやかさ上限（最大でも42%に抑えて濃い色を排除）
+    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 35) / 100;
+    const value = 0.98; // 明度は常に最高域に固定
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const index = (y * width + x) * 4;
+
+        if (dist <= radius) {
+          let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+          if (angle < 0) angle += 360;
+          const sat = (dist / radius) * maxSat;
+
+          const [r, g, b] = hsvToRgb(angle, sat, value);
+          data[index] = r;
+          data[index + 1] = g;
+          data[index + 2] = b;
+          data[index + 3] = 255;
+        } else {
+          data[index + 3] = 0;
+        }
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  // ★ホイール操作
+  function initWheelEvents() {
+    const container = document.getElementById('wheelContainer');
+    const slider = document.getElementById('saturationSlider');
+    if (!container || !slider) return;
+
+    let isDragging = false;
+
+    function handleWheelInput(clientX, clientY) {
+      const rect = container.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      let dx = clientX - (rect.left + cx);
+      let dy = clientY - (rect.top + cy);
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      const radius = rect.width / 2;
+
+      if (dist > radius) {
+        dx = (dx / dist) * radius;
+        dy = (dy / dist) * radius;
+        dist = radius;
+      }
+
+      let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+      if (angle < 0) angle += 360;
+      
+      const maxSat = parseInt(slider.value, 10) / 100;
+      const sat = (dist / radius) * maxSat;
+      const value = 0.98;
+
+      const [r, g, b] = hsvToRgb(angle, sat, value);
+      currentPickedHex = rgbToHex(r, g, b);
+
+      const handle = document.getElementById('wheelHandle');
+      handle.style.left = `${cx + dx}px`;
+      handle.style.top = `${cy + dy}px`;
+
+      document.getElementById('wheelColorPreview').style.backgroundColor = currentPickedHex;
+    }
+
+    container.addEventListener('mousedown', (e) => { isDragging = true; handleWheelInput(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', (e) => { if (isDragging) handleWheelInput(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    container.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      const t = e.touches[0];
+      handleWheelInput(t.clientX, t.clientY);
+      e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length > 0) {
+        const t = e.touches[0];
+        handleWheelInput(t.clientX, t.clientY);
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => { isDragging = false; });
+
+    slider.addEventListener('input', (e) => {
+      document.getElementById('saturationValText').innerText = `${e.target.value}%`;
+      drawColorWheel();
+      const handle = document.getElementById('wheelHandle');
+      const rect = container.getBoundingClientRect();
+      const left = parseFloat(handle.style.left) || 100;
+      const top = parseFloat(handle.style.top) || 100;
+      handleWheelInput(rect.left + left, rect.top + top);
+    });
+  }
+
+  function initSwatchPaletteModal() {
+    const grid = document.getElementById('swatchPaletteGrid');
+    if (!grid) return;
+    grid.innerHTML = "";
+    pastelPalette36.forEach(color => {
+      const tile = document.createElement('div');
+      tile.className = "swatch-tile";
+      tile.style.backgroundColor = color;
+      tile.onclick = () => {
+        currentPickedHex = color;
+        document.getElementById('wheelColorPreview').style.backgroundColor = color;
+        applyWheelColor();
+      };
+      grid.appendChild(tile);
+    });
+  }
+
+  window.openSwatchModal = (slotIndex) => {
+    activeEditingSlotIndex = slotIndex;
+    const btn = document.getElementById(`slot_btn_${slotIndex}`);
+    if (btn) {
+      currentPickedHex = btn.dataset.color || "#ffb8c6";
+      document.getElementById('wheelColorPreview').style.backgroundColor = currentPickedHex;
+    }
+    document.getElementById('swatchModalOverlay').style.display = 'flex';
+    drawColorWheel();
+  };
+
+  window.closeSwatchModal = (e) => {
+    if (e.target.id === 'swatchModalOverlay') closeSwatchModalDirect();
+  };
+
+  window.closeSwatchModalDirect = () => {
+    document.getElementById('swatchModalOverlay').style.display = 'none';
+    activeEditingSlotIndex = -1;
+  };
+
+  window.applyWheelColor = () => {
+    if (activeEditingSlotIndex >= 0) {
+      const btn = document.getElementById(`slot_btn_${activeEditingSlotIndex}`);
+      if (btn) {
+        btn.style.backgroundColor = currentPickedHex;
+        btn.dataset.color = currentPickedHex;
+      }
+    }
+    closeSwatchModalDirect();
+  };
+
+  initSwatchPaletteModal();
+  initWheelEvents();
 
   function initMonthlySelect() {
     const daySelect = document.getElementById('monthlyDaySelect');
@@ -593,45 +802,6 @@
     }
     return `${prefix}-${code}`;
   }
-
-  function initSwatchPaletteModal() {
-    const grid = document.getElementById('swatchPaletteGrid');
-    if (!grid) return;
-    grid.innerHTML = "";
-    pastelPalette24.forEach(color => {
-      const tile = document.createElement('div');
-      tile.className = "swatch-tile";
-      tile.style.backgroundColor = color;
-      tile.onclick = () => {
-        if (activeEditingSlotIndex >= 0) {
-          const btn = document.getElementById(`slot_btn_${activeEditingSlotIndex}`);
-          if (btn) {
-            btn.style.backgroundColor = color;
-            btn.dataset.color = color;
-          }
-        }
-        closeSwatchModalDirect();
-      };
-      grid.appendChild(tile);
-    });
-  }
-  initSwatchPaletteModal();
-
-  window.openSwatchModal = (slotIndex) => {
-    activeEditingSlotIndex = slotIndex;
-    document.getElementById('swatchModalOverlay').style.display = 'flex';
-  };
-
-  window.closeSwatchModal = (e) => {
-    if (e.target.id === 'swatchModalOverlay') {
-      closeSwatchModalDirect();
-    }
-  };
-
-  window.closeSwatchModalDirect = () => {
-    document.getElementById('swatchModalOverlay').style.display = 'none';
-    activeEditingSlotIndex = -1;
-  };
 
   window.copyGroupCode = (type) => {
     if (!currentGroup) return;
@@ -735,22 +905,23 @@
     }
   });
 
+  // 自動ログイン
   onAuthStateChanged(auth, async (user) => {
     const btn = document.getElementById('loginBtn');
+    const notice = document.getElementById('loginNoticeText');
+
     if (user) {
       currentUser = user;
-      const notice = document.getElementById('loginNoticeText');
-      if (notice) notice.innerText = "ログイン確認中...";
       if (btn) btn.innerText = "ログイン中...";
+      if (notice) notice.innerText = "データを読み込んでいます...";
       checkUserProfileAndGroups();
     } else {
       currentUser = null;
-      const notice = document.getElementById('loginNoticeText');
-      if (notice) notice.innerText = "Googleアカウントでログインしてください。";
       if (btn) {
         btn.innerText = "ログイン";
         btn.disabled = false;
       }
+      if (notice) notice.innerText = "Googleアカウントでログインしてください。";
       window.showScreen('login-screen', false);
     }
   });
@@ -760,33 +931,44 @@
       const userDocRef = doc(db, "users", currentUser.uid);
       const docSnap = await getDoc(userDocRef);
 
-      if (!docSnap.exists() || (!docSnap.data().name && !docSnap.data().kanjiName)) {
-        window.showScreen('profile-screen', false);
-        return;
-      }
+      if (!docSnap.exists()) {
+        const initialName = currentUser.displayName || '';
+        await setDoc(userDocRef, {
+          name: initialName,
+          email: currentUser.email,
+          createdAt: serverTimestamp()
+        }, { merge: true });
 
-      userData = docSnap.data();
-
-      let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : (userData.memberGroupId ? [userData.memberGroupId] : []);
-      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : (userData.adminGroupId ? [userData.adminGroupId] : []);
-
-      myGroups = [];
-
-      for (const gId of adminGroupIds) {
-        try {
-          const gSnap = await getDoc(doc(db, "groups", gId));
-          if (gSnap.exists()) myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'admin' });
-        } catch (err) {}
-      }
-
-      for (const gId of memberGroupIds) {
-        if (!myGroups.some(g => g.id === gId)) {
-          try {
-            const gSnap = await getDoc(doc(db, "groups", gId));
-            if (gSnap.exists()) myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'member' });
-          } catch (err) {}
+        if (!initialName) {
+          window.showScreen('profile-screen', false);
+          return;
+        }
+        userData = { name: initialName, email: currentUser.email };
+      } else {
+        userData = docSnap.data();
+        if (!userData.name && !userData.kanjiName) {
+          window.showScreen('profile-screen', false);
+          return;
         }
       }
+
+      let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : [];
+      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
+      const allUniqueIds = Array.from(new Set([...adminGroupIds, ...memberGroupIds]));
+
+      const groupPromises = allUniqueIds.map(async (gId) => {
+        try {
+          const gSnap = await getDoc(doc(db, "groups", gId));
+          if (gSnap.exists()) {
+            const role = adminGroupIds.includes(gId) ? 'admin' : 'member';
+            return { id: gSnap.id, ...gSnap.data(), role };
+          }
+        } catch (err) {}
+        return null;
+      });
+
+      const fetchedGroups = (await Promise.all(groupPromises)).filter(g => g !== null);
+      myGroups = fetchedGroups;
 
       if (myGroups.length === 0) {
         document.getElementById('joinBackBtn').style.display = 'none';
@@ -835,7 +1017,7 @@
     if (!name) return alert("氏名を入力してください");
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
-      userData = { name: name, email: currentUser.email, updatedAt: serverTimestamp() };
+      userData = { ...(userData || {}), name: name, email: currentUser.email, updatedAt: serverTimestamp() };
       await setDoc(userDocRef, userData, { merge: true });
       checkUserProfileAndGroups();
     } catch (e) { alert("登録エラー: " + e.message); }
@@ -1127,6 +1309,7 @@
     }
   };
 
+  // 12スロットのカラー設定画面レンダリング
   function loadColorSettingsScreen() {
     const slots = getGroupCategorySlots();
     const container = document.getElementById('colorSlotsContainer');
@@ -1134,12 +1317,12 @@
     container.innerHTML = "";
 
     for (let i = 0; i < 12; i++) {
-      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#e9ecef', name: '' });
+      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ffb8c6', name: '' });
       const row = document.createElement('div');
       row.className = "color-slot-row";
       row.innerHTML = `
         <button type="button" class="swatch-btn" id="slot_btn_${i}" data-color="${slot.color}" style="background-color: ${slot.color};" onclick="openSwatchModal(${i})"></button>
-        <span style="font-size:12px; font-weight:bold; color:#555; width:24px;">${i + 1}</span>
+        <span style="font-size:12px; font-weight:bold; color:#555; width:22px;">${i + 1}</span>
         <input type="text" id="name_slot_${i}" value="${slot.name || ''}" placeholder="項目名（例：全体MTG）" style="flex: 1; margin-bottom: 0;">
       `;
       container.appendChild(row);
@@ -1166,7 +1349,7 @@
     for (let i = 0; i < 12; i++) {
       const btn = document.getElementById(`slot_btn_${i}`);
       const nameInput = document.getElementById(`name_slot_${i}`);
-      const color = btn ? (btn.dataset.color || '#e9ecef') : '#e9ecef';
+      const color = btn ? (btn.dataset.color || '#ffb8c6') : '#ffb8c6';
       const name = nameInput ? nameInput.value.trim() : '';
       newSlots.push({ color, name });
     }
@@ -1242,7 +1425,6 @@
         circle.className = "circle-mark";
         circle.style.backgroundColor = eventColor;
         // ★文字色は黒文字統一
-        circle.style.color = '#222222';
         circle.innerText = d;
 
         if (mode === 'report') {
@@ -1307,7 +1489,6 @@
 
     document.getElementById('reportSelectedEventTitle').innerText = `${ev.date} (${ev.timeText || '時間指定なし'}) - [${ev.categoryTitle || ev.category}] ${ev.title}`;
 
-    // ★詳細文の表示
     const descBox = document.getElementById('reportSelectedEventDesc');
     if (ev.description && ev.description.trim() !== "") {
       descBox.innerText = ev.description;
@@ -1515,7 +1696,7 @@
       arrivalInfo = isUndecided ? "未定" : timeVal;
     } else if (currentStatus === "早退") {
       const lTime = document.getElementById('leaveTime').value;
-      if (!lTime) return alert("早退予定時刻を選択してください");
+      if (!lTime) return alert("早退予定時刻を入力してください");
       leaveInfo = lTime;
     }
 
@@ -1542,6 +1723,7 @@
     }
   };
 
+  // 予定追加・削除ロジック
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
     const listEl = document.getElementById('selectedDatesList');
@@ -1738,4 +1920,30 @@
         return addDoc(collection(db, "events"), {
           groupId: currentGroup.id,
           year,
-          color: selectedCol
+          color: selectedColorHex,
+          category: categoryTitle,
+          categoryTitle: categoryTitle,
+          title,
+          description,
+          date: dateStr,
+          timeType,
+          timeText,
+          createdAt: serverTimestamp()
+        });
+      });
+
+      await Promise.all(promises);
+      alert(`${targetDates.length} 件の予定を一括登録しました。`);
+      
+      selectedDatesForAdd.clear();
+      updateSelectedDatesUI();
+      document.getElementById('eventTitle').value = "";
+      document.getElementById('eventDescription').value = "";
+      window.showScreen('user-home');
+    } catch (e) {
+      alert("登録エラー: " + e.message);
+    }
+  };
+</script>
+</body>
+</html>
