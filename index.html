@@ -15,8 +15,11 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
+        /* ユーザー＆グループ切り替えバッジ */
         .user-badge { border: 1px solid #111111; padding: 12px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; background: #f8f9fa; }
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
+        .btn-leave-group { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 2px 6px; font-size: 11px; cursor: pointer; font-weight: bold; }
+        .btn-leave-group:hover { background: #dc3545; color: white; }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 25px 10px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
@@ -109,15 +112,17 @@
         <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
     </div>
 
-    <!-- 画面1: ホーム画面（3大メニュー） -->
+    <!-- 画面1: ホーム画面（脱会ボタン付き） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
         <div class="user-badge">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <div>
+                <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:11px; font-weight:bold;">所属グループ：</span>
                     <select id="userGroupSelect" style="font-weight:bold;"></select>
+                    <!-- ★グループ脱会ボタン -->
+                    <button class="btn-leave-group" onclick="leaveCurrentMemberGroup()">脱会</button>
                 </div>
                 <span class="change-link" onclick="openJoinGroup()">＋ グループ追加</span>
             </div>
@@ -248,7 +253,7 @@
         </div>
     </div>
 
-    <!-- 画面4: 生徒側メンバー一覧画面 -->
+    <!-- 画面4: 生徒側メンバー一覧画面（メールアドレス非表示・氏名と役職のみ） -->
     <div id="user-members" class="screen">
         <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
         <div class="header-title">所属メンバー一覧</div>
@@ -384,6 +389,25 @@
     window.showScreen('join-group-screen');
   };
 
+  // ★生徒側脱会処理
+  window.leaveCurrentMemberGroup = async () => {
+    if (!currentGroup) return;
+    if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
+
+    try {
+      const updatedMemberGroupIds = memberGroups.filter(g => g.id !== currentGroup.id).map(g => g.id);
+      await setDoc(doc(db, "users", currentUser.uid), {
+        memberGroupIds: updatedMemberGroupIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`グループ「${currentGroup.name}」を脱会しました。`);
+      checkUserProfileAndGroups();
+    } catch (e) {
+      alert("脱会エラー: " + e.message);
+    }
+  };
+
   document.getElementById('saveProfileBtn').onclick = async () => {
     const name = document.getElementById('regName').value.trim();
     if (!name) return alert("氏名を入力してください");
@@ -480,7 +504,7 @@
     });
   }
 
-  // 生徒側メンバー一覧の描画
+  // 生徒側メンバー一覧（メールアドレスは完全非表示）
   function renderUserMemberList() {
     if (!currentGroup) return;
     document.getElementById('userMemberViewGroupName').innerText = currentGroup.name;
