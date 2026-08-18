@@ -15,7 +15,8 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
-        .user-badge { border: 1px solid #111111; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; background: #fafafa; }
+        /* ユーザー＆グループ切り替えバッジ */
+        .user-badge { border: 1px solid #111111; padding: 12px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; background: #f8f9fa; }
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
@@ -95,8 +96,9 @@
         <button class="submit-btn" id="saveProfileBtn">次へ進む</button>
     </div>
 
-    <!-- 画面0.6: グループ参加コード入力画面（未所属時） -->
+    <!-- 画面0.6: グループ参加コード入力画面 -->
     <div id="join-group-screen" class="screen">
+        <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
         <div class="header-title">グループ参加</div>
         <p style="font-size: 13px; margin-bottom: 15px;">管理者から案内された「メンバー用コード」を入力してください。</p>
         <div class="info-text">メンバー用コード</div>
@@ -104,16 +106,19 @@
         <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
     </div>
 
-    <!-- 画面1: ホーム画面（選択画面） -->
+    <!-- 画面1: ホーム画面（複数グループ切り替え対応） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
         <div class="user-badge">
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <div>グループ：<strong><span id="homeGroupName">-</span></strong></div>
-                <span class="change-link" onclick="window.showScreen('join-group-screen')">グループ変更</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <div>
+                    <span style="font-size:11px; font-weight:bold;">所属グループ：</span>
+                    <select id="userGroupSelect" style="font-weight:bold;"></select>
+                </div>
+                <span class="change-link" onclick="openJoinGroup()">＋ グループ追加</span>
             </div>
-            <div style="display:flex; justify-content:space-between;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px;">
                 <div>氏名：<strong><span id="homeDisplayName">-</span></strong> さん</div>
                 <span class="change-link" id="editProfileBtn">氏名変更</span>
             </div>
@@ -259,7 +264,8 @@
 
   let currentUser = null;
   let userData = null;
-  let currentGroup = null; // { id, name }
+  let memberGroups = []; // [{ id, name }]
+  let currentGroup = null;
   let currentStatus = "欠席";
   let selectedReason = "";
   let allEvents = [];
@@ -286,14 +292,13 @@
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
-      checkUserProfileAndGroup();
+      checkUserProfileAndGroups();
     } else {
       window.showScreen('login-screen');
     }
   });
 
-  // 氏名およびグループ所属確認
-  async function checkUserProfileAndGroup() {
+  async function checkUserProfileAndGroups() {
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       const docSnap = await getDoc(userDocRef);
@@ -305,28 +310,58 @@
 
       userData = docSnap.data();
 
-      // グループ所属確認
-      if (!userData.memberGroupId) {
-        window.showScreen('join-group-screen');
-        return;
+      // 所属グループ一覧の取得
+      let groupIds = [];
+      if (Array.isArray(userData.memberGroupIds)) {
+        groupIds = userData.memberGroupIds;
+      } else if (userData.memberGroupId) {
+        groupIds = [userData.memberGroupId];
       }
 
-      const groupDocRef = doc(db, "groups", userData.memberGroupId);
-      const groupSnap = await getDoc(groupDocRef);
-
-      if (!groupSnap.exists()) {
-        window.showScreen('join-group-screen');
-        return;
+      memberGroups = [];
+      for (const gId of groupIds) {
+        const gSnap = await getDoc(doc(db, "groups", gId));
+        if (gSnap.exists()) {
+          memberGroups.push({ id: gSnap.id, name: gSnap.data().name });
+        }
       }
 
-      currentGroup = { id: groupSnap.id, name: groupSnap.data().name };
-      showUserHome();
+      if (memberGroups.length === 0) {
+        document.getElementById('joinBackBtn').style.display = 'none';
+        window.showScreen('join-group-screen');
+      } else {
+        currentGroup = memberGroups[0];
+        updateUserGroupSelectUI();
+        showUserHome();
+      }
     } catch (e) {
       alert("確認エラー: " + e.message);
     }
   }
 
-  // 氏名登録
+  function updateUserGroupSelectUI() {
+    const sel = document.getElementById('userGroupSelect');
+    sel.innerHTML = "";
+    memberGroups.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.id;
+      opt.innerText = g.name;
+      if (currentGroup && g.id === currentGroup.id) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById('userGroupSelect').onchange = (e) => {
+    const selectedId = e.target.value;
+    currentGroup = memberGroups.find(g => g.id === selectedId);
+    showUserHome();
+  };
+
+  window.openJoinGroup = () => {
+    document.getElementById('joinBackBtn').style.display = (memberGroups.length > 0) ? 'inline-block' : 'none';
+    window.showScreen('join-group-screen');
+  };
+
   document.getElementById('saveProfileBtn').onclick = async () => {
     const name = document.getElementById('regName').value.trim();
     if (!name) return alert("氏名を入力してください");
@@ -334,11 +369,10 @@
       const userDocRef = doc(db, "users", currentUser.uid);
       userData = { name: name, email: currentUser.email, updatedAt: serverTimestamp() };
       await setDoc(userDocRef, userData, { merge: true });
-      checkUserProfileAndGroup();
+      checkUserProfileAndGroups();
     } catch (e) { alert("登録エラー: " + e.message); }
   };
 
-  // メンバーコードでグループ参加
   document.getElementById('joinGroupBtn').onclick = async () => {
     const code = document.getElementById('joinMemberCodeInput').value.trim().toUpperCase();
     if (!code) return alert("メンバー用コードを入力してください");
@@ -352,13 +386,23 @@
       }
 
       const targetGroupDoc = snap.docs[0];
-      await setDoc(doc(db, "users", currentUser.uid), {
-        memberGroupId: targetGroupDoc.id,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      const targetGroupId = targetGroupDoc.id;
 
-      currentGroup = { id: targetGroupDoc.id, name: targetGroupDoc.data().name };
-      alert(`グループ「${currentGroup.name}」に参加しました！`);
+      if (!memberGroups.some(g => g.id === targetGroupId)) {
+        const newGroupData = { id: targetGroupId, name: targetGroupDoc.data().name };
+        memberGroups.push(newGroupData);
+        currentGroup = newGroupData;
+
+        const currentGroupIds = memberGroups.map(g => g.id);
+        await setDoc(doc(db, "users", currentUser.uid), {
+          memberGroupIds: currentGroupIds,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+
+      alert(`グループ「${targetGroupDoc.data().name}」に参加しました！`);
+      document.getElementById('joinMemberCodeInput').value = "";
+      updateUserGroupSelectUI();
       showUserHome();
     } catch (e) {
       alert("参加エラー: " + e.message);
@@ -373,12 +417,10 @@
   function showUserHome() {
     const name = (userData && (userData.name || userData.kanjiName)) || "名無し";
     document.getElementById('homeDisplayName').innerText = name;
-    document.getElementById('homeGroupName').innerText = currentGroup.name;
     window.showScreen('user-home');
     listenGroupData();
   }
 
-  // グループ内データの受信
   function listenGroupData() {
     if (!currentGroup) return;
 
@@ -431,7 +473,7 @@
 
     container.innerHTML = "";
 
-    for (let i = firstDay - 1; i >= 0; i--) {
+    for (let i = 0; i < firstDay; i++) {
       const div = document.createElement('div');
       div.className = "cal-day other-month";
       div.innerText = prevLastDate - i;
@@ -685,7 +727,7 @@
 
     try {
       await addDoc(collection(db, "reports"), {
-        groupId: currentGroup.id, // ★グループIDを紐付け
+        groupId: currentGroup.id,
         name: (userData && (userData.name || userData.kanjiName)) || "名無し",
         email: currentUser.email,
         eventTitle: selectedEventForReport.title,
