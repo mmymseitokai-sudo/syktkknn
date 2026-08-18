@@ -49,7 +49,7 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル丸マーク（黒文字統一・淡色） */
+        /* パステル丸マーク（黒文字統一） */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; color: #222222 !important; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
@@ -105,11 +105,10 @@
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         
-        /* 12色設定行 */
         .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
 
-        /* パステルカラーホイール モーダル */
+        /* 中心が黒のパステルカラーホイール モーダル */
         .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
         .swatch-modal { background: #fff; padding: 16px; border-radius: 10px; width: 92%; max-width: 360px; border: 1px solid #111; box-shadow: 0 4px 20px rgba(0,0,0,0.25); text-align: center; }
         
@@ -217,7 +216,7 @@
             </div>
             <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
-                <div class="menu-sub">パステルカラー12色の項目名・配色変更</div>
+                <div class="menu-sub">パステル専用カラーホイールで項目名変更</div>
             </div>
         </div>
     </div>
@@ -461,7 +460,7 @@
 
 </div>
 
-<!-- パステルカラーホイール モーダル -->
+<!-- ★中心が黒のパステルカラーホイール モーダル -->
 <div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
     <div class="swatch-modal" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -469,25 +468,28 @@
             <button type="button" class="btn-back" style="padding:2px 8px; margin-bottom:0;" onclick="closeSwatchModalDirect()">閉じる</button>
         </div>
 
+        <!-- 虹色のパステル円（中心が黒） -->
         <div class="wheel-container" id="wheelContainer">
             <canvas id="colorWheelCanvas" width="200" height="200"></canvas>
             <div class="wheel-handle" id="wheelHandle"></div>
         </div>
 
-        <!-- ★パステルのあざやかさ上限を45%に設定 -->
+        <!-- ★パステルのあざやかさスライダー（10%〜MAX45%で完全連動） -->
         <div style="margin: 6px 0 10px 0;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-bottom:2px;">
                 <span>パステルのあざやかさ</span>
-                <span id="saturationValText">30%</span>
+                <span id="saturationValText">35%</span>
             </div>
-            <input type="range" id="saturationSlider" min="10" max="45" value="30" style="width:100%; margin-bottom:0;">
+            <input type="range" id="saturationSlider" min="10" max="45" value="35" style="width:100%; margin-bottom:0;">
         </div>
 
+        <!-- プレビュー＆決定ボタン -->
         <div class="preview-bar">
             <div class="preview-circle" id="wheelColorPreview" style="background-color: #ffd9e2;"></div>
             <button class="submit-btn" style="width:auto; padding:6px 18px; margin-top:0; font-size:13px;" onclick="applyWheelColor()">この色に決定</button>
         </div>
 
+        <!-- 定番パステルスウォッチ -->
         <div style="font-size:11px; color:#666; text-align:left; margin-top:8px;">定番パステルから選ぶ：</div>
         <div class="swatch-grid" id="swatchPaletteGrid"></div>
     </div>
@@ -586,18 +588,18 @@
 
   // 基本12色パステルカラープリセット
   const defaultCategorySlots12 = [
-    { color: '#ffd9e2', name: 'ミーティング' },
-    { color: '#ffe5ec', name: '企画準備' },
-    { color: '#ffe8d6', name: '衣装係' },
-    { color: '#fef3c7', name: '買い出し' },
-    { color: '#fef9c3', name: '装飾係' },
-    { color: '#ecfccb', name: '清掃活動' },
-    { color: '#d1fae5', name: '文化祭準備' },
-    { color: '#cffafe', name: '広報・SNS' },
-    { color: '#e0f2fe', name: 'リハーサル' },
-    { color: '#ede9fe', name: '音響・照明' },
-    { color: '#f3e8ff', name: 'ステージ' },
-    { color: '#e9ecef', name: '提出締切' }
+    { color: '#ffd9e2', name: 'ミーティング' }, // ミルキーピンク
+    { color: '#ffe5ec', name: '企画準備' },     // さくらピンク
+    { color: '#ffe8d6', name: '衣装係' },       // アプリコット
+    { color: '#fef3c7', name: '買い出し' },     // クリームイエロー
+    { color: '#fef9c3', name: '装飾係' },       // レモンミルク
+    { color: '#ecfccb', name: '清掃活動' },     // ペールライム
+    { color: '#d1fae5', name: '文化祭準備' },   // ミントグリーン
+    { color: '#cffafe', name: '広報・SNS' },    // アイスシアン
+    { color: '#e0f2fe', name: 'リハーサル' },   // スカイブルー
+    { color: '#ede9fe', name: '音響・照明' },   // ラベンダー
+    { color: '#f3e8ff', name: 'ステージ' },     // ペールパープル
+    { color: '#e9ecef', name: '提出締切' }      // ライトグレー
   ];
 
   // 厳選36色パステルスウォッチ
@@ -610,7 +612,7 @@
     '#ede9fe', '#e0cffc', '#f3e8ff', '#f0d9ff', '#f8f0fc', '#e9ecef'
   ];
 
-  // ★【重要】MAX 45% 対応の強制パステル化フィルター
+  // ★【重要】彩度を固定せず、上限45%で自然に変化させるパステルカラー変換関数
   function toPastelColor(input) {
     if (!input) return '#ffd9e2';
     
@@ -627,6 +629,7 @@
     let g = parseInt(hex.substring(2, 4), 16) / 255;
     let b = parseInt(hex.substring(4, 6), 16) / 255;
 
+    // RGB -> HSL
     let max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
 
@@ -645,9 +648,9 @@
 
     if (s === 0) return '#e9ecef';
 
-    // ★彩度の上限を45%に設定、明度をしっかり確保してパステル調を維持
-    s = 0.45;
-    l = 0.88;
+    // ★彩度は固定せず最大45%でクランプ、明度は88%以上の淡い領域を保持
+    if (s > 0.45) s = 0.45;
+    if (l < 0.88) l = 0.88;
 
     function hue2rgb(p, q, t) {
       if (t < 0) t += 1;
@@ -689,7 +692,7 @@
     return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  // ★中心が黒のパステルカラーホイール（MAX 45%）
+  // ★中心が黒のパステルカラーホイール描画
   function drawColorWheel() {
     const canvas = document.getElementById('colorWheelCanvas');
     if (!canvas) return;
@@ -702,7 +705,9 @@
 
     const imgData = ctx.createImageData(width, height);
     const data = imgData.data;
-    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 30) / 100;
+    
+    // スライダーの数値をそのまま最大彩度として適用（10%〜45%）
+    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 35) / 100;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -732,6 +737,7 @@
     ctx.putImageData(imgData, 0, 0);
   }
 
+  // ★ホイール＆スライダー操作
   function initWheelEvents() {
     const container = document.getElementById('wheelContainer');
     const slider = document.getElementById('saturationSlider');
@@ -758,6 +764,7 @@
       if (angle < 0) angle += 360;
       
       const distRatio = dist / radius;
+      // スライダーの彩度をそのまま使用
       const maxSat = parseInt(slider.value, 10) / 100;
       const sat = maxSat;
       const value = Math.pow(distRatio, 0.7) * 0.98;
@@ -769,6 +776,7 @@
       handle.style.left = `${cx + dx}px`;
       handle.style.top = `${cy + dy}px`;
 
+      // スライダーの変化をそのまま反映
       document.getElementById('wheelColorPreview').style.backgroundColor = toPastelColor(currentPickedHex);
     }
 
@@ -792,13 +800,16 @@
 
     window.addEventListener('touchend', () => { isDragging = false; });
 
+    // ★スライダーを動かした時にリアルタイムで色が変化する処理
     slider.addEventListener('input', (e) => {
       document.getElementById('saturationValText').innerText = `${e.target.value}%`;
       drawColorWheel();
       const handle = document.getElementById('wheelHandle');
       const rect = container.getBoundingClientRect();
-      const left = parseFloat(handle.style.left) || 100;
-      const top = parseFloat(handle.style.top) || 100;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const left = parseFloat(handle.style.left) || cx;
+      const top = parseFloat(handle.style.top) || (cy + 70);
       handleWheelInput(rect.left + left, rect.top + top);
     });
   }
@@ -979,6 +990,7 @@
     }
   });
 
+  // 自動ログイン
   onAuthStateChanged(auth, async (user) => {
     const btn = document.getElementById('loginBtn');
     const notice = document.getElementById('loginNoticeText');
