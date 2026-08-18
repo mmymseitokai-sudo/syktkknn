@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>欠席連絡システム</title>
+    <title>出欠連絡・管理システム</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #ffffff; margin: 0; padding: 15px; display: flex; justify-content: center; color: #111111; }
-        .app-container { background: #ffffff; width: 100%; max-width: 480px; border: 1px solid #111111; border-radius: 8px; padding: 20px; box-sizing: border-box; }
+        .app-container { background: #ffffff; width: 100%; max-width: 500px; border: 1px solid #111111; border-radius: 8px; padding: 20px; box-sizing: border-box; }
         
         .screen { display: none; }
         .header-title { border-bottom: 2px solid #111111; padding-bottom: 10px; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: bold; }
@@ -16,19 +16,25 @@
         .btn-back:hover { background: #f1f1f1; }
         
         /* ユーザー＆グループ切り替えバッジ */
-        .user-badge { border: 1px solid #111111; padding: 12px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; background: #f8f9fa; }
+        .user-badge { border: 1px solid #111111; padding: 12px 14px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; background: #f8f9fa; }
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
         .btn-leave-group { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 2px 6px; font-size: 11px; cursor: pointer; font-weight: bold; }
         .btn-leave-group:hover { background: #dc3545; color: white; }
 
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 25px 10px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
+        /* 管理者用コード表示ボックス */
+        .admin-code-box { border: 1px dashed #111111; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #fff; }
+        .code-pill { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+        .btn-mini-copy { background: #111111; color: white; border: none; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; }
+
+        /* メニュー */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 20px 10px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
-        .menu-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .menu-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
         .menu-sub { font-size: 11px; color: #555555; line-height: 1.3; }
 
         /* カレンダー */
-        .cal-box { border: 1px solid #111111; border-radius: 6px; padding: 10px; margin-bottom: 15px; background: #ffffff; }
+        .cal-box { border: 1px solid #111111; border-radius: 6px; padding: 10px; margin-bottom: 15px; background: #ffffff; max-width: 440px; margin: 0 auto 15px auto; }
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
         .cal-nav button { background: #ffffff; border: 1px solid #111111; border-radius: 4px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
@@ -39,8 +45,9 @@
         .cal-day.selectable { cursor: pointer; }
         .cal-day.selectable:hover { text-decoration: underline; }
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
+        .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル6色の丸 */
+        /* パステル6色 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -49,6 +56,7 @@
         .circle-orange { background-color: #ffd8a8; color: #222222; }
         .circle-black { background-color: #495057; color: #ffffff; }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
+        .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
         /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: 10px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
@@ -74,9 +82,23 @@
 
         .chip { padding: 6px 12px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; margin-bottom: 6px; display: inline-block; }
         .chip.active { background: #111111; color: white; }
-        input { width: 100%; padding: 8px; border: 1px solid #111111; border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; font-size: 13px; }
-        .submit-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        input[type="text"], input[type="date"], input[type="time"], select { width: 100%; padding: 8px; border: 1px solid #111111; border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; font-size: 13px; }
+        .submit-btn, .add-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 5px; }
 
+        /* 予定追加フォーム用 */
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; align-items: center; }
+        .radio-group { display: flex; flex-wrap: wrap; gap: 15px; margin: 6px 0 12px 0; font-size: 13px; font-weight: bold; }
+        .repeat-box { background: #f8f9fa; border: 1px solid #ced4da; padding: 12px; border-radius: 6px; margin-bottom: 12px; width: 100%; box-sizing: border-box; }
+        .weekday-checks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+        .selected-dates-badge-box { background: #f8f9fa; border: 1px solid #111111; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; width: 100%; box-sizing: border-box; }
+        
+        .action-bar-group { max-width: 440px; margin: 0 auto 15px auto; display: flex; gap: 8px; }
+        .btn-action-del { flex: 1; background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+        .btn-action-del:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; border: 1px solid #ced4da; }
+        .btn-action-copy { flex: 1; background: #ffffff; color: #111111; border: 1px solid #111111; padding: 10px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
+        .btn-action-copy:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; border: 1px solid #ced4da; }
+
+        /* ボード ＆ 名簿 */
         .board-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         @media (max-width: 480px) { .board-container { grid-template-columns: 1fr; } }
         .board-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; min-height: 180px; }
@@ -88,8 +110,12 @@
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; }
         .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
         .member-row:last-child { border-bottom: none; }
+        
+        .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 6px; font-size: 10px; cursor: pointer; font-weight: bold; margin-left: 6px; }
 
-        .login-btn { padding: 12px 30px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; font-size: 14px; }
+        .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
+        .color-setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .color-sample-box { width: 26px; height: 26px; border-radius: 4px; border: 1px solid #ced4da; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -98,9 +124,9 @@
 
     <!-- 画面0: ログイン画面 -->
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
-        <div class="header-title">欠席連絡システム</div>
+        <div class="header-title">出欠連絡・管理システム</div>
         <p style="margin-bottom: 20px; font-size: 13px;">Googleアカウントでログインしてください。</p>
-        <button class="login-btn" onclick="window.handleLogin()">ログイン</button>
+        <button class="submit-btn" onclick="window.handleLogin()">ログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -112,32 +138,58 @@
         <button class="submit-btn" id="saveProfileBtn">次へ進む</button>
     </div>
 
-    <!-- 画面0.6: グループ参加コード入力画面 -->
+    <!-- ★画面0.6: 共通グループ参加・作成画面 -->
     <div id="join-group-screen" class="screen">
         <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
-        <div class="header-title">グループ参加</div>
-        <p style="font-size: 13px; margin-bottom: 15px;">管理者から案内された「メンバー用コード」を入力してください。</p>
-        <div class="info-text">メンバー用コード</div>
-        <input type="text" id="joinMemberCodeInput" placeholder="例：M-XXXXXX">
-        <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
+        <div class="header-title">グループの参加・作成</div>
+
+        <!-- A: 参加コード入力（メンバー・管理者両対応） -->
+        <div class="group-setup-card">
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">A. コードを入力して参加</div>
+            <p style="font-size: 12px; color: #555; margin-bottom: 10px;">
+                案内された参加コードを入力してください。<br>（メンバー用コード、管理者用コードのどちらでも参加できます）
+            </p>
+            <input type="text" id="joinCodeInput" placeholder="例：M-XXXXXX または A-XXXXXX">
+            <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
+        </div>
+
+        <!-- B: 新規グループ作成（作成者は管理者になります） -->
+        <div class="group-setup-card">
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">B. 新しいグループを作成</div>
+            <p style="font-size: 12px; color: #555; margin-bottom: 10px;">
+                グループを作成すると、あなたがそのグループの<strong>管理者</strong>になります。
+            </p>
+            <input type="text" id="newGroupNameInput" placeholder="例：1年A組企画、ダンス部">
+            <button class="submit-btn" id="createGroupBtn" style="background:#212529;">新しいグループを作成</button>
+        </div>
     </div>
 
-    <!-- 画面1: ホーム画面（3大メニュー） -->
+    <!-- 画面1: ホーム画面（権限に応じてメニューが自動変化） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
         <div class="user-badge">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:11px; font-weight:bold;">所属グループ：</span>
-                    <select id="userGroupSelect" style="font-weight:bold;"></select>
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span style="font-size:11px; font-weight:bold;">グループ：</span>
+                    <select id="userGroupSelect" style="font-weight:bold; width:auto; margin-bottom:0; padding:4px 8px;"></select>
+                    <span id="roleBadgeDisplay" class="badge-text"></span>
                     <button class="btn-leave-group" onclick="leaveCurrentMemberGroup()">脱会</button>
                 </div>
-                <span class="change-link" onclick="openJoinGroup()">＋ グループ追加</span>
+                <span class="change-link" onclick="openJoinGroup()">＋ 追加・作成</span>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
                 <div>氏名：<strong><span id="homeDisplayName">-</span></strong> さん</div>
                 <span class="change-link" id="editProfileBtn">氏名変更</span>
+            </div>
+        </div>
+
+        <!-- ★管理者の場合のみ表示されるコード確認・コピー枠 -->
+        <div id="adminCodeSection" class="admin-code-box" style="display:none;">
+            <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
+                <div>メンバー用: <span class="code-pill" id="homeMemberCodeText">-</span> <button class="btn-mini-copy" onclick="copyGroupCode('member')">コピー</button></div>
+                <div>管理者用: <span class="code-pill" id="homeAdminCodeText">-</span> <button class="btn-mini-copy" onclick="copyGroupCode('admin')">コピー</button></div>
             </div>
         </div>
 
@@ -150,9 +202,19 @@
                 <div class="menu-title">出欠の確認</div>
                 <div class="menu-sub">日ごとの欠席者・遅刻早退者一覧</div>
             </div>
-            <div class="menu-card" style="grid-column: span 2;" onclick="window.showScreen('user-members')">
+            <div class="menu-card" onclick="window.showScreen('user-members')">
                 <div class="menu-title">メンバー一覧</div>
-                <div class="menu-sub">このグループに所属しているメンバー名簿</div>
+                <div class="menu-sub">グループ所属メンバー名簿</div>
+            </div>
+
+            <!-- ★管理者の時だけ表示される管理メニュー -->
+            <div class="menu-card admin-only-feature" style="display:none;" onclick="window.showScreen('admin-add-events')">
+                <div class="menu-title">予定の追加・削除</div>
+                <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
+            </div>
+            <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
+                <div class="menu-title">カテゴリ・色設定</div>
+                <div class="menu-sub">パステル6色（赤・青・緑・紫・橙・黒）の項目名変更</div>
             </div>
         </div>
     </div>
@@ -252,7 +314,7 @@
         </div>
     </div>
 
-    <!-- 画面4: 生徒側メンバー一覧画面（メール非表示） -->
+    <!-- 画面4: メンバー一覧画面 -->
     <div id="user-members" class="screen">
         <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
         <div class="header-title">所属メンバー一覧</div>
@@ -263,6 +325,131 @@
 
         <div class="member-list-container" id="userMemberListContainer">
             <p style="color:#888; font-size:12px; text-align:center;">メンバーを読み込み中...</p>
+        </div>
+    </div>
+
+    <!-- ★画面5: （管理者権限時）予定の追加・削除画面 -->
+    <div id="admin-add-events" class="screen">
+        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <div class="header-title">活動予定の追加・削除（管理者用）</div>
+        
+        <div class="cal-box">
+            <div style="font-size: 11px; text-align:center; margin-bottom:5px; color:#555;">
+                日付をタップして複数日選択 / 丸をタップして削除・コピー
+            </div>
+            <div class="cal-nav">
+                <button onclick="window.changeMonth(-1, 'add')">前月</button>
+                <span id="addCalMonthDisplay">0月</span>
+                <button onclick="window.changeMonth(1, 'add')">翌月</button>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
+            </div>
+            <div class="cal-grid" id="addCalDays" style="margin-top: 4px;"></div>
+            <div class="cal-legend" id="addCalLegend"></div>
+        </div>
+
+        <div class="action-bar-group">
+            <button class="btn-action-del" id="deleteEventsBtn" disabled>選択した予定を削除</button>
+            <button class="btn-action-copy" id="copyEventBtn" disabled>この予定の内容をコピー</button>
+        </div>
+
+        <div class="form-row" style="background:#f8f9fa; padding:8px; border:1px solid #ced4da; border-radius:4px;">
+            <span style="font-size: 12px; font-weight:bold; color:#495057;">過去の予定からコピー：</span>
+            <select id="quickCopySelect" style="flex:1; margin-bottom:0;">
+                <option value="">選択してください...</option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <select id="eventYear" style="flex: 1;">
+                <option value="令和6年度">令和6年度</option>
+                <option value="令和7年度">令和7年度</option>
+                <option value="令和8年度">令和8年度</option>
+            </select>
+            <select id="eventCategorySelect" style="flex: 1.5; font-weight: bold;"></select>
+            <input type="text" id="eventTitle" placeholder="予定タイトル（例：全体ミーティング）" style="flex: 2; min-width: 180px;">
+        </div>
+
+        <div style="font-weight: bold; font-size: 12px; margin-top: 8px;">登録方法：</div>
+        <div class="radio-group">
+            <label><input type="radio" name="repeatType" value="calendar" checked> カレンダーで日付選択（複数日可）</label>
+            <label><input type="radio" name="repeatType" value="weekly"> 毎週くり返し（曜日指定）</label>
+            <label><input type="radio" name="repeatType" value="monthly"> 毎月くり返し（日付指定）</label>
+        </div>
+
+        <div id="boxCalendar" class="selected-dates-badge-box">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold;">選択中の日付（<span id="selectedDatesCount">0</span>件）：</span>
+                <button type="button" class="btn-back" style="padding: 2px 8px; font-size: 11px; margin-bottom: 0;" onclick="clearSelectedDatesForAdd()">クリア</button>
+            </div>
+            <div id="selectedDatesList" style="margin-top: 5px; color: #495057; font-size: 12px; word-break: break-all;">
+                上のカレンダーの日付をタップして選んでください（複数日選択可能）
+            </div>
+        </div>
+
+        <div id="boxWeekly" class="repeat-box" style="display: none;">
+            <div class="form-row">
+                <span style="font-size: 12px; font-weight: bold;">期間：</span>
+                <input type="date" id="weeklyStartDate">
+                <span>〜</span>
+                <input type="date" id="weeklyEndDate">
+            </div>
+            <div style="font-size: 12px; font-weight: bold; margin-top: 5px;">くり返す曜日：</div>
+            <div class="weekday-checks">
+                <label><input type="checkbox" class="chk-weekday" value="1"> 月</label>
+                <label><input type="checkbox" class="chk-weekday" value="2"> 火</label>
+                <label><input type="checkbox" class="chk-weekday" value="3"> 水</label>
+                <label><input type="checkbox" class="chk-weekday" value="4"> 木</label>
+                <label><input type="checkbox" class="chk-weekday" value="5"> 金</label>
+                <label><input type="checkbox" class="chk-weekday" value="6"> 土</label>
+                <label><input type="checkbox" class="chk-weekday" value="0"> 日</label>
+            </div>
+        </div>
+
+        <div id="boxMonthly" class="repeat-box" style="display: none;">
+            <div class="form-row">
+                <span style="font-size: 12px; font-weight: bold;">期間：</span>
+                <input type="date" id="monthlyStartDate">
+                <span>〜</span>
+                <input type="date" id="monthlyEndDate">
+            </div>
+            <div class="form-row" style="margin-top: 5px;">
+                <span style="font-size: 12px; font-weight: bold;">毎月：</span>
+                <select id="monthlyDaySelect"></select>
+            </div>
+        </div>
+
+        <div style="font-weight: bold; font-size: 12px; margin-top: 10px;">時間設定：</div>
+        <div class="radio-group">
+            <label><input type="radio" name="timeType" value="custom" checked> 時間指定</label>
+            <label><input type="radio" name="timeType" value="lunch"> 昼休み</label>
+            <label><input type="radio" name="timeType" value="afterschool"> 放課後</label>
+        </div>
+
+        <div id="customTimeBox" class="form-row">
+            <input type="time" id="startTime" value="13:00">
+            <span style="line-height: 34px;">〜</span>
+            <input type="time" id="endTime" value="14:00">
+        </div>
+
+        <button class="add-btn" id="addEventBtn">この予定をカレンダーに登録</button>
+    </div>
+
+    <!-- ★画面6: （管理者権限時）カテゴリ・色設定画面 -->
+    <div id="admin-color-settings" class="screen">
+        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <div class="header-title">カテゴリ・色設定（管理者用）</div>
+        <p style="font-size: 12px; color: #555; margin-bottom: 15px;">パステル6色に対応する予定の項目名を設定できます。</p>
+
+        <div style="border: 1px solid #ced4da; padding: 15px; border-radius: 6px; background: #fafafa;">
+            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #ffb8c6;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">赤色：</span><input type="text" id="colorLabel_red" placeholder="例：ミーティング" style="flex: 1; margin-bottom:0;"></div>
+            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #b4d9ff;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">青色：</span><input type="text" id="colorLabel_blue" placeholder="例：文化祭準備" style="flex: 1; margin-bottom:0;"></div>
+            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #bbf2c8;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">緑色：</span><input type="text" id="colorLabel_green" placeholder="例：その他" style="flex: 1; margin-bottom:0;"></div>
+            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #e0cffc;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">紫色：</span><input type="text" id="colorLabel_purple" placeholder="例：リハーサル" style="flex: 1; margin-bottom:0;"></div>
+            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #ffd8a8;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">橙色：</span><input type="text" id="colorLabel_orange" placeholder="例：買い出し" style="flex: 1; margin-bottom:0;"></div>
+            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #495057;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">黒色：</span><input type="text" id="colorLabel_black" placeholder="例：提出締切" style="flex: 1; margin-bottom:0;"></div>
+            <button class="add-btn" id="saveColorLabelsBtn" style="margin-top: 15px;">設定を保存する</button>
         </div>
     </div>
 
@@ -293,8 +480,10 @@
 
   let currentUser = null;
   let userData = null;
-  let memberGroups = [];
+  let myGroups = []; // [{ id, name, memberCode, adminCode, role: 'admin'|'member' }]
   let currentGroup = null;
+  let isCurrentAdmin = false;
+
   let currentStatus = "欠席";
   let selectedReason = "";
   let allEvents = [];
@@ -306,6 +495,10 @@
   let existingReport = null;
   let viewDate = new Date();
 
+  let selectedEventIdsForDelete = new Set();
+  let lastSelectedEventForCopy = null;
+  let selectedDatesForAdd = new Set();
+
   const defaultColorLabels = {
     red: "ミーティング",
     blue: "文化祭準備",
@@ -314,15 +507,58 @@
     orange: "打ち合わせ",
     black: "締切"
   };
-
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
 
   window.handleLogin = () => {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider).catch(e => {
-      alert("ログインエラー: " + e.message);
-    });
+    signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
   };
+
+  function initMonthlySelect() {
+    const daySelect = document.getElementById('monthlyDaySelect');
+    if (!daySelect) return;
+    daySelect.innerHTML = "";
+    for (let i = 1; i <= 31; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.innerText = `${i}日`;
+      daySelect.appendChild(opt);
+    }
+  }
+  initMonthlySelect();
+
+  function generateCode(prefix) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `${prefix}-${code}`;
+  }
+
+  window.copyGroupCode = (type) => {
+    if (!currentGroup) return;
+    const text = type === 'member' ? currentGroup.memberCode : currentGroup.adminCode;
+    const label = type === 'member' ? 'メンバー用コード' : '管理者用コード';
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => alert(`${label}「${text}」をコピーしました！`)).catch(() => fallbackCopy(text, label));
+    } else {
+      fallbackCopy(text, label);
+    }
+  };
+
+  function fallbackCopy(text, label) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      alert(`${label}「${text}」をコピーしました！`);
+    } catch (err) {
+      alert("コピーに失敗しました: " + text);
+    }
+    document.body.removeChild(textArea);
+  }
 
   window.showScreen = (screenId) => {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
@@ -332,6 +568,16 @@
     if (screenId === 'user-report') renderCalendar('report');
     if (screenId === 'user-view') renderCalendar('view');
     if (screenId === 'user-members') renderUserMemberList();
+    if (screenId === 'admin-add-events') {
+      selectedEventIdsForDelete.clear();
+      lastSelectedEventForCopy = null;
+      updateActionBar();
+      updateSelectedDatesUI();
+      renderCalendar('add');
+      updateQuickCopySelect();
+      updateCategoryFormOptions();
+    }
+    if (screenId === 'admin-color-settings') loadColorSettingsScreen();
   };
 
   onAuthStateChanged(auth, async (user) => {
@@ -343,6 +589,7 @@
     }
   });
 
+  // ユーザー所属グループ確認（メンバー・管理者統合）
   async function checkUserProfileAndGroups() {
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
@@ -355,26 +602,34 @@
 
       userData = docSnap.data();
 
-      let groupIds = [];
-      if (Array.isArray(userData.memberGroupIds)) {
-        groupIds = userData.memberGroupIds;
-      } else if (userData.memberGroupId) {
-        groupIds = [userData.memberGroupId];
-      }
+      let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : (userData.memberGroupId ? [userData.memberGroupId] : []);
+      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : (userData.adminGroupId ? [userData.adminGroupId] : []);
 
-      memberGroups = [];
-      for (const gId of groupIds) {
+      myGroups = [];
+
+      // 管理者グループ
+      for (const gId of adminGroupIds) {
         const gSnap = await getDoc(doc(db, "groups", gId));
         if (gSnap.exists()) {
-          memberGroups.push({ id: gSnap.id, ...gSnap.data() });
+          myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'admin' });
         }
       }
 
-      if (memberGroups.length === 0) {
+      // メンバーグループ
+      for (const gId of memberGroupIds) {
+        if (!myGroups.some(g => g.id === gId)) {
+          const gSnap = await getDoc(doc(db, "groups", gId));
+          if (gSnap.exists()) {
+            myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'member' });
+          }
+        }
+      }
+
+      if (myGroups.length === 0) {
         document.getElementById('joinBackBtn').style.display = 'none';
         window.showScreen('join-group-screen');
       } else {
-        currentGroup = memberGroups[0];
+        currentGroup = myGroups[0];
         updateUserGroupSelectUI();
         showUserHome();
       }
@@ -387,7 +642,7 @@
     const sel = document.getElementById('userGroupSelect');
     if (!sel) return;
     sel.innerHTML = "";
-    memberGroups.forEach(g => {
+    myGroups.forEach(g => {
       const opt = document.createElement('option');
       opt.value = g.id;
       opt.innerText = g.name;
@@ -398,31 +653,13 @@
 
   document.getElementById('userGroupSelect').onchange = (e) => {
     const selectedId = e.target.value;
-    currentGroup = memberGroups.find(g => g.id === selectedId);
+    currentGroup = myGroups.find(g => g.id === selectedId);
     showUserHome();
   };
 
   window.openJoinGroup = () => {
-    document.getElementById('joinBackBtn').style.display = (memberGroups.length > 0) ? 'inline-block' : 'none';
+    document.getElementById('joinBackBtn').style.display = (myGroups.length > 0) ? 'inline-block' : 'none';
     window.showScreen('join-group-screen');
-  };
-
-  window.leaveCurrentMemberGroup = async () => {
-    if (!currentGroup) return;
-    if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
-
-    try {
-      const updatedMemberGroupIds = memberGroups.filter(g => g.id !== currentGroup.id).map(g => g.id);
-      await setDoc(doc(db, "users", currentUser.uid), {
-        memberGroupIds: updatedMemberGroupIds,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      alert(`グループ「${currentGroup.name}」を脱会しました。`);
-      checkUserProfileAndGroups();
-    } catch (e) {
-      alert("脱会エラー: " + e.message);
-    }
   };
 
   document.getElementById('saveProfileBtn').onclick = async () => {
@@ -436,13 +673,23 @@
     } catch (e) { alert("登録エラー: " + e.message); }
   };
 
+  // ★共通グループ参加処理（コード自動判定）
   document.getElementById('joinGroupBtn').onclick = async () => {
-    const code = document.getElementById('joinMemberCodeInput').value.trim().toUpperCase();
-    if (!code) return alert("メンバー用コードを入力してください");
+    const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+    if (!code) return alert("参加コードを入力してください");
 
     try {
-      const q = query(collection(db, "groups"), where("memberCode", "==", code));
-      const snap = await getDocs(q);
+      // 1. メンバーコード検索
+      let q = query(collection(db, "groups"), where("memberCode", "==", code));
+      let snap = await getDocs(q);
+      let role = 'member';
+
+      // 2. なければ管理者コード検索
+      if (snap.empty) {
+        q = query(collection(db, "groups"), where("adminCode", "==", code));
+        snap = await getDocs(q);
+        role = 'admin';
+      }
 
       if (snap.empty) {
         return alert("該当するグループが見つかりませんでした。コードを確認してください。");
@@ -451,24 +698,87 @@
       const targetGroupDoc = snap.docs[0];
       const targetGroupId = targetGroupDoc.id;
 
-      if (!memberGroups.some(g => g.id === targetGroupId)) {
-        const newGroupData = { id: targetGroupId, ...targetGroupDoc.data() };
-        memberGroups.push(newGroupData);
-        currentGroup = newGroupData;
+      let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : [];
+      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
 
-        const currentGroupIds = memberGroups.map(g => g.id);
-        await setDoc(doc(db, "users", currentUser.uid), {
-          memberGroupIds: currentGroupIds,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
+      if (role === 'admin') {
+        if (!adminGroupIds.includes(targetGroupId)) adminGroupIds.push(targetGroupId);
+      } else {
+        if (!memberGroupIds.includes(targetGroupId)) memberGroupIds.push(targetGroupId);
       }
 
-      alert(`グループ「${targetGroupDoc.data().name}」に参加しました！`);
-      document.getElementById('joinMemberCodeInput').value = "";
-      updateUserGroupSelectUI();
-      showUserHome();
+      await setDoc(doc(db, "users", currentUser.uid), {
+        memberGroupIds,
+        adminGroupIds,
+        email: currentUser.email,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`グループ「${targetGroupDoc.data().name}」に【${role === 'admin' ? '管理者' : 'メンバー'}】として参加しました！`);
+      document.getElementById('joinCodeInput').value = "";
+      checkUserProfileAndGroups();
     } catch (e) {
       alert("参加エラー: " + e.message);
+    }
+  };
+
+  // ★新規グループ作成（生徒側から作成可能・作成者は管理者）
+  document.getElementById('createGroupBtn').onclick = async () => {
+    const groupName = document.getElementById('newGroupNameInput').value.trim();
+    if (!groupName) return alert("グループ名を入力してください");
+
+    try {
+      const memberCode = generateCode('M');
+      const adminCode = generateCode('A');
+
+      const groupRef = await addDoc(collection(db, "groups"), {
+        name: groupName,
+        memberCode: memberCode,
+        adminCode: adminCode,
+        colorLabels: defaultColorLabels,
+        ownerUid: currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+
+      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
+      adminGroupIds.push(groupRef.id);
+
+      await setDoc(doc(db, "users", currentUser.uid), {
+        adminGroupIds,
+        email: currentUser.email,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`グループ「${groupName}」を作成しました！あなたがこのグループの管理者です。`);
+      document.getElementById('newGroupNameInput').value = "";
+      checkUserProfileAndGroups();
+    } catch (e) {
+      alert("作成エラー: " + e.message);
+    }
+  };
+
+  // 脱会処理
+  window.leaveCurrentMemberGroup = async () => {
+    if (!currentGroup) return;
+    if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
+
+    try {
+      let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : [];
+      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
+
+      memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
+      adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
+
+      await setDoc(doc(db, "users", currentUser.uid), {
+        memberGroupIds,
+        adminGroupIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`グループ「${currentGroup.name}」を脱会しました。`);
+      checkUserProfileAndGroups();
+    } catch (e) {
+      alert("脱会エラー: " + e.message);
     }
   };
 
@@ -480,6 +790,28 @@
   function showUserHome() {
     const name = (userData && (userData.name || userData.kanjiName)) || "名無し";
     document.getElementById('homeDisplayName').innerText = name;
+    
+    isCurrentAdmin = (currentGroup && currentGroup.role === 'admin');
+    
+    const roleBadge = document.getElementById('roleBadgeDisplay');
+    roleBadge.innerText = isCurrentAdmin ? "管理者" : "メンバー";
+    roleBadge.style.background = isCurrentAdmin ? "#212529" : "#ffffff";
+    roleBadge.style.color = isCurrentAdmin ? "#ffffff" : "#111111";
+
+    // 管理者専用機能の表示切り替え
+    document.querySelectorAll('.admin-only-feature').forEach(el => {
+      el.style.display = isCurrentAdmin ? (el.tagName === 'DIV' && el.classList.contains('menu-card') && el.style.gridColumn ? 'block' : 'block') : 'none';
+    });
+
+    const adminCodeSec = document.getElementById('adminCodeSection');
+    if (isCurrentAdmin && currentGroup) {
+      adminCodeSec.style.display = 'block';
+      document.getElementById('homeMemberCodeText').innerText = currentGroup.memberCode || '-';
+      document.getElementById('homeAdminCodeText').innerText = currentGroup.adminCode || '-';
+    } else {
+      adminCodeSec.style.display = 'none';
+    }
+
     window.showScreen('user-home');
     listenGroupData();
   }
@@ -491,7 +823,7 @@
 
   function renderLegends() {
     const labels = getGroupColorLabels();
-    ['reportCalLegend', 'viewCalLegend'].forEach(id => {
+    ['reportCalLegend', 'viewCalLegend', 'addCalLegend'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.innerHTML = "";
@@ -511,10 +843,11 @@
 
     onSnapshot(doc(db, "groups", currentGroup.id), (gSnap) => {
       if (gSnap.exists()) {
-        currentGroup = { id: gSnap.id, ...gSnap.data() };
+        currentGroup = { ...currentGroup, ...gSnap.data() };
         renderLegends();
         renderCalendar('report');
         renderCalendar('view');
+        if (isCurrentAdmin) renderCalendar('add');
       }
     });
 
@@ -529,6 +862,10 @@
       allEvents.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
       renderCalendar('report');
       renderCalendar('view');
+      if (isCurrentAdmin) {
+        renderCalendar('add');
+        updateQuickCopySelect();
+      }
     });
 
     onSnapshot(query(collection(db, "reports")), (snapshot) => {
@@ -582,6 +919,10 @@
       const roleBadge = isAdmin ? '<span class="badge-text" style="background:#212529; color:white;">管理者</span>' : '<span class="badge-text">メンバー</span>';
       const name = m.name || m.kanjiName || "名無し";
 
+      // 管理者かつ自分以外には除名ボタンを表示
+      const isSelf = currentUser && m.id === currentUser.uid;
+      const kickBtnHtml = (isCurrentAdmin && !isSelf) ? `<button class="btn-kick-member" onclick="kickMember('${m.id}', '${name}')">除名</button>` : '';
+
       const row = document.createElement('div');
       row.className = "member-row";
       row.innerHTML = `
@@ -589,8 +930,81 @@
           ${roleBadge}
           <strong>${name}</strong>
         </div>
+        <div style="display:flex; align-items:center;">
+          ${kickBtnHtml}
+        </div>
       `;
       container.appendChild(row);
+    });
+  }
+
+  // 管理者の除名処理
+  window.kickMember = async (targetUid, targetName) => {
+    if (!currentGroup || !isCurrentAdmin) return;
+    if (!confirm(`「${targetName}」さんをグループ「${currentGroup.name}」から除名しますか？`)) return;
+
+    try {
+      const userRef = doc(db, "users", targetUid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const uData = userSnap.data();
+        let memberGroupIds = Array.isArray(uData.memberGroupIds) ? uData.memberGroupIds : [];
+        let adminGroupIds = Array.isArray(uData.adminGroupIds) ? uData.adminGroupIds : [];
+
+        memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
+        adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
+
+        await setDoc(userRef, { memberGroupIds, adminGroupIds, updatedAt: serverTimestamp() }, { merge: true });
+      }
+
+      alert(`「${targetName}」さんを除名しました。`);
+    } catch (e) {
+      alert("除名エラー: " + e.message);
+    }
+  };
+
+  // 管理者の色設定画面
+  function loadColorSettingsScreen() {
+    const labels = getGroupColorLabels();
+    colorKeys.forEach(k => {
+      const input = document.getElementById(`colorLabel_${k}`);
+      if (input) input.value = labels[k] || "";
+    });
+  }
+
+  document.getElementById('saveColorLabelsBtn').onclick = async () => {
+    if (!currentGroup || !isCurrentAdmin) return;
+    const newLabels = {};
+    colorKeys.forEach(k => {
+      const val = document.getElementById(`colorLabel_${k}`).value.trim();
+      newLabels[k] = val;
+    });
+
+    try {
+      await setDoc(doc(db, "groups", currentGroup.id), { colorLabels: newLabels }, { merge: true });
+      currentGroup.colorLabels = newLabels;
+      alert("カテゴリ・色設定を保存しました。");
+      window.showScreen('user-home');
+    } catch (e) {
+      alert("保存エラー: " + e.message);
+    }
+  };
+
+  function updateCategoryFormOptions() {
+    const sel = document.getElementById('eventCategorySelect');
+    if (!sel) return;
+    sel.innerHTML = "";
+    const labels = getGroupColorLabels();
+    const colorNamesJp = { red: "赤", blue: "青", green: "緑", purple: "紫", orange: "橙", black: "黒" };
+
+    colorKeys.forEach(k => {
+      if (labels[k]) {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.innerText = `${colorNamesJp[k]}：${labels[k]}`;
+        sel.appendChild(opt);
+      }
     });
   }
 
@@ -602,8 +1016,8 @@
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-    const displayId = mode === 'report' ? 'reportCalMonthDisplay' : 'viewCalMonthDisplay';
-    const containerId = mode === 'report' ? 'reportCalDays' : 'viewCalDays';
+    const displayId = mode === 'report' ? 'reportCalMonthDisplay' : (mode === 'view' ? 'viewCalMonthDisplay' : 'addCalMonthDisplay');
+    const containerId = mode === 'report' ? 'reportCalDays' : (mode === 'view' ? 'viewCalDays' : 'addCalDays');
 
     const displayEl = document.getElementById(displayId);
     const container = document.getElementById(containerId);
@@ -620,7 +1034,8 @@
 
     for (let i = 0; i < firstDay; i++) {
       const div = document.createElement('div');
-      div.className = "cal-day";
+      div.className = "cal-day other-month";
+      div.innerText = prevLastDate - i;
       container.appendChild(div);
     }
 
@@ -632,7 +1047,6 @@
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        
         let colorClass = 'circle-red';
         if (ev.color && colorKeys.includes(ev.color)) {
           colorClass = `circle-${ev.color}`;
@@ -646,20 +1060,46 @@
         circle.innerText = d;
 
         if (mode === 'report') {
-          if (selectedEventForReport && selectedEventForReport.id === ev.id) {
-            div.classList.add('selected');
-          }
+          if (selectedEventForReport && selectedEventForReport.id === ev.id) div.classList.add('selected');
           div.onclick = () => selectEventForReport(ev, div);
-        } else {
-          if (selectedDateForView === dateStr) {
-            div.classList.add('selected');
-          }
+        } else if (mode === 'view') {
+          if (selectedDateForView === dateStr) div.classList.add('selected');
           div.onclick = () => selectEventForView(dateStr, div);
+        } else {
+          // 管理者予定追加画面
+          if (selectedEventIdsForDelete.has(ev.id)) circle.classList.add('is-selected');
+          div.onclick = () => {
+            if (selectedEventIdsForDelete.has(ev.id)) {
+              selectedEventIdsForDelete.delete(ev.id);
+            } else {
+              selectedEventIdsForDelete.add(ev.id);
+              lastSelectedEventForCopy = ev;
+            }
+            updateActionBar();
+            renderCalendar('add');
+          };
         }
 
         div.appendChild(circle);
       } else {
         div.innerText = d;
+        if (mode === 'add') {
+          if (selectedDatesForAdd.has(dateStr)) div.classList.add('add-selected');
+          div.onclick = () => {
+            if (selectedDatesForAdd.has(dateStr)) {
+              selectedDatesForAdd.delete(dateStr);
+            } else {
+              selectedDatesForAdd.add(dateStr);
+            }
+            document.querySelector('input[name="repeatType"][value="calendar"]').checked = true;
+            document.getElementById('boxCalendar').style.display = 'block';
+            document.getElementById('boxWeekly').style.display = 'none';
+            document.getElementById('boxMonthly').style.display = 'none';
+
+            updateSelectedDatesUI();
+            renderCalendar('add');
+          };
+        }
       }
 
       container.appendChild(div);
@@ -878,6 +1318,222 @@
       window.showScreen('user-home');
     } catch (e) {
       alert("送信エラー: " + e.message);
+    }
+  };
+
+  // 管理者用：予定追加・削除ロジック
+  function updateSelectedDatesUI() {
+    const countEl = document.getElementById('selectedDatesCount');
+    const listEl = document.getElementById('selectedDatesList');
+    const addBtn = document.getElementById('addEventBtn');
+    const count = selectedDatesForAdd.size;
+    countEl.innerText = count;
+
+    if (count === 0) {
+      listEl.innerText = "上のカレンダーの日付をタップして選んでください（複数日選択可能）";
+      addBtn.innerText = "この予定を登録する";
+    } else {
+      const sortedDates = Array.from(selectedDatesForAdd).sort();
+      listEl.innerText = sortedDates.join(', ');
+      addBtn.innerText = `この予定を登録する（${count}件一括）`;
+    }
+  }
+
+  window.clearSelectedDatesForAdd = () => {
+    selectedDatesForAdd.clear();
+    updateSelectedDatesUI();
+    renderCalendar('add');
+  };
+
+  function updateActionBar() {
+    const delBtn = document.getElementById('deleteEventsBtn');
+    const copyBtn = document.getElementById('copyEventBtn');
+    const count = selectedEventIdsForDelete.size;
+
+    if (count > 0) {
+      delBtn.disabled = false;
+      delBtn.innerText = `選択した予定を削除（${count}件）`;
+      copyBtn.disabled = false;
+      copyBtn.innerText = `この予定の内容をコピー`;
+    } else {
+      delBtn.disabled = true;
+      delBtn.innerText = "選択した予定を削除";
+      copyBtn.disabled = true;
+      copyBtn.innerText = "この予定の内容をコピー";
+    }
+  }
+
+  function applyEventToForm(ev) {
+    if (!ev) return;
+    if (ev.year) document.getElementById('eventYear').value = ev.year;
+    if (ev.color) document.getElementById('eventCategorySelect').value = ev.color;
+    if (ev.title) document.getElementById('eventTitle').value = ev.title;
+
+    if (ev.timeType) {
+      const radio = document.querySelector(`input[name="timeType"][value="${ev.timeType}"]`);
+      if (radio) radio.checked = true;
+      document.getElementById('customTimeBox').style.display = (ev.timeType === 'custom') ? 'flex' : 'none';
+
+      if (ev.timeType === 'custom' && ev.timeText && ev.timeText.includes('〜')) {
+        const parts = ev.timeText.split('〜');
+        document.getElementById('startTime').value = parts[0];
+        document.getElementById('endTime').value = parts[1];
+      }
+    }
+    alert(`予定「${ev.title}」の内容をコピーしました。\nカレンダーから日付を選択して登録してください。`);
+  }
+
+  document.getElementById('copyEventBtn').onclick = () => {
+    if (!lastSelectedEventForCopy) return;
+    applyEventToForm(lastSelectedEventForCopy);
+  };
+
+  function updateQuickCopySelect() {
+    const sel = document.getElementById('quickCopySelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">選択してください...</option>';
+    const seenTitles = new Set();
+    allEvents.forEach((ev, idx) => {
+      if (ev.title && !seenTitles.has(ev.title)) {
+        seenTitles.add(ev.title);
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `[${ev.categoryTitle || ev.category}] ${ev.title} (${ev.timeText || ''})`;
+        sel.appendChild(opt);
+      }
+    });
+  }
+
+  document.getElementById('quickCopySelect').onchange = (e) => {
+    const idx = e.target.value;
+    if (idx === "") return;
+    const ev = allEvents[parseInt(idx, 10)];
+    if (ev) applyEventToForm(ev);
+    e.target.value = "";
+  };
+
+  document.getElementById('deleteEventsBtn').onclick = async () => {
+    const count = selectedEventIdsForDelete.size;
+    if (count === 0) return;
+    if (!confirm(`選択した ${count} 件の予定をカレンダーから削除しますか？`)) return;
+
+    try {
+      const promises = Array.from(selectedEventIdsForDelete).map(id => deleteDoc(doc(db, "events", id)));
+      await Promise.all(promises);
+      selectedEventIdsForDelete.clear();
+      lastSelectedEventForCopy = null;
+      updateActionBar();
+      alert("選択した予定を削除しました。");
+    } catch (e) {
+      alert("削除エラー: " + e.message);
+    }
+  };
+
+  function getDatesBetween(startDateStr, endDateStr) {
+    const dates = [];
+    let current = new Date(startDateStr + "T00:00:00");
+    const end = new Date(endDateStr + "T00:00:00");
+    while (current <= end) {
+      const y = current.getFullYear();
+      const m = String(current.getMonth() + 1).padStart(2, '0');
+      const d = String(current.getDate()).padStart(2, '0');
+      dates.push(`${y}-${m}-${d}`);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }
+
+  document.getElementById('addEventBtn').onclick = async () => {
+    if (!currentGroup || !isCurrentAdmin) return alert("管理者権限がありません");
+
+    const year = document.getElementById('eventYear').value;
+    const colorKey = document.getElementById('eventCategorySelect').value;
+    const labels = getGroupColorLabels();
+    const categoryTitle = labels[colorKey] || "予定";
+    const title = document.getElementById('eventTitle').value.trim();
+    const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
+    const timeType = document.querySelector('input[name="timeType"]:checked').value;
+
+    if (!title) return alert("予定タイトルを入力してください");
+
+    let targetDates = [];
+
+    if (repeatType === 'calendar') {
+      if (selectedDatesForAdd.size === 0) {
+        return alert("カレンダーから登録したい日付をタップして選択してください。");
+      }
+      targetDates = Array.from(selectedDatesForAdd);
+    } else if (repeatType === 'weekly') {
+      const start = document.getElementById('weeklyStartDate').value;
+      const end = document.getElementById('weeklyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const checkedDays = Array.from(document.querySelectorAll('.chk-weekday:checked')).map(c => parseInt(c.value, 10));
+      if (checkedDays.length === 0) return alert("くり返す曜日にチェックを入れてください");
+
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayOfWeek = new Date(dStr + "T00:00:00").getDay();
+        return checkedDays.includes(dayOfWeek);
+      });
+    } else if (repeatType === 'monthly') {
+      const start = document.getElementById('monthlyStartDate').value;
+      const end = document.getElementById('monthlyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const targetDayNum = parseInt(document.getElementById('monthlyDaySelect').value, 10);
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayNum = parseInt(dStr.split('-')[2], 10);
+        return dayNum === targetDayNum;
+      });
+    }
+
+    if (targetDates.length === 0) {
+      return alert("指定された期間・条件に該当する日付がありませんでした。");
+    }
+
+    let timeText = "";
+    if (timeType === "custom") {
+      const s = document.getElementById('startTime').value;
+      const e = document.getElementById('endTime').value;
+      if (!s || !e) return alert("開始時間と終了時間を指定してください");
+      timeText = `${s}〜${e}`;
+    } else if (timeType === "lunch") {
+      timeText = "昼休み";
+    } else if (timeType === "afterschool") {
+      timeText = "放課後";
+    }
+
+    if (!confirm(`合計 ${targetDates.length} 件の予定を一括登録しますか？`)) return;
+
+    try {
+      const promises = targetDates.map(dateStr => {
+        return addDoc(collection(db, "events"), {
+          groupId: currentGroup.id,
+          year,
+          color: colorKey,
+          category: categoryTitle,
+          categoryTitle: categoryTitle,
+          date: dateStr,
+          title,
+          timeType,
+          timeText,
+          createdAt: serverTimestamp()
+        });
+      });
+
+      await Promise.all(promises);
+      alert(`${targetDates.length} 件の予定を一括登録しました。`);
+      
+      selectedDatesForAdd.clear();
+      updateSelectedDatesUI();
+      document.getElementById('eventTitle').value = "";
+      window.showScreen('user-home');
+    } catch (e) {
+      alert("登録エラー: " + e.message);
     }
   };
 </script>
