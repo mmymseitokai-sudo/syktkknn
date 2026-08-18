@@ -5,32 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>欠席連絡システム</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; margin: 0; padding: 15px; display: flex; justify-content: center; color: #212529; }
-        .app-container { background: white; width: 100%; max-width: 420px; border: 1px solid #ced4da; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); box-sizing: border-box; }
-        .header-title { border-bottom: 2px solid #212529; padding-bottom: 10px; margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: bold; }
-        .info-text { font-size: 13px; margin-bottom: 6px; font-weight: bold; color: #495057; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #ffffff; margin: 0; padding: 15px; display: flex; justify-content: center; color: #111111; }
+        .app-container { background: #ffffff; width: 100%; max-width: 420px; border: 1px solid #111111; border-radius: 8px; padding: 20px; box-sizing: border-box; }
+        .header-title { border-bottom: 2px solid #111111; padding-bottom: 10px; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: bold; }
+        .info-text { font-size: 13px; margin-bottom: 6px; font-weight: bold; color: #111111; }
         
         .screen { display: none; }
-        .user-badge { background: #f1f3f5; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-        .change-name-link { font-size: 12px; color: #495057; text-decoration: underline; cursor: pointer; }
+        .user-badge { border: 1px solid #111111; padding: 8px 12px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .change-name-link { font-size: 12px; color: #111111; text-decoration: underline; cursor: pointer; }
 
         /* カレンダー */
-        .calendar-box { border: 1px solid #ced4da; border-radius: 8px; padding: 10px; margin-bottom: 15px; background: #fff; }
-        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 16px; }
-        .cal-nav button { background: #fff; border: 1px solid #ced4da; border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+        .calendar-box { border: 1px solid #111111; border-radius: 6px; padding: 10px; margin-bottom: 15px; background: #ffffff; }
+        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
+        .cal-nav button { background: #ffffff; border: 1px solid #111111; border-radius: 4px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
-        .cal-head { font-size: 12px; font-weight: bold; padding-bottom: 4px; border-bottom: 1px solid #dee2e6; color: #6c757d; }
+        .cal-head { font-size: 12px; font-weight: bold; padding-bottom: 4px; border-bottom: 1px solid #111111; color: #111111; }
         
-        .cal-day { min-height: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; border-radius: 4px; cursor: default; }
-        .cal-day.other-month { color: #ced4da; }
+        .cal-day { min-height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; cursor: default; }
+        .cal-day.other-month { color: #cccccc; }
         .cal-day.selectable { cursor: pointer; }
-        .cal-day.selectable:hover { background-color: #f1f3f5; }
-        .cal-day.selected { outline: 2px solid #212529; outline-offset: -2px; }
+        .cal-day.selectable:hover { text-decoration: underline; }
+        .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; border-radius: 4px; }
 
-        .circle-mark { width: 30px; height: 30px; line-height: 30px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; color: #212529; }
+        .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; color: #222222; }
         .circle-meeting { background-color: #ffb8c6; }
         .circle-prep { background-color: #bbf2c8; }
         .circle-other { background-color: #fff099; }
+        .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
 
         .cal-legend { display: flex; justify-content: center; gap: 12px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
@@ -39,22 +40,29 @@
         .dot.prep { background-color: #bbf2c8; }
         .dot.other { background-color: #fff099; }
 
-        .selected-event-card { background: #f8f9fa; border: 1px solid #ced4da; border-radius: 6px; padding: 12px; margin-bottom: 15px; text-align: center; }
-        .selected-event-title { font-size: 15px; font-weight: bold; margin-top: 4px; }
+        .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 10px; margin-bottom: 15px; text-align: center; }
+        .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; }
 
-        .already-sent-box { background: #f1f3f5; border: 1px solid #ced4da; color: #343a40; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; text-align: center; }
-        .cancel-btn { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; cursor: pointer; margin-top: 8px; font-weight: bold; }
+        /* ★この日の出欠状況カード */
+        .attendance-preview-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; margin-bottom: 15px; background: #ffffff; }
+        .preview-header { font-size: 13px; font-weight: bold; border-bottom: 1px solid #111111; padding-bottom: 4px; margin-bottom: 8px; text-align: center; }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .preview-sub-title { font-size: 12px; font-weight: bold; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .preview-item { font-size: 12px; margin-bottom: 4px; line-height: 1.4; }
+        .badge-mini { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 3px; border-radius: 2px; margin-right: 3px; }
 
-        /* フォームパーツ */
+        .already-sent-box { border: 1px solid #111111; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; text-align: center; }
+        .cancel-btn { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: bold; }
+        .cancel-btn:hover { background: #111111; color: #ffffff; }
+
         .status-group { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
-        .btn-status { flex: 1; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 14px; color: #495057; }
-        .btn-status.active { background: #212529; color: white; border-color: #212529; }
+        .btn-status { flex: 1; padding: 10px; border: 1px solid #111111; border-radius: 4px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 13px; }
+        .btn-status.active { background: #111111; color: white; }
 
-        .chip { padding: 6px 12px; border: 1px solid #ced4da; border-radius: 16px; font-size: 13px; background: white; cursor: pointer; margin-bottom: 8px; display: inline-block; color: #495057; }
-        .chip.active { background: #212529; color: white; border-color: #212529; }
-        input { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; margin-bottom: 12px; font-size: 14px; }
-        .submit-btn { width: 100%; padding: 12px; background: #212529; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; margin-top: 5px; cursor: pointer; }
-        .login-btn { width: 100%; padding: 12px; background: #212529; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; cursor: pointer; }
+        .chip { padding: 6px 12px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; margin-bottom: 6px; display: inline-block; }
+        .chip.active { background: #111111; color: white; }
+        input { width: 100%; padding: 8px; border: 1px solid #111111; border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; font-size: 13px; }
+        .submit-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -63,12 +71,12 @@
     <div class="header-title">欠席連絡フォーム</div>
 
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
-        <p style="margin-bottom: 25px; color: #6c757d; font-size: 14px;">Googleアカウントでログインしてください。</p>
-        <button class="login-btn" id="loginBtn">ログインする</button>
+        <p style="margin-bottom: 20px; font-size: 13px;">Googleアカウントでログインしてください。</p>
+        <button class="submit-btn" id="loginBtn">ログイン</button>
     </div>
 
     <div id="profile-screen" class="screen">
-        <p style="font-size: 13px; color: #6c757d; margin-bottom: 15px;">初回登録です。お名前を入力してください。</p>
+        <p style="font-size: 13px; margin-bottom: 15px;">初回登録です。氏名を入力してください。</p>
         <div class="info-text">氏名（フルネーム）</div>
         <input type="text" id="regName" placeholder="例：山田 太郎">
         <button class="submit-btn" id="saveProfileBtn">登録して進む</button>
@@ -99,16 +107,33 @@
         </div>
 
         <div class="selected-event-card" id="selectedEventCard">
-            <div style="font-size: 12px; color: #6c757d;">カレンダーの日付を選択してください</div>
+            <div style="font-size: 12px; color: #555;">カレンダーの日付を選択してください</div>
             <div class="selected-event-title" id="selectedEventTitle">予定が未選択です</div>
         </div>
 
+        <!-- ★この日の出欠状況確認カード（予定選択時に表示） -->
+        <div id="attendanceStatusBox" class="attendance-preview-card" style="display: none;">
+            <div class="preview-header">この日の出欠状況</div>
+            <div class="preview-grid">
+                <div>
+                    <div class="preview-sub-title">欠席者 (<span id="previewAbsentCount">0</span>)</div>
+                    <div id="previewAbsentList" style="color: #495057;">なし</div>
+                </div>
+                <div>
+                    <div class="preview-sub-title">遅刻・早退 (<span id="previewLateCount">0</span>)</div>
+                    <div id="previewLateList" style="color: #495057;">なし</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自分が連絡済みの場合の取り消し枠 -->
         <div id="alreadySentBox" class="already-sent-box" style="display:none;">
             <div>連絡済み：<strong id="sentStatusText"></strong></div>
             <button class="cancel-btn" id="cancelReportBtn">送信した連絡を取り消す</button>
         </div>
 
-        <div id="formSection" style="opacity: 0.4; pointer-events: none;">
+        <!-- 連絡フォーム -->
+        <div id="formSection" style="opacity: 0.3; pointer-events: none;">
             <div class="status-group">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
                 <div class="btn-status" id="btnLate">遅刻</div>
@@ -168,7 +193,8 @@
 
   function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
-    document.getElementById(screenId).style.display = 'block';
+    const target = document.getElementById(screenId);
+    if (target) target.style.display = 'block';
   }
 
   document.getElementById('loginBtn').onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
@@ -199,7 +225,7 @@
 
   document.getElementById('saveProfileBtn').onclick = async () => {
     const name = document.getElementById('regName').value.trim();
-    if (!name) return alert("お名前を入力してください");
+    if (!name) return alert("氏名を入力してください");
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       userData = { name: name, email: currentUser.email, updatedAt: serverTimestamp() };
@@ -209,12 +235,13 @@
   };
 
   document.getElementById('editProfileBtn').onclick = () => {
-    document.getElementById('regName').value = userData.name || "";
+    document.getElementById('regName').value = (userData && (userData.name || userData.kanjiName)) || "";
     showScreen('profile-screen');
   };
 
   function showAppContent() {
-    document.getElementById('displayName').innerText = userData.name || "";
+    const name = (userData && (userData.name || userData.kanjiName)) || "名無し";
+    document.getElementById('displayName').innerText = name;
     showScreen('app-content');
     loadEvents();
     loadReports();
@@ -238,20 +265,26 @@
       snapshot.forEach(docSnap => {
         allReports.push({ id: docSnap.id, ...docSnap.data() });
       });
-      if (selectedEvent) checkExistingReport();
+      if (selectedEvent) {
+        checkExistingReport();
+        updateStudentAttendancePreview(selectedEvent.date);
+      }
     });
   }
 
   function renderCalendar() {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-    document.getElementById('calMonthDisplay').innerText = `${year}年 ${month + 1}月`;
+    const displayEl = document.getElementById('calMonthDisplay');
+    const container = document.getElementById('calDaysContainer');
+    if (!displayEl || !container) return;
+
+    displayEl.innerText = `${year}年 ${month + 1}月`;
 
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
     const prevLastDate = new Date(year, month, 0).getDate();
 
-    const container = document.getElementById('calDaysContainer');
     container.innerHTML = "";
 
     for (let i = firstDay - 1; i >= 0; i--) {
@@ -311,12 +344,51 @@
     dayElement.classList.add('selected');
 
     document.getElementById('selectedEventCard').innerHTML = `
-      <div style="font-size: 12px; font-weight:bold; color:#495057; margin-bottom:4px;">${ev.category}</div>
+      <div style="font-size: 12px; font-weight:bold; margin-bottom:4px;">${ev.category}</div>
       <div class="selected-event-title">${ev.date} (${ev.timeText || '時間指定なし'})<br>${ev.title}</div>
     `;
 
+    // 出欠状況プレビューを表示
+    document.getElementById('attendanceStatusBox').style.display = 'block';
+    updateStudentAttendancePreview(ev.date);
+
     checkExistingReport();
     updateStatusUI();
+  }
+
+  // ★出欠状況プレビューの描画処理
+  function updateStudentAttendancePreview(dateStr) {
+    const dayReports = allReports.filter(r => r.eventDate === dateStr);
+    const absents = dayReports.filter(r => r.status === '欠席');
+    const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
+
+    const absentCountEl = document.getElementById('previewAbsentCount');
+    const lateCountEl = document.getElementById('previewLateCount');
+    const absentListEl = document.getElementById('previewAbsentList');
+    const lateListEl = document.getElementById('previewLateList');
+
+    absentCountEl.innerText = absents.length;
+    lateCountEl.innerText = lateLeaves.length;
+
+    // 欠席者
+    if (absents.length === 0) {
+      absentListEl.innerHTML = '<span style="color:#888;">なし</span>';
+    } else {
+      absentListEl.innerHTML = absents.map(r => {
+        return `<div class="preview-item">・<strong>${r.name}</strong> (${r.reason === 'その他' ? r.otherReason : r.reason})</div>`;
+      }).join('');
+    }
+
+    // 遅刻・早退
+    if (lateLeaves.length === 0) {
+      lateListEl.innerHTML = '<span style="color:#888;">なし</span>';
+    } else {
+      lateListEl.innerHTML = lateLeaves.map(r => {
+        const badge = r.status === '早退' ? '早' : '遅';
+        const timeInfo = r.status === '早退' ? `〜 ${r.leaveTime || '未定'}` : `〜 ${r.arrival || '未定'}`;
+        return `<div class="preview-item"><span class="badge-mini">${badge}</span><strong>${r.name}</strong> <span style="font-size:11px; color:#555;">${timeInfo}</span></div>`;
+      }).join('');
+    }
   }
 
   function checkExistingReport() {
@@ -334,7 +406,7 @@
       detail += ` - 理由: ${existingReport.reason}`;
       document.getElementById('sentStatusText').innerText = detail;
 
-      formSection.style.opacity = "0.4";
+      formSection.style.opacity = "0.3";
       formSection.style.pointerEvents = "none";
     } else {
       alreadyBox.style.display = 'none';
@@ -442,7 +514,7 @@
 
     try {
       await addDoc(collection(db, "reports"), {
-        name: userData.name,
+        name: (userData && (userData.name || userData.kanjiName)) || "名無し",
         email: currentUser.email,
         eventTitle: selectedEvent.title,
         eventDate: selectedEvent.date,
