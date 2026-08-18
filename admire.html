@@ -14,7 +14,7 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
-        /* ユーザー＆グループ切り替えバッジ */
+        /* グループ管理カード */
         .group-selector-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
         .group-info-card { border: 1px solid #111111; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; background: #f8f9fa; font-size: 13px; }
         .code-row { display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap; }
@@ -22,8 +22,10 @@
         .code-box { background: white; border: 1px solid #ced4da; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 13px; font-weight: bold; }
         .btn-copy-code { background: #111111; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: bold; }
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
+        .btn-leave-group { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 2px 6px; font-size: 11px; cursor: pointer; font-weight: bold; }
+        .btn-leave-group:hover { background: #dc3545; color: white; }
 
-        /* メニュー（4分割グリッド） */
+        /* メニュー */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 25px 12px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
@@ -82,7 +84,7 @@
         .already-sent-box { border: 1px solid #111111; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; text-align: center; }
         .cancel-btn { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: bold; }
 
-        /* ボード ＆ 名簿リスト */
+        /* ボード ＆ 名簿 */
         .board-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         @media (max-width: 600px) { .board-container { grid-template-columns: 1fr; } }
         .board-card { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; min-height: 200px; }
@@ -144,12 +146,13 @@
     <div id="admin-home" class="screen">
         <h1>管理者メニュー</h1>
         
-        <!-- グループ切り替え ＆ 氏名バッジ -->
         <div class="group-info-card">
             <div class="group-selector-bar">
-                <div>
+                <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:12px; font-weight:bold;">管理グループ：</span>
                     <select id="adminGroupSelect" style="font-weight:bold;"></select>
+                    <!-- ★グループ脱会ボタン -->
+                    <button class="btn-leave-group" onclick="leaveCurrentAdminGroup()">脱会</button>
                 </div>
                 <button type="button" class="btn-back" style="margin-bottom:0; font-size:11px;" onclick="openGroupSetup()">＋ グループ追加</button>
             </div>
@@ -417,7 +420,7 @@
         </div>
     </div>
 
-    <!-- 画面5: メンバー一覧画面 -->
+    <!-- 画面5: メンバー一覧画面（管理者のみメールアドレス表示） -->
     <div id="admin-members" class="screen">
         <button class="btn-back" onclick="window.showScreen('admin-home')">← メニューへ戻る</button>
         <h2>所属メンバー一覧</h2>
@@ -466,7 +469,6 @@
   let lastSelectedEventForCopy = null;
   let selectedDatesForAdd = new Set();
 
-  // 管理者自身の欠席連絡用
   let selectedEventForAdminReport = null;
   let adminCurrentStatus = "欠席";
   let adminSelectedReason = "";
@@ -530,15 +532,9 @@
       renderCalendar('add');
       updateQuickCopySelect();
     }
-    if (screenId === 'admin-view') {
-      renderCalendar('view');
-    }
-    if (screenId === 'admin-report') {
-      renderCalendar('report');
-    }
-    if (screenId === 'admin-members') {
-      renderMemberList();
-    }
+    if (screenId === 'admin-view') renderCalendar('view');
+    if (screenId === 'admin-report') renderCalendar('report');
+    if (screenId === 'admin-members') renderMemberList();
   };
 
   document.getElementById('loginBtn').onclick = () => {
@@ -653,6 +649,25 @@
     window.showScreen('group-setup-screen');
   };
 
+  // ★管理者脱会処理
+  window.leaveCurrentAdminGroup = async () => {
+    if (!currentGroup) return;
+    if (!confirm(`グループ「${currentGroup.name}」の管理者を抜けますか（脱会）？\n※他の管理者の権限やデータは残ります。`)) return;
+
+    try {
+      const updatedAdminGroupIds = adminGroups.filter(g => g.id !== currentGroup.id).map(g => g.id);
+      await setDoc(doc(db, "users", currentUser.uid), {
+        adminGroupIds: updatedAdminGroupIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`グループ「${currentGroup.name}」の管理者から脱会しました。`);
+      loadAdminGroups();
+    } catch (e) {
+      alert("脱会エラー: " + e.message);
+    }
+  };
+
   document.getElementById('createGroupBtn').onclick = async () => {
     const groupName = document.getElementById('newGroupNameInput').value.trim();
     if (!groupName) return alert("グループ名を入力してください");
@@ -756,7 +771,6 @@
       if (selectedEventForAdminReport) checkAdminExistingReport();
     });
 
-    // メンバー名簿のリアルタイム受信
     onSnapshot(query(collection(db, "users")), (snap) => {
       allUsers = [];
       snap.forEach(d => {
@@ -766,7 +780,7 @@
     });
   }
 
-  // メンバー名簿の描画
+  // 管理者側メンバー名簿（管理者のみメールアドレスを表示）
   function renderMemberList() {
     if (!currentGroup) return;
     document.getElementById('memberViewGroupName').innerText = currentGroup.name;
@@ -789,7 +803,7 @@
     groupMembers.sort((a, b) => {
       const aIsAdmin = (a.adminGroupIds && a.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
       const bIsAdmin = (b.adminGroupIds && b.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
-      return bIsAdmin - aIsAdmin; // 管理者を上に
+      return bIsAdmin - aIsAdmin;
     });
 
     groupMembers.forEach(m => {
@@ -890,7 +904,6 @@
             updateBoard(dateStr);
           };
         } else {
-          // 管理者自身の連絡画面
           if (selectedEventForAdminReport && selectedEventForAdminReport.id === ev.id) {
             div.classList.add('selected');
           }
@@ -925,7 +938,6 @@
     }
   }
 
-  // 管理者自身の連絡用カレンダー選択
   function selectEventForAdminReport(ev, dayElement) {
     selectedEventForAdminReport = ev;
     document.querySelectorAll('#reportCalDays .cal-day').forEach(el => el.classList.remove('selected'));
