@@ -49,7 +49,7 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル6色の丸 */
+        /* パステル6色 */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -122,10 +122,11 @@
 
 <div class="app-container">
 
-    <!-- 画面-1: 初期ローディング画面 -->
+    <!-- 画面-1: 初期ローディング画面（救済ボタン付き） -->
     <div id="loading-screen" class="screen" style="display: block; text-align: center; padding: 40px 0;">
         <div class="header-title" style="border-bottom:none;">出欠連絡・管理システム</div>
-        <p style="font-size: 13px; color: #555;">読み込み中...</p>
+        <p style="font-size: 13px; color: #555;" id="loadingText">読み込み中...</p>
+        <button id="rescueBtn" style="display:none; margin: 15px auto 0 auto; background:#fff; border:1px solid #111; padding:8px 16px; border-radius:4px; font-size:12px; cursor:pointer;" onclick="location.reload()">再読み込みする</button>
     </div>
 
     <!-- 画面0: ログイン画面 -->
@@ -188,7 +189,6 @@
             </div>
         </div>
 
-        <!-- 管理者のみ表示されるコード枠 -->
         <div id="adminCodeSection" class="admin-code-box" style="display:none;">
             <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
@@ -460,7 +460,7 @@
 
 <script type="module">
   window.addEventListener('error', (e) => {
-    alert("エラーが発生しました: " + e.message);
+    console.error("App Error:", e);
   });
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -481,7 +481,6 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // ★流入元（LINE経由か検索エンジン経由か）の自動判定
   const urlParams = new URLSearchParams(window.location.search);
   const isLineEntry = urlParams.has('openExternalBrowser') || document.referrer.includes('line.me') || document.referrer.includes('naver');
 
@@ -518,6 +517,16 @@
   };
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
 
+  // ★フリーズ救済タイマー（4秒経っても画面が切り替わらなければ救済ボタンを表示）
+  setTimeout(() => {
+    if (currentScreenId === 'loading-screen') {
+      const rescueBtn = document.getElementById('rescueBtn');
+      const loadingText = document.getElementById('loadingText');
+      if (rescueBtn) rescueBtn.style.display = 'inline-block';
+      if (loadingText) loadingText.innerText = "読み込みに時間がかかっています";
+    }
+  }, 4000);
+
   window.handleLogin = () => {
     signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
   };
@@ -543,64 +552,6 @@
     }
     return `${prefix}-${code}`;
   }
-
-  // ★画面遷移と戻るボタン連動（LINE戻り防止＆検索エンジン復帰）
-  window.showScreen = (screenId, pushHistory = true) => {
-    if (currentScreenId === screenId && document.getElementById(screenId).style.display === 'block') return;
-    
-    document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
-    const target = document.getElementById(screenId);
-    if (target) target.style.display = 'block';
-
-    const isTop = (screenId === 'user-home' || screenId === 'login-screen' || screenId === 'loading-screen');
-
-    if (pushHistory && !isTop) {
-      history.pushState({ screen: screenId }, '', '');
-    }
-    currentScreenId = screenId;
-
-    if (screenId === 'user-report') renderCalendar('report');
-    if (screenId === 'user-view') renderCalendar('view');
-    if (screenId === 'user-members') renderUserMemberList();
-    if (screenId === 'admin-add-events') {
-      selectedEventIdsForDelete.clear();
-      lastSelectedEventForCopy = null;
-      updateActionBar();
-      updateSelectedDatesUI();
-      renderCalendar('add');
-      updateQuickCopySelect();
-      updateCategoryFormOptions();
-    }
-    if (screenId === 'admin-color-settings') loadColorSettingsScreen();
-  };
-
-  window.goBackOrHome = () => {
-    if (history.state && history.state.screen) {
-      history.back();
-    } else {
-      window.showScreen('user-home');
-    }
-  };
-
-  window.addEventListener('popstate', (e) => {
-    if (e.state && e.state.screen) {
-      window.showScreen(e.state.screen, false);
-    } else {
-      const topScreen = currentUser ? 'user-home' : 'login-screen';
-      if (isLineEntry) {
-        // LINE経由：トップページで戻るを押しても戻れなくする
-        history.pushState({ isHomeGuard: true }, '', location.href);
-        window.showScreen(topScreen, false);
-      } else {
-        // 検索エンジン経由等：トップページで戻るを押したら自然に前のページへ戻す
-        if (currentScreenId === topScreen) {
-          history.back();
-        } else {
-          window.showScreen(topScreen, false);
-        }
-      }
-    }
-  });
 
   window.copyGroupCode = (type) => {
     if (!currentGroup) return;
@@ -649,7 +600,62 @@
     }
   };
 
-  // 自動ログイン判定
+  window.showScreen = (screenId, pushHistory = true) => {
+    if (currentScreenId === screenId && document.getElementById(screenId).style.display === 'block') return;
+    
+    document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+    const target = document.getElementById(screenId);
+    if (target) target.style.display = 'block';
+
+    const isTop = (screenId === 'user-home' || screenId === 'login-screen' || screenId === 'loading-screen');
+
+    if (pushHistory && !isTop) {
+      history.pushState({ screen: screenId }, '', '');
+    }
+    currentScreenId = screenId;
+
+    if (screenId === 'user-report') renderCalendar('report');
+    if (screenId === 'user-view') renderCalendar('view');
+    if (screenId === 'user-members') renderUserMemberList();
+    if (screenId === 'admin-add-events') {
+      selectedEventIdsForDelete.clear();
+      lastSelectedEventForCopy = null;
+      updateActionBar();
+      updateSelectedDatesUI();
+      renderCalendar('add');
+      updateQuickCopySelect();
+      updateCategoryFormOptions();
+    }
+    if (screenId === 'admin-color-settings') loadColorSettingsScreen();
+  };
+
+  window.goBackOrHome = () => {
+    if (history.state && history.state.screen) {
+      history.back();
+    } else {
+      window.showScreen('user-home');
+    }
+  };
+
+  window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.screen) {
+      window.showScreen(e.state.screen, false);
+    } else {
+      const topScreen = currentUser ? 'user-home' : 'login-screen';
+      if (isLineEntry) {
+        history.pushState({ isHomeGuard: true }, '', location.href);
+        window.showScreen(topScreen, false);
+      } else {
+        if (currentScreenId === topScreen) {
+          history.back();
+        } else {
+          window.showScreen(topScreen, false);
+        }
+      }
+    }
+  });
+
+  // 自動ログイン
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
@@ -678,18 +684,18 @@
       myGroups = [];
 
       for (const gId of adminGroupIds) {
-        const gSnap = await getDoc(doc(db, "groups", gId));
-        if (gSnap.exists()) {
-          myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'admin' });
-        }
+        try {
+          const gSnap = await getDoc(doc(db, "groups", gId));
+          if (gSnap.exists()) myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'admin' });
+        } catch (err) {}
       }
 
       for (const gId of memberGroupIds) {
         if (!myGroups.some(g => g.id === gId)) {
-          const gSnap = await getDoc(doc(db, "groups", gId));
-          if (gSnap.exists()) {
-            myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'member' });
-          }
+          try {
+            const gSnap = await getDoc(doc(db, "groups", gId));
+            if (gSnap.exists()) myGroups.push({ id: gSnap.id, ...gSnap.data(), role: 'member' });
+          } catch (err) {}
         }
       }
 
@@ -1389,7 +1395,6 @@
     }
   };
 
-  // 予定追加・削除ロジック
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
     const listEl = document.getElementById('selectedDatesList');
@@ -1520,50 +1525,4 @@
     const categoryTitle = labels[colorKey] || "予定";
     const title = document.getElementById('eventTitle').value.trim();
     const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
-    const timeType = document.querySelector('input[name="timeType"]:checked').value;
-
-    if (!title) return alert("予定タイトルを入力してください");
-
-    let targetDates = [];
-
-    if (repeatType === 'calendar') {
-      if (selectedDatesForAdd.size === 0) {
-        return alert("カレンダーから登録したい日付をタップして選択してください。");
-      }
-      targetDates = Array.from(selectedDatesForAdd);
-    } else if (repeatType === 'weekly') {
-      const start = document.getElementById('weeklyStartDate').value;
-      const end = document.getElementById('weeklyEndDate').value;
-      if (!start || !end) return alert("開始日と終了日を選択してください");
-      if (start > end) return alert("終了日は開始日より後の日付にしてください");
-
-      const checkedDays = Array.from(document.querySelectorAll('.chk-weekday:checked')).map(c => parseInt(c.value, 10));
-      if (checkedDays.length === 0) return alert("くり返す曜日にチェックを入れてください");
-
-      const allDays = getDatesBetween(start, end);
-      targetDates = allDays.filter(dStr => {
-        const dayOfWeek = new Date(dStr + "T00:00:00").getDay();
-        return checkedDays.includes(dayOfWeek);
-      });
-    } else if (repeatType === 'monthly') {
-      const start = document.getElementById('monthlyStartDate').value;
-      const end = document.getElementById('monthlyEndDate').value;
-      if (!start || !end) return alert("開始日と終了日を選択してください");
-      if (start > end) return alert("終了日は開始日より後の日付にしてください");
-
-      const targetDayNum = parseInt(document.getElementById('monthlyDaySelect').value, 10);
-      const allDays = getDatesBetween(start, end);
-      targetDates = allDays.filter(dStr => {
-        const dayNum = parseInt(dStr.split('-')[2], 10);
-        return dayNum === targetDayNum;
-      });
-    }
-
-    if (targetDates.length === 0) {
-      return alert("指定された期間・条件に該当する日付がありませんでした。");
-    }
-
-    let timeText = "";
-    if (timeType === "custom") {
-      const s = document.getElementById('startTime').value;
-      const e = document.getElemen
+    const timeType = document.querySelector('input[name="timeType"]:checked')
