@@ -15,7 +15,6 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
-        /* ユーザー＆グループ切り替えバッジ */
         .user-badge { border: 1px solid #111111; padding: 12px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; background: #f8f9fa; }
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
 
@@ -74,6 +73,10 @@
         .report-item { padding: 6px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; line-height: 1.4; }
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
+
+        .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; }
+        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
+        .member-row:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -106,7 +109,7 @@
         <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
     </div>
 
-    <!-- 画面1: ホーム画面（複数グループ切り替え対応） -->
+    <!-- 画面1: ホーム画面（3大メニュー） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
@@ -132,6 +135,10 @@
             <div class="menu-card" onclick="window.showScreen('user-view')">
                 <div class="menu-title">出欠の確認</div>
                 <div class="menu-sub">日ごとの欠席者・遅刻早退者一覧</div>
+            </div>
+            <div class="menu-card" style="grid-column: span 2;" onclick="window.showScreen('user-members')">
+                <div class="menu-title">メンバー一覧</div>
+                <div class="menu-sub">このグループに所属しているメンバー名簿</div>
             </div>
         </div>
     </div>
@@ -241,6 +248,20 @@
         </div>
     </div>
 
+    <!-- 画面4: 生徒側メンバー一覧画面 -->
+    <div id="user-members" class="screen">
+        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <div class="header-title">所属メンバー一覧</div>
+
+        <div style="font-size: 13px; margin-bottom: 12px;">
+            グループ名：<strong><span id="userMemberViewGroupName">-</span></strong>（<span id="userMemberCountText">0</span>名）
+        </div>
+
+        <div class="member-list-container" id="userMemberListContainer">
+            <p style="color:#888; font-size:12px; text-align:center;">メンバーを読み込み中...</p>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
@@ -264,12 +285,13 @@
 
   let currentUser = null;
   let userData = null;
-  let memberGroups = []; // [{ id, name }]
+  let memberGroups = [];
   let currentGroup = null;
   let currentStatus = "欠席";
   let selectedReason = "";
   let allEvents = [];
   let allReports = [];
+  let allUsers = [];
   
   let selectedEventForReport = null;
   let selectedDateForView = "";
@@ -283,6 +305,7 @@
 
     if (screenId === 'user-report') renderCalendar('report');
     if (screenId === 'user-view') renderCalendar('view');
+    if (screenId === 'user-members') renderUserMemberList();
   };
 
   document.getElementById('loginBtn').onclick = () => {
@@ -310,7 +333,6 @@
 
       userData = docSnap.data();
 
-      // 所属グループ一覧の取得
       let groupIds = [];
       if (Array.isArray(userData.memberGroupIds)) {
         groupIds = userData.memberGroupIds;
@@ -448,6 +470,57 @@
       if (selectedEventForReport) checkExistingReport();
       if (selectedDateForView) updateViewBoard(selectedDateForView);
     });
+
+    onSnapshot(query(collection(db, "users")), (snap) => {
+      allUsers = [];
+      snap.forEach(d => {
+        allUsers.push({ id: d.id, ...d.data() });
+      });
+      renderUserMemberList();
+    });
+  }
+
+  // 生徒側メンバー一覧の描画
+  function renderUserMemberList() {
+    if (!currentGroup) return;
+    document.getElementById('userMemberViewGroupName').innerText = currentGroup.name;
+
+    const groupMembers = allUsers.filter(u => {
+      const inAdmin = (u.adminGroupIds && u.adminGroupIds.includes(currentGroup.id)) || u.adminGroupId === currentGroup.id;
+      const inMember = (u.memberGroupIds && u.memberGroupIds.includes(currentGroup.id)) || u.memberGroupId === currentGroup.id;
+      return inAdmin || inMember;
+    });
+
+    document.getElementById('userMemberCountText').innerText = groupMembers.length;
+    const container = document.getElementById('userMemberListContainer');
+    container.innerHTML = "";
+
+    if (groupMembers.length === 0) {
+      container.innerHTML = '<p style="color:#888; font-size:12px; text-align:center;">メンバーはまだ登録されていません</p>';
+      return;
+    }
+
+    groupMembers.sort((a, b) => {
+      const aIsAdmin = (a.adminGroupIds && a.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
+      const bIsAdmin = (b.adminGroupIds && b.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
+      return bIsAdmin - aIsAdmin;
+    });
+
+    groupMembers.forEach(m => {
+      const isAdmin = (m.adminGroupIds && m.adminGroupIds.includes(currentGroup.id)) || m.adminGroupId === currentGroup.id;
+      const roleBadge = isAdmin ? '<span class="badge-text" style="background:#212529; color:white;">管理者</span>' : '<span class="badge-text">メンバー</span>';
+      const name = m.name || m.kanjiName || "名無し";
+
+      const row = document.createElement('div');
+      row.className = "member-row";
+      row.innerHTML = `
+        <div style="display:flex; align-items:center;">
+          ${roleBadge}
+          <strong>${name}</strong>
+        </div>
+      `;
+      container.appendChild(row);
+    });
   }
 
   window.changeMonth = (diff, mode) => {
@@ -473,7 +546,7 @@
 
     container.innerHTML = "";
 
-    for (let i = 0; i < firstDay; i++) {
+    for (let i = firstDay - 1; i >= 0; i--) {
       const div = document.createElement('div');
       div.className = "cal-day other-month";
       div.innerText = prevLastDate - i;
