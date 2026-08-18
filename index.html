@@ -28,14 +28,14 @@
         .btn-mini-copy { background: #111111; color: white; border: none; padding: 3px 7px; border-radius: 3px; font-size: 11px; cursor: pointer; }
         .btn-mini-regen { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 2px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; }
 
-        /* メニュー（自動フィットグリッド） */
+        /* メニュー */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(8px, 2vw, 12px); margin-top: 10px; }
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: clamp(15px, 4vw, 22px) 8px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
         .menu-title { font-size: clamp(13px, 3.5vw, 15px); font-weight: bold; margin-bottom: 4px; }
         .menu-sub { font-size: 11px; color: #555555; line-height: 1.3; }
 
-        /* カレンダー（自動伸縮） */
+        /* カレンダー */
         .cal-box { border: 1px solid #111111; border-radius: 6px; padding: clamp(6px, 2vw, 10px); margin: 0 auto 12px auto; background: #ffffff; width: 100%; }
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: bold; font-size: 15px; }
         .cal-nav button { background: #ffffff; border: 1px solid #111111; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 12px; }
@@ -49,7 +49,7 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル6色の丸（画面幅に応じて自然に伸縮） */
+        /* パステル6色の丸 */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -85,11 +85,9 @@
         .chip { padding: 6px 12px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; margin-bottom: 6px; display: inline-block; }
         .chip.active { background: #111111; color: white; }
         
-        /* スマホでの自動ズーム防止（font-size: 16px） */
         input[type="text"], input[type="date"], input[type="time"], select { width: 100%; padding: 8px 10px; border: 1px solid #111111; border-radius: 4px; margin-bottom: 12px; font-size: 16px; -webkit-appearance: none; appearance: none; background-color: #fff; }
         .submit-btn, .add-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 5px; }
 
-        /* フォーム行 */
         .form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
         .radio-group { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 10px 0; font-size: 13px; font-weight: bold; }
         .repeat-box { background: #f8f9fa; border: 1px solid #ced4da; padding: 10px; border-radius: 6px; margin-bottom: 12px; width: 100%; }
@@ -124,8 +122,14 @@
 
 <div class="app-container">
 
+    <!-- 画面-1: 初期ローディング画面（自動ログイン判定中） -->
+    <div id="loading-screen" class="screen" style="display: block; text-align: center; padding: 40px 0;">
+        <div class="header-title" style="border-bottom:none;">出欠連絡・管理システム</div>
+        <p style="font-size: 13px; color: #555;">読み込み中...</p>
+    </div>
+
     <!-- 画面0: ログイン画面 -->
-    <div id="login-screen" class="screen" style="display: block; text-align: center;">
+    <div id="login-screen" class="screen" style="text-align: center;">
         <div class="header-title">出欠連絡・管理システム</div>
         <p style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
         <button class="submit-btn" onclick="window.handleLogin()">ログイン</button>
@@ -142,7 +146,7 @@
 
     <!-- 画面0.6: 共通グループ参加・作成画面 -->
     <div id="join-group-screen" class="screen">
-        <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">グループの参加・追加</div>
 
         <div class="group-setup-card">
@@ -176,7 +180,7 @@
                     <span id="roleBadgeDisplay" class="badge-text"></span>
                     <button class="btn-leave-group" onclick="leaveCurrentMemberGroup()">脱会</button>
                 </div>
-                <span class="change-link" onclick="openJoinGroup()">＋ 追加・作成</span>
+                <span class="change-link" onclick="openJoinGroup()">＋ グループ追加</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
                 <div>氏名：<strong><span id="homeDisplayName">-</span></strong> さん</div>
@@ -221,7 +225,7 @@
 
     <!-- 画面2: 連絡送信画面 -->
     <div id="user-report" class="screen">
-        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">欠席・遅刻・早退の連絡</div>
 
         <div class="cal-box">
@@ -277,7 +281,7 @@
 
     <!-- 画面3: 出欠確認画面 -->
     <div id="user-view" class="screen">
-        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">出欠状況の確認</div>
 
         <div class="cal-box">
@@ -316,7 +320,7 @@
 
     <!-- 画面4: メンバー一覧画面 -->
     <div id="user-members" class="screen">
-        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">所属メンバー一覧</div>
 
         <div style="font-size: 13px; margin-bottom: 12px;">
@@ -330,7 +334,7 @@
 
     <!-- 画面5: （管理者用）予定の追加・削除画面 -->
     <div id="admin-add-events" class="screen">
-        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">活動予定の追加・削除（管理者機能）</div>
         
         <div class="cal-box">
@@ -438,7 +442,7 @@
 
     <!-- 画面6: （管理者用）カテゴリ・色設定画面 -->
     <div id="admin-color-settings" class="screen">
-        <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">カテゴリ・色設定（管理者機能）</div>
         <p style="font-size: 12px; color: #555; margin-bottom: 15px;">パステル6色に対応する予定の項目名を設定できます。</p>
 
@@ -499,6 +503,8 @@
   let lastSelectedEventForCopy = null;
   let selectedDatesForAdd = new Set();
 
+  let currentScreenId = 'loading-screen';
+
   const defaultColorLabels = {
     red: "ミーティング",
     blue: "文化祭準備",
@@ -534,6 +540,47 @@
     }
     return `${prefix}-${code}`;
   }
+
+  // ★ブラウザ戻るボタン（History API）連動
+  window.showScreen = (screenId, pushHistory = true) => {
+    if (currentScreenId === screenId && document.getElementById(screenId).style.display === 'block') return;
+    
+    document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+    const target = document.getElementById(screenId);
+    if (target) target.style.display = 'block';
+
+    if (pushHistory && screenId !== 'loading-screen' && screenId !== 'login-screen') {
+      history.pushState({ screen: screenId }, '', '');
+    }
+    currentScreenId = screenId;
+
+    if (screenId === 'user-report') renderCalendar('report');
+    if (screenId === 'user-view') renderCalendar('view');
+    if (screenId === 'user-members') renderUserMemberList();
+    if (screenId === 'admin-add-events') {
+      selectedEventIdsForDelete.clear();
+      lastSelectedEventForCopy = null;
+      updateActionBar();
+      updateSelectedDatesUI();
+      renderCalendar('add');
+      updateQuickCopySelect();
+      updateCategoryFormOptions();
+    }
+    if (screenId === 'admin-color-settings') loadColorSettingsScreen();
+  };
+
+  window.goBackOrHome = () => {
+    if (history.state && history.state.screen) {
+      history.back();
+    } else {
+      window.showScreen('user-home');
+    }
+  };
+
+  window.addEventListener('popstate', (e) => {
+    const screen = (e.state && e.state.screen) ? e.state.screen : (currentUser ? 'user-home' : 'login-screen');
+    window.showScreen(screen, false);
+  });
 
   window.copyGroupCode = (type) => {
     if (!currentGroup) return;
@@ -582,32 +629,14 @@
     }
   };
 
-  window.showScreen = (screenId) => {
-    document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
-    const target = document.getElementById(screenId);
-    if (target) target.style.display = 'block';
-
-    if (screenId === 'user-report') renderCalendar('report');
-    if (screenId === 'user-view') renderCalendar('view');
-    if (screenId === 'user-members') renderUserMemberList();
-    if (screenId === 'admin-add-events') {
-      selectedEventIdsForDelete.clear();
-      lastSelectedEventForCopy = null;
-      updateActionBar();
-      updateSelectedDatesUI();
-      renderCalendar('add');
-      updateQuickCopySelect();
-      updateCategoryFormOptions();
-    }
-    if (screenId === 'admin-color-settings') loadColorSettingsScreen();
-  };
-
+  // ★自動ログイン＆セッション維持
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
       checkUserProfileAndGroups();
     } else {
-      window.showScreen('login-screen');
+      currentUser = null;
+      window.showScreen('login-screen', false);
     }
   });
 
@@ -617,7 +646,7 @@
       const docSnap = await getDoc(userDocRef);
 
       if (!docSnap.exists() || (!docSnap.data().name && !docSnap.data().kanjiName)) {
-        window.showScreen('profile-screen');
+        window.showScreen('profile-screen', false);
         return;
       }
 
@@ -646,7 +675,7 @@
 
       if (myGroups.length === 0) {
         document.getElementById('joinBackBtn').style.display = 'none';
-        window.showScreen('join-group-screen');
+        window.showScreen('join-group-screen', false);
       } else {
         if (!currentGroup || !myGroups.some(g => g.id === currentGroup.id)) {
           currentGroup = myGroups[0];
@@ -658,6 +687,7 @@
       }
     } catch (e) {
       alert("確認エラー: " + e.message);
+      window.showScreen('login-screen', false);
     }
   }
 
@@ -696,7 +726,7 @@
     } catch (e) { alert("登録エラー: " + e.message); }
   };
 
-  // 参加コードによるグループ追加（自動判定）
+  // 参加コードによるグループ追加
   document.getElementById('joinGroupBtn').onclick = async () => {
     const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
     if (!code) return alert("参加コードを入力してください");
@@ -833,7 +863,7 @@
       adminCodeSec.style.display = 'none';
     }
 
-    window.showScreen('user-home');
+    window.showScreen('user-home', false);
     listenGroupData();
   }
 
