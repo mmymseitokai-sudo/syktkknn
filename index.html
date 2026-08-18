@@ -49,8 +49,8 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル丸マーク（黒文字統一・淡色） */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; color: #222222 !important; transition: 0.15s; border: 1px solid rgba(0,0,0,0.1); }
+        /* ★超淡色パステル丸マーク（黒文字完全統一） */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; color: #222222 !important; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
@@ -108,7 +108,7 @@
         .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
 
-        /* ★中心が黒のパステルカラーホイール モーダル */
+        /* パステルカラーホイール モーダル */
         .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
         .swatch-modal { background: #fff; padding: 16px; border-radius: 10px; width: 92%; max-width: 360px; border: 1px solid #111; box-shadow: 0 4px 20px rgba(0,0,0,0.25); text-align: center; }
         
@@ -187,7 +187,6 @@
             </div>
         </div>
 
-        <!-- 管理者用コード枠 -->
         <div id="adminCodeSection" class="admin-code-box" style="display:none;">
             <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
@@ -446,7 +445,7 @@
         <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">カテゴリ・色設定（最大12色）</div>
         <p style="font-size: 12px; color: #555; margin-bottom: 12px;">
-            四角をタップして<strong>パステル専用カラーホイール（中心が黒）から色を選択</strong>し、項目名を入力してください。
+            四角をタップして<strong>パステル専用カラーホイールから色を選択</strong>し、項目名を入力してください。
         </p>
 
         <div style="border: 1px solid #ced4da; padding: 12px; border-radius: 6px; background: #fafafa;">
@@ -474,18 +473,18 @@
             <div class="wheel-handle" id="wheelHandle"></div>
         </div>
 
-        <!-- パステルの濃さ調整スライダー -->
+        <!-- パステルの濃淡調整スライダー -->
         <div style="margin: 6px 0 10px 0;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-bottom:2px;">
                 <span>パステルのあざやかさ</span>
-                <span id="saturationValText">35%</span>
+                <span id="saturationValText">25%</span>
             </div>
-            <input type="range" id="saturationSlider" min="15" max="45" value="35" style="width:100%; margin-bottom:0;">
+            <input type="range" id="saturationSlider" min="10" max="35" value="25" style="width:100%; margin-bottom:0;">
         </div>
 
         <!-- プレビュー＆決定ボタン -->
         <div class="preview-bar">
-            <div class="preview-circle" id="wheelColorPreview" style="background-color: #ffccd5;"></div>
+            <div class="preview-circle" id="wheelColorPreview" style="background-color: #ffd9e2;"></div>
             <button class="submit-btn" style="width:auto; padding:6px 18px; margin-top:0; font-size:13px;" onclick="applyWheelColor()">この色に決定</button>
         </div>
 
@@ -584,33 +583,92 @@
 
   let currentScreenId = 'login-screen';
   let activeEditingSlotIndex = -1;
-  let currentPickedHex = "#ffccd5";
+  let currentPickedHex = "#ffd9e2";
 
-  // ★より淡くミルキーな基本12色パステルカラープリセット
+  // ★超淡色ミルキーパステル基本12色
   const defaultCategorySlots12 = [
-    { color: '#ffccd5', name: 'ミーティング' }, // パステルローズ
-    { color: '#ffe5ec', name: '企画準備' },     // パステルピンク
-    { color: '#ffe8cc', name: '衣装係' },       // パステルコーラル
-    { color: '#fff0f3', name: '買い出し' },     // パステルアプリコット
-    { color: '#fff9db', name: '装飾係' },       // パステルイエロー
-    { color: '#e2fcd6', name: '清掃活動' },     // パステルライム
-    { color: '#d1fae5', name: '文化祭準備' },   // パステルミント
-    { color: '#c5f6fa', name: '広報・SNS' },    // パステルシアン
-    { color: '#d0ebff', name: 'リハーサル' },   // パステルスカイ
-    { color: '#e0cffc', name: '音響・照明' },   // パステルラベンダー
-    { color: '#f3e8ff', name: 'ステージ' },     // パステルバイオレット
-    { color: '#ced4da', name: '提出締切' }      // パステルチャコール
+    { color: '#ffd9e2', name: 'ミーティング' }, // ミルキーピンク
+    { color: '#ffe5ec', name: '企画準備' },     // さくらピンク
+    { color: '#ffe8d6', name: '衣装係' },       // アプリコット
+    { color: '#fef3c7', name: '買い出し' },     // クリームイエロー
+    { color: '#fef9c3', name: '装飾係' },       // レモンミルク
+    { color: '#ecfccb', name: '清掃活動' },     // ペールライム
+    { color: '#d1fae5', name: '文化祭準備' },   // ミントグリーン
+    { color: '#cffafe', name: '広報・SNS' },    // アイスシアン
+    { color: '#e0f2fe', name: 'リハーサル' },   // スカイブルー
+    { color: '#ede9fe', name: '音響・照明' },   // ラベンダー
+    { color: '#f3e8ff', name: 'ステージ' },     // ペールパープル
+    { color: '#e9ecef', name: '提出締切' }      // ライトグレー
   ];
 
-  // 厳選36色パステルスウォッチ（淡色トーン）
+  // 厳選36色パステルスウォッチ
   const pastelPalette36 = [
-    '#ffccd5', '#ffc2d1', '#ffd1dc', '#ffe5ec', '#ffccd8', '#fff0f3',
-    '#ffe8cc', '#ffd8a8', '#ffeaa7', '#fed7aa', '#ffedd5', '#fff7ed',
-    '#fff9db', '#fef08a', '#fef9c3', '#fef3c7', '#fefce8', '#fefae0',
-    '#e2fcd6', '#d9f99d', '#bbf2c8', '#d1fae5', '#a7f3d0', '#ecfdf5',
-    '#c5f6fa', '#b4f8ff', '#a5f3fc', '#d0ebff', '#bae6fd', '#e0f2fe',
-    '#e0cffc', '#eebefa', '#f0d9ff', '#f8f0fc', '#f3e8ff', '#ced4da'
+    '#ffd9e2', '#ffccd5', '#ffc2d1', '#ffd1dc', '#ffe5ec', '#fff0f3',
+    '#ffe8d6', '#ffd8a8', '#ffeaa7', '#fed7aa', '#ffedd5', '#fff7ed',
+    '#fef3c7', '#fef9c3', '#fef08a', '#fff9db', '#fefce8', '#fefae0',
+    '#ecfccb', '#e2fcd6', '#d9f99d', '#d1fae5', '#a7f3d0', '#ecfdf5',
+    '#cffafe', '#c5f6fa', '#b4f8ff', '#e0f2fe', '#d0ebff', '#bae6fd',
+    '#ede9fe', '#e0cffc', '#f3e8ff', '#f0d9ff', '#f8f0fc', '#e9ecef'
   ];
+
+  // ★【重要】過去データやどんな濃い色でも「目に優しい淡いパステルカラー」に強制変換するフィルター
+  function toPastelColor(input) {
+    if (!input) return '#ffd9e2';
+    
+    // 旧カテゴリ文字列のフォールバック
+    const oldColors = {
+      red: '#ffd9e2', blue: '#e0f2fe', green: '#d1fae5', purple: '#ede9fe', orange: '#ffe8d6', black: '#e9ecef'
+    };
+    if (oldColors[input]) return oldColors[input];
+
+    let hex = String(input).replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    if (hex.length !== 6) return '#ffd9e2';
+
+    let r = parseInt(hex.substring(0, 2), 16) / 255;
+    let g = parseInt(hex.substring(2, 4), 16) / 255;
+    let b = parseInt(hex.substring(4, 6), 16) / 255;
+
+    // RGB -> HSL
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    if (s === 0) return '#e9ecef'; // 無彩色は薄グレー
+
+    // ★彩度を28%、輝度を90%の超淡色パステル領域に強制補正
+    s = 0.35;
+    l = 0.90;
+
+    function hue2rgb(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    }
+
+    let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    let p = 2 * l - q;
+    let rOut = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+    let gOut = Math.round(hue2rgb(p, q, h) * 255);
+    let bOut = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+
+    return '#' + [rOut, gOut, bOut].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
 
   function hsvToRgb(h, s, v) {
     let r, g, b;
@@ -634,7 +692,7 @@
     return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  // ★中心が「黒」で外側が「パステルカラー」になる専用カラーホイール
+  // ★中心が黒のパステルカラーホイール
   function drawColorWheel() {
     const canvas = document.getElementById('colorWheelCanvas');
     if (!canvas) return;
@@ -647,9 +705,7 @@
 
     const imgData = ctx.createImageData(width, height);
     const data = imgData.data;
-    
-    // パステルのあざやかさ（最大でも35%前後に抑えて濃さを完全排除）
-    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 35) / 100;
+    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 25) / 100;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -662,11 +718,8 @@
           let angle = Math.atan2(dy, dx) * (180 / Math.PI);
           if (angle < 0) angle += 360;
           
-          const distRatio = dist / radius; // 中心0 -> 外側1
-          
-          // ★中心が黒(V=0)で外側が明るい(V=0.98)設計
+          const distRatio = dist / radius;
           const value = Math.pow(distRatio, 0.7) * 0.98;
-          // 外側に向かってパステルの彩度を適用
           const sat = maxSat;
 
           const [r, g, b] = hsvToRgb(angle, sat, value);
@@ -682,7 +735,6 @@
     ctx.putImageData(imgData, 0, 0);
   }
 
-  // ★ホイール操作
   function initWheelEvents() {
     const container = document.getElementById('wheelContainer');
     const slider = document.getElementById('saturationSlider');
@@ -720,7 +772,7 @@
       handle.style.left = `${cx + dx}px`;
       handle.style.top = `${cy + dy}px`;
 
-      document.getElementById('wheelColorPreview').style.backgroundColor = currentPickedHex;
+      document.getElementById('wheelColorPreview').style.backgroundColor = toPastelColor(currentPickedHex);
     }
 
     container.addEventListener('mousedown', (e) => { isDragging = true; handleWheelInput(e.clientX, e.clientY); });
@@ -761,10 +813,10 @@
     pastelPalette36.forEach(color => {
       const tile = document.createElement('div');
       tile.className = "swatch-tile";
-      tile.style.backgroundColor = color;
+      tile.style.backgroundColor = toPastelColor(color);
       tile.onclick = () => {
-        currentPickedHex = color;
-        document.getElementById('wheelColorPreview').style.backgroundColor = color;
+        currentPickedHex = toPastelColor(color);
+        document.getElementById('wheelColorPreview').style.backgroundColor = currentPickedHex;
         applyWheelColor();
       };
       grid.appendChild(tile);
@@ -775,7 +827,7 @@
     activeEditingSlotIndex = slotIndex;
     const btn = document.getElementById(`slot_btn_${slotIndex}`);
     if (btn) {
-      currentPickedHex = btn.dataset.color || "#ffccd5";
+      currentPickedHex = toPastelColor(btn.dataset.color || "#ffd9e2");
       document.getElementById('wheelColorPreview').style.backgroundColor = currentPickedHex;
     }
     document.getElementById('swatchModalOverlay').style.display = 'flex';
@@ -795,8 +847,9 @@
     if (activeEditingSlotIndex >= 0) {
       const btn = document.getElementById(`slot_btn_${activeEditingSlotIndex}`);
       if (btn) {
-        btn.style.backgroundColor = currentPickedHex;
-        btn.dataset.color = currentPickedHex;
+        const pastel = toPastelColor(currentPickedHex);
+        btn.style.backgroundColor = pastel;
+        btn.dataset.color = pastel;
       }
     }
     closeSwatchModalDirect();
@@ -1199,7 +1252,7 @@
         if (slot.name && slot.name.trim() !== "") {
           const item = document.createElement('div');
           item.className = "legend-item";
-          item.innerHTML = `<span class="dot" style="background-color: ${slot.color};"></span> ${slot.name}`;
+          item.innerHTML = `<span class="dot" style="background-color: ${toPastelColor(slot.color)};"></span> ${slot.name}`;
           el.appendChild(item);
         }
       });
@@ -1339,11 +1392,12 @@
     container.innerHTML = "";
 
     for (let i = 0; i < 12; i++) {
-      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ffccd5', name: '' });
+      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ffd9e2', name: '' });
+      const pastelColor = toPastelColor(slot.color);
       const row = document.createElement('div');
       row.className = "color-slot-row";
       row.innerHTML = `
-        <button type="button" class="swatch-btn" id="slot_btn_${i}" data-color="${slot.color}" style="background-color: ${slot.color};" onclick="openSwatchModal(${i})"></button>
+        <button type="button" class="swatch-btn" id="slot_btn_${i}" data-color="${pastelColor}" style="background-color: ${pastelColor};" onclick="openSwatchModal(${i})"></button>
         <span style="font-size:12px; font-weight:bold; color:#555; width:22px;">${i + 1}</span>
         <input type="text" id="name_slot_${i}" value="${slot.name || ''}" placeholder="項目名（例：全体MTG）" style="flex: 1; margin-bottom: 0;">
       `;
@@ -1357,9 +1411,10 @@
       const def = defaultCategorySlots12[i];
       const btn = document.getElementById(`slot_btn_${i}`);
       const nameInput = document.getElementById(`name_slot_${i}`);
+      const pastelColor = toPastelColor(def.color);
       if (btn) {
-        btn.style.backgroundColor = def.color;
-        btn.dataset.color = def.color;
+        btn.style.backgroundColor = pastelColor;
+        btn.dataset.color = pastelColor;
       }
       if (nameInput) nameInput.value = def.name;
     }
@@ -1371,7 +1426,7 @@
     for (let i = 0; i < 12; i++) {
       const btn = document.getElementById(`slot_btn_${i}`);
       const nameInput = document.getElementById(`name_slot_${i}`);
-      const color = btn ? (btn.dataset.color || '#ffccd5') : '#ffccd5';
+      const color = btn ? toPastelColor(btn.dataset.color || '#ffd9e2') : '#ffd9e2';
       const name = nameInput ? nameInput.value.trim() : '';
       newSlots.push({ color, name });
     }
@@ -1395,7 +1450,7 @@
     slots.forEach(slot => {
       if (slot.name && slot.name.trim() !== "") {
         const opt = document.createElement('option');
-        opt.value = slot.color;
+        opt.value = toPastelColor(slot.color);
         opt.innerText = slot.name;
         opt.dataset.categoryName = slot.name;
         sel.appendChild(opt);
@@ -1441,7 +1496,9 @@
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        const eventColor = ev.color || '#ffccd5';
+        
+        // ★過去データも含めてすべて強制パステル変換
+        const eventColor = toPastelColor(ev.color || ev.category);
 
         const circle = document.createElement('div');
         circle.className = "circle-mark";
@@ -1788,7 +1845,7 @@
   function applyEventToForm(ev) {
     if (!ev) return;
     if (ev.year) document.getElementById('eventYear').value = ev.year;
-    if (ev.color) document.getElementById('eventCategorySelect').value = ev.color;
+    if (ev.color) document.getElementById('eventCategorySelect').value = toPastelColor(ev.color);
     if (ev.title) document.getElementById('eventTitle').value = ev.title;
     if (ev.description) document.getElementById('eventDescription').value = ev.description;
 
@@ -1871,7 +1928,7 @@
 
     const year = document.getElementById('eventYear').value;
     const colorSelect = document.getElementById('eventCategorySelect');
-    const selectedColorHex = colorSelect.value;
+    const selectedColorHex = toPastelColor(colorSelect.value);
     const selectedOption = colorSelect.options[colorSelect.selectedIndex];
     const categoryTitle = selectedOption ? selectedOption.dataset.categoryName : "予定";
 
@@ -1940,7 +1997,7 @@
         return addDoc(collection(db, "events"), {
           groupId: currentGroup.id,
           year,
-          color: selectedColorHex,
+          color: selectedColorHex, // ★強制パステル化された色で保存
           category: categoryTitle,
           categoryTitle: categoryTitle,
           title,
