@@ -49,7 +49,7 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル6色 */
+        /* パステル6色の丸 */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -122,18 +122,11 @@
 
 <div class="app-container">
 
-    <!-- 画面-1: 初期ローディング画面（救済ボタン付き） -->
-    <div id="loading-screen" class="screen" style="display: block; text-align: center; padding: 40px 0;">
-        <div class="header-title" style="border-bottom:none;">出欠連絡・管理システム</div>
-        <p style="font-size: 13px; color: #555;" id="loadingText">読み込み中...</p>
-        <button id="rescueBtn" style="display:none; margin: 15px auto 0 auto; background:#fff; border:1px solid #111; padding:8px 16px; border-radius:4px; font-size:12px; cursor:pointer;" onclick="location.reload()">再読み込みする</button>
-    </div>
-
-    <!-- 画面0: ログイン画面 -->
-    <div id="login-screen" class="screen" style="text-align: center;">
+    <!-- 画面0: ログイン画面（初期表示：フリーズ知らず） -->
+    <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">出欠連絡・管理システム</div>
-        <p style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
-        <button class="submit-btn" onclick="window.handleLogin()">ログイン</button>
+        <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
+        <button class="submit-btn" id="loginBtn" onclick="window.handleLogin()">ログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -189,6 +182,7 @@
             </div>
         </div>
 
+        <!-- 管理者用コード表示ボックス -->
         <div id="adminCodeSection" class="admin-code-box" style="display:none;">
             <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
@@ -505,7 +499,7 @@
   let lastSelectedEventForCopy = null;
   let selectedDatesForAdd = new Set();
 
-  let currentScreenId = 'loading-screen';
+  let currentScreenId = 'login-screen';
 
   const defaultColorLabels = {
     red: "ミーティング",
@@ -516,16 +510,6 @@
     black: "締切"
   };
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
-
-  // ★フリーズ救済タイマー（4秒経っても画面が切り替わらなければ救済ボタンを表示）
-  setTimeout(() => {
-    if (currentScreenId === 'loading-screen') {
-      const rescueBtn = document.getElementById('rescueBtn');
-      const loadingText = document.getElementById('loadingText');
-      if (rescueBtn) rescueBtn.style.display = 'inline-block';
-      if (loadingText) loadingText.innerText = "読み込みに時間がかかっています";
-    }
-  }, 4000);
 
   window.handleLogin = () => {
     signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
@@ -607,7 +591,7 @@
     const target = document.getElementById(screenId);
     if (target) target.style.display = 'block';
 
-    const isTop = (screenId === 'user-home' || screenId === 'login-screen' || screenId === 'loading-screen');
+    const isTop = (screenId === 'user-home' || screenId === 'login-screen');
 
     if (pushHistory && !isTop) {
       history.pushState({ screen: screenId }, '', '');
@@ -655,13 +639,17 @@
     }
   });
 
-  // 自動ログイン
+  // 自動ログイン（ログイン済みならホームへ直行）
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
+      const notice = document.getElementById('loginNoticeText');
+      if (notice) notice.innerText = "ログイン確認中...";
       checkUserProfileAndGroups();
     } else {
       currentUser = null;
+      const notice = document.getElementById('loginNoticeText');
+      if (notice) notice.innerText = "Googleアカウントでログインしてください。";
       window.showScreen('login-screen', false);
     }
   });
@@ -1395,6 +1383,7 @@
     }
   };
 
+  // 予定追加・削除ロジック
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
     const listEl = document.getElementById('selectedDatesList');
@@ -1517,12 +1506,4 @@
   }
 
   document.getElementById('addEventBtn').onclick = async () => {
-    if (!currentGroup || !isCurrentAdmin) return alert("管理者権限がありません");
-
-    const year = document.getElementById('eventYear').value;
-    const colorKey = document.getElementById('eventCategorySelect').value;
-    const labels = getGroupColorLabels();
-    const categoryTitle = labels[colorKey] || "予定";
-    const title = document.getElementById('eventTitle').value.trim();
-    const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
-    const timeType = document.querySelector('input[name="timeType"]:checked')
+    if (!currentGroup || !isCurrentAdmin) return
