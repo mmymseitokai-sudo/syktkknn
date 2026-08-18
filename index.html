@@ -6,7 +6,7 @@
     <title>出欠連絡・管理システム</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #ffffff; margin: 0; padding: 15px; display: flex; justify-content: center; color: #111111; }
-        .app-container { background: #ffffff; width: 100%; max-width: 500px; border: 1px solid #111111; border-radius: 8px; padding: 20px; box-sizing: border-box; }
+        .app-container { background: #ffffff; width: 100%; max-width: 520px; border: 1px solid #111111; border-radius: 8px; padding: 20px; box-sizing: border-box; }
         
         .screen { display: none; }
         .header-title { border-bottom: 2px solid #111111; padding-bottom: 10px; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: bold; }
@@ -15,16 +15,17 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
-        /* ユーザー＆グループ切り替えバッジ */
+        /* ユーザー＆グループ情報ヘッダー */
         .user-badge { border: 1px solid #111111; padding: 12px 14px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; background: #f8f9fa; }
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
         .btn-leave-group { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 2px 6px; font-size: 11px; cursor: pointer; font-weight: bold; }
         .btn-leave-group:hover { background: #dc3545; color: white; }
 
         /* 管理者用コード表示ボックス */
-        .admin-code-box { border: 1px dashed #111111; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #fff; }
+        .admin-code-box { border: 1px dashed #111111; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; background: #fff; }
         .code-pill { background: #f1f3f5; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
-        .btn-mini-copy { background: #111111; color: white; border: none; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; }
+        .btn-mini-copy { background: #111111; color: white; border: none; padding: 3px 7px; border-radius: 3px; font-size: 11px; cursor: pointer; }
+        .btn-mini-regen { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 2px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; }
 
         /* メニュー */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -47,7 +48,7 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル6色 */
+        /* パステル6色の丸 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -112,6 +113,7 @@
         .member-row:last-child { border-bottom: none; }
         
         .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 6px; font-size: 10px; cursor: pointer; font-weight: bold; margin-left: 6px; }
+        .btn-kick-member:hover { background: #dc3545; color: white; }
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         .color-setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -138,22 +140,22 @@
         <button class="submit-btn" id="saveProfileBtn">次へ進む</button>
     </div>
 
-    <!-- ★画面0.6: 共通グループ参加・作成画面 -->
+    <!-- 画面0.6: 共通グループ参加・作成画面 -->
     <div id="join-group-screen" class="screen">
         <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
-        <div class="header-title">グループの参加・作成</div>
+        <div class="header-title">グループの参加・追加</div>
 
         <!-- A: 参加コード入力（メンバー・管理者両対応） -->
         <div class="group-setup-card">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">A. コードを入力して参加</div>
             <p style="font-size: 12px; color: #555; margin-bottom: 10px;">
-                案内された参加コードを入力してください。<br>（メンバー用コード、管理者用コードのどちらでも参加できます）
+                案内された参加コードを入力してください。<br>（メンバー用・管理者用のどちらでも自動判定されます）
             </p>
             <input type="text" id="joinCodeInput" placeholder="例：M-XXXXXX または A-XXXXXX">
             <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
         </div>
 
-        <!-- B: 新規グループ作成（作成者は管理者になります） -->
+        <!-- B: 新規グループ作成（作成者は自動で管理者になります） -->
         <div class="group-setup-card">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">B. 新しいグループを作成</div>
             <p style="font-size: 12px; color: #555; margin-bottom: 10px;">
@@ -176,7 +178,8 @@
                     <span id="roleBadgeDisplay" class="badge-text"></span>
                     <button class="btn-leave-group" onclick="leaveCurrentMemberGroup()">脱会</button>
                 </div>
-                <span class="change-link" onclick="openJoinGroup()">＋ 追加・作成</span>
+                <!-- ★いつでも別のグループを追加可能 -->
+                <span class="change-link" onclick="openJoinGroup()">＋ グループ追加</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
                 <div>氏名：<strong><span id="homeDisplayName">-</span></strong> さん</div>
@@ -184,12 +187,12 @@
             </div>
         </div>
 
-        <!-- ★管理者の場合のみ表示されるコード確認・コピー枠 -->
+        <!-- 管理者のみ表示されるコード枠 -->
         <div id="adminCodeSection" class="admin-code-box" style="display:none;">
-            <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
+            <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者用）：</div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
-                <div>メンバー用: <span class="code-pill" id="homeMemberCodeText">-</span> <button class="btn-mini-copy" onclick="copyGroupCode('member')">コピー</button></div>
-                <div>管理者用: <span class="code-pill" id="homeAdminCodeText">-</span> <button class="btn-mini-copy" onclick="copyGroupCode('admin')">コピー</button></div>
+                <div>メンバー用: <span class="code-pill" id="homeMemberCodeText">-</span> <button class="btn-mini-copy" onclick="copyGroupCode('member')">コピー</button> <button class="btn-mini-regen" onclick="regenerateGroupCode('member')">再発行</button></div>
+                <div>管理者用: <span class="code-pill" id="homeAdminCodeText">-</span> <button class="btn-mini-copy" onclick="copyGroupCode('admin')">コピー</button> <button class="btn-mini-regen" onclick="regenerateGroupCode('admin')">再発行</button></div>
             </div>
         </div>
 
@@ -207,7 +210,7 @@
                 <div class="menu-sub">グループ所属メンバー名簿</div>
             </div>
 
-            <!-- ★管理者の時だけ表示される管理メニュー -->
+            <!-- 管理者の時だけ表示される管理メニュー -->
             <div class="menu-card admin-only-feature" style="display:none;" onclick="window.showScreen('admin-add-events')">
                 <div class="menu-title">予定の追加・削除</div>
                 <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
@@ -328,10 +331,10 @@
         </div>
     </div>
 
-    <!-- ★画面5: （管理者権限時）予定の追加・削除画面 -->
+    <!-- 画面5: （管理者用）予定の追加・削除画面 -->
     <div id="admin-add-events" class="screen">
         <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
-        <div class="header-title">活動予定の追加・削除（管理者用）</div>
+        <div class="header-title">活動予定の追加・削除（管理者機能）</div>
         
         <div class="cal-box">
             <div style="font-size: 11px; text-align:center; margin-bottom:5px; color:#555;">
@@ -436,10 +439,10 @@
         <button class="add-btn" id="addEventBtn">この予定をカレンダーに登録</button>
     </div>
 
-    <!-- ★画面6: （管理者権限時）カテゴリ・色設定画面 -->
+    <!-- 画面6: （管理者用）カテゴリ・色設定画面 -->
     <div id="admin-color-settings" class="screen">
         <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
-        <div class="header-title">カテゴリ・色設定（管理者用）</div>
+        <div class="header-title">カテゴリ・色設定（管理者機能）</div>
         <p style="font-size: 12px; color: #555; margin-bottom: 15px;">パステル6色に対応する予定の項目名を設定できます。</p>
 
         <div style="border: 1px solid #ced4da; padding: 15px; border-radius: 6px; background: #fafafa;">
@@ -535,6 +538,7 @@
     return `${prefix}-${code}`;
   }
 
+  // ★コードコピー機能
   window.copyGroupCode = (type) => {
     if (!currentGroup) return;
     const text = type === 'member' ? currentGroup.memberCode : currentGroup.adminCode;
@@ -559,6 +563,29 @@
     }
     document.body.removeChild(textArea);
   }
+
+  // ★コード再発行機能
+  window.regenerateGroupCode = async (type) => {
+    if (!currentGroup || !isCurrentAdmin) return;
+    const label = type === 'member' ? 'メンバー用コード' : '管理者用コード';
+    if (!confirm(`新しい${label}を再発行しますか？\n※これまでのコードは使えなくなります。`)) return;
+
+    try {
+      const newCode = generateCode(type === 'member' ? 'M' : 'A');
+      const updateData = {};
+      if (type === 'member') updateData.memberCode = newCode;
+      else updateData.adminCode = newCode;
+
+      await setDoc(doc(db, "groups", currentGroup.id), updateData, { merge: true });
+      currentGroup = { ...currentGroup, ...updateData };
+
+      document.getElementById('homeMemberCodeText').innerText = currentGroup.memberCode || '-';
+      document.getElementById('homeAdminCodeText').innerText = currentGroup.adminCode || '-';
+      alert(`新しい${label}「${newCode}」を発行しました！`);
+    } catch (e) {
+      alert("再発行エラー: " + e.message);
+    }
+  };
 
   window.showScreen = (screenId) => {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
@@ -589,7 +616,6 @@
     }
   });
 
-  // ユーザー所属グループ確認（メンバー・管理者統合）
   async function checkUserProfileAndGroups() {
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
@@ -607,7 +633,6 @@
 
       myGroups = [];
 
-      // 管理者グループ
       for (const gId of adminGroupIds) {
         const gSnap = await getDoc(doc(db, "groups", gId));
         if (gSnap.exists()) {
@@ -615,7 +640,6 @@
         }
       }
 
-      // メンバーグループ
       for (const gId of memberGroupIds) {
         if (!myGroups.some(g => g.id === gId)) {
           const gSnap = await getDoc(doc(db, "groups", gId));
@@ -629,7 +653,11 @@
         document.getElementById('joinBackBtn').style.display = 'none';
         window.showScreen('join-group-screen');
       } else {
-        currentGroup = myGroups[0];
+        if (!currentGroup || !myGroups.some(g => g.id === currentGroup.id)) {
+          currentGroup = myGroups[0];
+        } else {
+          currentGroup = myGroups.find(g => g.id === currentGroup.id);
+        }
         updateUserGroupSelectUI();
         showUserHome();
       }
@@ -673,18 +701,16 @@
     } catch (e) { alert("登録エラー: " + e.message); }
   };
 
-  // ★共通グループ参加処理（コード自動判定）
+  // コード入力によるグループ参加（メンバー用・管理者用を自動判定）
   document.getElementById('joinGroupBtn').onclick = async () => {
     const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
     if (!code) return alert("参加コードを入力してください");
 
     try {
-      // 1. メンバーコード検索
       let q = query(collection(db, "groups"), where("memberCode", "==", code));
       let snap = await getDocs(q);
       let role = 'member';
 
-      // 2. なければ管理者コード検索
       if (snap.empty) {
         q = query(collection(db, "groups"), where("adminCode", "==", code));
         snap = await getDocs(q);
@@ -722,7 +748,7 @@
     }
   };
 
-  // ★新規グループ作成（生徒側から作成可能・作成者は管理者）
+  // 新規グループ作成
   document.getElementById('createGroupBtn').onclick = async () => {
     const groupName = document.getElementById('newGroupNameInput').value.trim();
     if (!groupName) return alert("グループ名を入力してください");
@@ -757,7 +783,7 @@
     }
   };
 
-  // 脱会処理
+  // グループ脱会
   window.leaveCurrentMemberGroup = async () => {
     if (!currentGroup) return;
     if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
@@ -776,6 +802,7 @@
       }, { merge: true });
 
       alert(`グループ「${currentGroup.name}」を脱会しました。`);
+      currentGroup = null;
       checkUserProfileAndGroups();
     } catch (e) {
       alert("脱会エラー: " + e.message);
@@ -798,9 +825,8 @@
     roleBadge.style.background = isCurrentAdmin ? "#212529" : "#ffffff";
     roleBadge.style.color = isCurrentAdmin ? "#ffffff" : "#111111";
 
-    // 管理者専用機能の表示切り替え
     document.querySelectorAll('.admin-only-feature').forEach(el => {
-      el.style.display = isCurrentAdmin ? (el.tagName === 'DIV' && el.classList.contains('menu-card') && el.style.gridColumn ? 'block' : 'block') : 'none';
+      el.style.display = isCurrentAdmin ? 'block' : 'none';
     });
 
     const adminCodeSec = document.getElementById('adminCodeSection');
@@ -919,9 +945,9 @@
       const roleBadge = isAdmin ? '<span class="badge-text" style="background:#212529; color:white;">管理者</span>' : '<span class="badge-text">メンバー</span>';
       const name = m.name || m.kanjiName || "名無し";
 
-      // 管理者かつ自分以外には除名ボタンを表示
       const isSelf = currentUser && m.id === currentUser.uid;
       const kickBtnHtml = (isCurrentAdmin && !isSelf) ? `<button class="btn-kick-member" onclick="kickMember('${m.id}', '${name}')">除名</button>` : '';
+      const emailHtml = isCurrentAdmin ? `<span style="font-size:11px; color:#666; margin-right:6px;">${m.email || ''}</span>` : '';
 
       const row = document.createElement('div');
       row.className = "member-row";
@@ -931,6 +957,7 @@
           <strong>${name}</strong>
         </div>
         <div style="display:flex; align-items:center;">
+          ${emailHtml}
           ${kickBtnHtml}
         </div>
       `;
@@ -938,7 +965,6 @@
     });
   }
 
-  // 管理者の除名処理
   window.kickMember = async (targetUid, targetName) => {
     if (!currentGroup || !isCurrentAdmin) return;
     if (!confirm(`「${targetName}」さんをグループ「${currentGroup.name}」から除名しますか？`)) return;
@@ -964,7 +990,6 @@
     }
   };
 
-  // 管理者の色設定画面
   function loadColorSettingsScreen() {
     const labels = getGroupColorLabels();
     colorKeys.forEach(k => {
@@ -1034,8 +1059,7 @@
 
     for (let i = 0; i < firstDay; i++) {
       const div = document.createElement('div');
-      div.className = "cal-day other-month";
-      div.innerText = prevLastDate - i;
+      div.className = "cal-day";
       container.appendChild(div);
     }
 
@@ -1066,7 +1090,6 @@
           if (selectedDateForView === dateStr) div.classList.add('selected');
           div.onclick = () => selectEventForView(dateStr, div);
         } else {
-          // 管理者予定追加画面
           if (selectedEventIdsForDelete.has(ev.id)) circle.classList.add('is-selected');
           div.onclick = () => {
             if (selectedEventIdsForDelete.has(ev.id)) {
@@ -1321,7 +1344,7 @@
     }
   };
 
-  // 管理者用：予定追加・削除ロジック
+  // 管理者用予定追加・削除ロジック
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
     const listEl = document.getElementById('selectedDatesList');
