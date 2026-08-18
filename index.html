@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -49,27 +49,15 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル6色の丸 */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; }
-        .circle-red { background-color: #ffb8c6; color: #222222; }
-        .circle-blue { background-color: #b4d9ff; color: #222222; }
-        .circle-green { background-color: #bbf2c8; color: #222222; }
-        .circle-purple { background-color: #e0cffc; color: #222222; }
-        .circle-orange { background-color: #ffd8a8; color: #222222; }
-        .circle-black { background-color: #495057; color: #ffffff; }
+        /* パステル丸マーク */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.08); }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
         /* 凡例 */
-        .cal-legend { display: flex; justify-content: center; gap: clamp(6px, 2vw, 12px); font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
+        .cal-legend { display: flex; justify-content: center; gap: clamp(6px, 1.8vw, 10px); font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-        .dot.red { background-color: #ffb8c6; }
-        .dot.blue { background-color: #b4d9ff; }
-        .dot.green { background-color: #bbf2c8; }
-        .dot.purple { background-color: #e0cffc; }
-        .dot.orange { background-color: #ffd8a8; }
-        .dot.black { background-color: #495057; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.15); }
 
         .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 10px; margin-bottom: 12px; text-align: center; }
         .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; line-height: 1.4; }
@@ -104,9 +92,10 @@
         .board-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
         .board-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; min-height: 160px; }
         .board-header { font-size: 14px; font-weight: bold; border-bottom: 1px solid #111111; padding-bottom: 6px; margin-bottom: 10px; text-align: center; }
-        .report-item { padding: 6px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; line-height: 1.4; }
+        .report-item { padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; line-height: 1.4; }
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
+        .time-highlight { font-size: 12px; font-weight: bold; color: #111111; margin-top: 2px; }
 
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; }
         .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
@@ -114,15 +103,21 @@
         .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 6px; font-size: 10px; cursor: pointer; font-weight: bold; margin-left: 6px; }
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
-        .color-setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .color-sample-box { width: 26px; height: 26px; border-radius: 4px; border: 1px solid #ced4da; flex-shrink: 0; }
+        
+        .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
+
+        .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+        .swatch-modal { background: #fff; padding: 16px; border-radius: 8px; width: 90%; max-width: 320px; border: 1px solid #111; }
+        .swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 10px; }
+        .swatch-tile { width: 100%; aspect-ratio: 1; border-radius: 4px; border: 1px solid #ced4da; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
 
-    <!-- 画面0: ログイン画面（即時表示） -->
+    <!-- 画面0: ログイン画面 -->
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">出欠連絡・管理システム</div>
         <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
@@ -211,7 +206,7 @@
             </div>
             <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
-                <div class="menu-sub">パステル6色（赤・青・緑・紫・橙・黒）の項目名変更</div>
+                <div class="menu-sub">パステルカラー12色の項目名・配色変更</div>
             </div>
         </div>
     </div>
@@ -255,14 +250,16 @@
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
+            <!-- ★遅刻：時刻入力（HH:MM） -->
             <div id="arrivalSection" style="display:none;">
-                <div class="info-text">到着予定（遅刻の場合）</div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="number" id="arriveMin" placeholder="分後" style="width: 60%; font-size:16px;">
-                    <div class="chip" id="btnUndecided" style="width: 35%; text-align: center; box-sizing: border-box;">未定</div>
+                <div class="info-text">到着予定時刻</div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="time" id="arriveTime" style="flex: 1; margin-bottom: 0; font-size:16px;">
+                    <div class="chip" id="btnUndecided" style="margin-bottom: 0; padding: 10px 14px; text-align: center; box-sizing: border-box;">未定</div>
                 </div>
             </div>
 
+            <!-- ★早退：時刻入力（HH:MM） -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
                 <input type="time" id="leaveTime" style="width: 100%; font-size:16px;">
@@ -302,6 +299,7 @@
                 </div>
             </div>
 
+            <!-- ★時間順に並ぶ遅刻・早退リスト -->
             <div class="board-card">
                 <div class="board-header">遅刻・早退</div>
                 <div id="lateLeaveList">
@@ -433,23 +431,34 @@
         <button class="add-btn" id="addEventBtn">この予定をカレンダーに登録</button>
     </div>
 
-    <!-- 画面6: （管理者用）カテゴリ・色設定画面 -->
+    <!-- 画面6: （管理者用）パステルカラー限定12色スロット設定画面 -->
     <div id="admin-color-settings" class="screen">
         <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
-        <div class="header-title">カテゴリ・色設定（管理者機能）</div>
-        <p style="font-size: 12px; color: #555; margin-bottom: 15px;">パステル6色に対応する予定の項目名を設定できます。</p>
+        <div class="header-title">カテゴリ・色設定（最大12色）</div>
+        <p style="font-size: 12px; color: #555; margin-bottom: 15px;">
+            四角をタップして<strong>パステルカラーパレットから好きな色を選択</strong>し、項目名を入力してください。（空欄にした枠は非表示になります）
+        </p>
 
-        <div style="border: 1px solid #ced4da; padding: 15px; border-radius: 6px; background: #fafafa;">
-            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #ffb8c6;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">赤色：</span><input type="text" id="colorLabel_red" placeholder="例：ミーティング" style="flex: 1; margin-bottom:0;"></div>
-            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #b4d9ff;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">青色：</span><input type="text" id="colorLabel_blue" placeholder="例：文化祭準備" style="flex: 1; margin-bottom:0;"></div>
-            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #bbf2c8;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">緑色：</span><input type="text" id="colorLabel_green" placeholder="例：その他" style="flex: 1; margin-bottom:0;"></div>
-            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #e0cffc;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">紫色：</span><input type="text" id="colorLabel_purple" placeholder="例：リハーサル" style="flex: 1; margin-bottom:0;"></div>
-            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #ffd8a8;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">橙色：</span><input type="text" id="colorLabel_orange" placeholder="例：買い出し" style="flex: 1; margin-bottom:0;"></div>
-            <div class="color-setting-row"><div class="color-sample-box" style="background-color: #495057;"></div><span style="font-size: 12px; font-weight: bold; width: 50px;">黒色：</span><input type="text" id="colorLabel_black" placeholder="例：提出締切" style="flex: 1; margin-bottom:0;"></div>
-            <button class="add-btn" id="saveColorLabelsBtn" style="margin-top: 15px;">設定を保存する</button>
+        <div style="border: 1px solid #ced4da; padding: 12px; border-radius: 6px; background: #fafafa;">
+            <div id="colorSlotsContainer"></div>
+            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                <button class="add-btn" id="saveCustomCategoriesBtn" style="flex: 2; margin-top: 0;">設定を保存する</button>
+                <button type="button" class="btn-back" style="flex: 1; margin-bottom: 0; padding: 10px 0; font-size: 12px;" onclick="resetToDefault12Colors()">基本色にリセット</button>
+            </div>
         </div>
     </div>
 
+</div>
+
+<!-- パステルスウォッチポップアップモーダル -->
+<div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
+    <div class="swatch-modal" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:bold; font-size:13px;">パステルカラーを選択</div>
+            <button type="button" class="btn-back" style="padding:2px 8px; margin-bottom:0;" onclick="closeSwatchModalDirect()">閉じる</button>
+        </div>
+        <div class="swatch-grid" id="swatchPaletteGrid"></div>
+    </div>
 </div>
 
 <!-- 早期クリック即応ハンドラ -->
@@ -486,7 +495,6 @@
 
   window.isFirebaseReady = true;
 
-  // ログイン実行関数
   window.doLogin = () => {
     const btn = document.getElementById('loginBtn');
     if (btn) {
@@ -503,7 +511,6 @@
     });
   };
 
-  // 早期にボタンが押されていた場合の実行
   const loginBtn = document.getElementById('loginBtn');
   if (loginBtn && loginBtn.innerText === "通信準備中...") {
     window.doLogin();
@@ -534,16 +541,42 @@
   let selectedDatesForAdd = new Set();
 
   let currentScreenId = 'login-screen';
+  let activeEditingSlotIndex = -1;
 
-  const defaultColorLabels = {
-    red: "ミーティング",
-    blue: "文化祭準備",
-    green: "その他",
-    purple: "リハーサル",
-    orange: "打ち合わせ",
-    black: "締切"
-  };
-  const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
+  const defaultCategorySlots12 = [
+    { color: '#ffb8c6', name: 'ミーティング' },
+    { color: '#ffd1dc', name: '企画準備' },
+    { color: '#ffc6b8', name: '衣装係' },
+    { color: '#ffd8a8', name: '買い出し' },
+    { color: '#fff3b0', name: '装飾係' },
+    { color: '#d9f99d', name: '清掃活動' },
+    { color: '#bbf2c8', name: '文化祭準備' },
+    { color: '#b4f8ff', name: '広報・SNS' },
+    { color: '#b4d9ff', name: 'リハーサル' },
+    { color: '#e0cffc', name: '音響・照明' },
+    { color: '#f0d9ff', name: 'ステージ' },
+    { color: '#ced4da', name: '提出締切' }
+  ];
+
+  const pastelPalette24 = [
+    '#ffb8c6', '#ffc2d1', '#ffd1dc', '#ffe5ec',
+    '#ffc6b8', '#ffd8a8', '#ffe8cc', '#fff3b0',
+    '#fff9db', '#d9f99d', '#e2fcd6', '#bbf2c8',
+    '#c3fae8', '#b4f8ff', '#c5f6fa', '#b4d9ff',
+    '#d0ebff', '#e0cffc', '#eebefa', '#f0d9ff',
+    '#f8f0fc', '#e9ecef', '#ced4da', '#495057'
+  ];
+
+  function getTextColorForBackground(hexColor) {
+    if (!hexColor) return '#222222';
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 150) ? '#222222' : '#ffffff';
+  }
 
   function initMonthlySelect() {
     const daySelect = document.getElementById('monthlyDaySelect');
@@ -566,6 +599,45 @@
     }
     return `${prefix}-${code}`;
   }
+
+  function initSwatchPaletteModal() {
+    const grid = document.getElementById('swatchPaletteGrid');
+    if (!grid) return;
+    grid.innerHTML = "";
+    pastelPalette24.forEach(color => {
+      const tile = document.createElement('div');
+      tile.className = "swatch-tile";
+      tile.style.backgroundColor = color;
+      tile.onclick = () => {
+        if (activeEditingSlotIndex >= 0) {
+          const btn = document.getElementById(`slot_btn_${activeEditingSlotIndex}`);
+          if (btn) {
+            btn.style.backgroundColor = color;
+            btn.dataset.color = color;
+          }
+        }
+        closeSwatchModalDirect();
+      };
+      grid.appendChild(tile);
+    });
+  }
+  initSwatchPaletteModal();
+
+  window.openSwatchModal = (slotIndex) => {
+    activeEditingSlotIndex = slotIndex;
+    document.getElementById('swatchModalOverlay').style.display = 'flex';
+  };
+
+  window.closeSwatchModal = (e) => {
+    if (e.target.id === 'swatchModalOverlay') {
+      closeSwatchModalDirect();
+    }
+  };
+
+  window.closeSwatchModalDirect = () => {
+    document.getElementById('swatchModalOverlay').style.display = 'none';
+    activeEditingSlotIndex = -1;
+  };
 
   window.copyGroupCode = (type) => {
     if (!currentGroup) return;
@@ -669,7 +741,6 @@
     }
   });
 
-  // 自動ログイン
   onAuthStateChanged(auth, async (user) => {
     const btn = document.getElementById('loginBtn');
     if (user) {
@@ -776,7 +847,6 @@
     } catch (e) { alert("登録エラー: " + e.message); }
   };
 
-  // 参加コードによるグループ追加
   document.getElementById('joinGroupBtn').onclick = async () => {
     const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
     if (!code) return alert("参加コードを入力してください");
@@ -823,7 +893,6 @@
     }
   };
 
-  // 新規グループ作成
   document.getElementById('createGroupBtn').onclick = async () => {
     const groupName = document.getElementById('newGroupNameInput').value.trim();
     if (!groupName) return alert("グループ名を入力してください");
@@ -836,7 +905,7 @@
         name: groupName,
         memberCode: memberCode,
         adminCode: adminCode,
-        colorLabels: defaultColorLabels,
+        categorySlots: defaultCategorySlots12,
         ownerUid: currentUser.uid,
         createdAt: serverTimestamp()
       });
@@ -858,7 +927,6 @@
     }
   };
 
-  // グループ脱会
   window.leaveCurrentMemberGroup = async () => {
     if (!currentGroup) return;
     if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
@@ -917,22 +985,22 @@
     listenGroupData();
   }
 
-  function getGroupColorLabels() {
-    if (!currentGroup || !currentGroup.colorLabels) return defaultColorLabels;
-    return { ...defaultColorLabels, ...currentGroup.colorLabels };
+  function getGroupCategorySlots() {
+    if (!currentGroup || !currentGroup.categorySlots) return defaultCategorySlots12;
+    return currentGroup.categorySlots;
   }
 
   function renderLegends() {
-    const labels = getGroupColorLabels();
+    const slots = getGroupCategorySlots();
     ['reportCalLegend', 'viewCalLegend', 'addCalLegend'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.innerHTML = "";
-      colorKeys.forEach(k => {
-        if (labels[k]) {
+      slots.forEach(slot => {
+        if (slot.name && slot.name.trim() !== "") {
           const item = document.createElement('div');
           item.className = "legend-item";
-          item.innerHTML = `<span class="dot ${k}"></span> ${labels[k]}`;
+          item.innerHTML = `<span class="dot" style="background-color: ${slot.color};"></span> ${slot.name}`;
           el.appendChild(item);
         }
       });
@@ -1066,25 +1134,53 @@
   };
 
   function loadColorSettingsScreen() {
-    const labels = getGroupColorLabels();
-    colorKeys.forEach(k => {
-      const input = document.getElementById(`colorLabel_${k}`);
-      if (input) input.value = labels[k] || "";
-    });
+    const slots = getGroupCategorySlots();
+    const container = document.getElementById('colorSlotsContainer');
+    if (!container) return;
+    container.innerHTML = "";
+
+    for (let i = 0; i < 12; i++) {
+      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#e9ecef', name: '' });
+      const row = document.createElement('div');
+      row.className = "color-slot-row";
+      row.innerHTML = `
+        <button type="button" class="swatch-btn" id="slot_btn_${i}" data-color="${slot.color}" style="background-color: ${slot.color};" onclick="openSwatchModal(${i})"></button>
+        <span style="font-size:12px; font-weight:bold; color:#555; width:24px;">${i + 1}</span>
+        <input type="text" id="name_slot_${i}" value="${slot.name || ''}" placeholder="項目名（例：全体MTG）" style="flex: 1; margin-bottom: 0;">
+      `;
+      container.appendChild(row);
+    }
   }
 
-  document.getElementById('saveColorLabelsBtn').onclick = async () => {
+  window.resetToDefault12Colors = () => {
+    if (!confirm("基本のパステル12色セットにリセットしますか？")) return;
+    for (let i = 0; i < 12; i++) {
+      const def = defaultCategorySlots12[i];
+      const btn = document.getElementById(`slot_btn_${i}`);
+      const nameInput = document.getElementById(`name_slot_${i}`);
+      if (btn) {
+        btn.style.backgroundColor = def.color;
+        btn.dataset.color = def.color;
+      }
+      if (nameInput) nameInput.value = def.name;
+    }
+  };
+
+  document.getElementById('saveCustomCategoriesBtn').onclick = async () => {
     if (!currentGroup || !isCurrentAdmin) return;
-    const newLabels = {};
-    colorKeys.forEach(k => {
-      const val = document.getElementById(`colorLabel_${k}`).value.trim();
-      newLabels[k] = val;
-    });
+    const newSlots = [];
+    for (let i = 0; i < 12; i++) {
+      const btn = document.getElementById(`slot_btn_${i}`);
+      const nameInput = document.getElementById(`name_slot_${i}`);
+      const color = btn ? (btn.dataset.color || '#e9ecef') : '#e9ecef';
+      const name = nameInput ? nameInput.value.trim() : '';
+      newSlots.push({ color, name });
+    }
 
     try {
-      await setDoc(doc(db, "groups", currentGroup.id), { colorLabels: newLabels }, { merge: true });
-      currentGroup.colorLabels = newLabels;
-      alert("カテゴリ・色設定を保存しました。");
+      await setDoc(doc(db, "groups", currentGroup.id), { categorySlots: newSlots }, { merge: true });
+      currentGroup.categorySlots = newSlots;
+      alert("パステル12色のカテゴリ設定を保存しました。");
       window.showScreen('user-home');
     } catch (e) {
       alert("保存エラー: " + e.message);
@@ -1095,14 +1191,14 @@
     const sel = document.getElementById('eventCategorySelect');
     if (!sel) return;
     sel.innerHTML = "";
-    const labels = getGroupColorLabels();
-    const colorNamesJp = { red: "赤", blue: "青", green: "緑", purple: "紫", orange: "橙", black: "黒" };
+    const slots = getGroupCategorySlots();
 
-    colorKeys.forEach(k => {
-      if (labels[k]) {
+    slots.forEach(slot => {
+      if (slot.name && slot.name.trim() !== "") {
         const opt = document.createElement('option');
-        opt.value = k;
-        opt.innerText = `${colorNamesJp[k]}：${labels[k]}`;
+        opt.value = slot.color;
+        opt.innerText = slot.name;
+        opt.dataset.categoryName = slot.name;
         sel.appendChild(opt);
       }
     });
@@ -1146,16 +1242,13 @@
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        let colorClass = 'circle-red';
-        if (ev.color && colorKeys.includes(ev.color)) {
-          colorClass = `circle-${ev.color}`;
-        } else {
-          if (ev.category === '文化祭準備') colorClass = 'circle-blue';
-          else if (ev.category === 'その他') colorClass = 'circle-green';
-        }
+        const eventColor = ev.color || '#ffb8c6';
+        const textColor = getTextColorForBackground(eventColor);
 
         const circle = document.createElement('div');
-        circle.className = `circle-mark ${colorClass}`;
+        circle.className = "circle-mark";
+        circle.style.backgroundColor = eventColor;
+        circle.style.color = textColor;
         circle.innerText = d;
 
         if (mode === 'report') {
@@ -1232,6 +1325,19 @@
     updateViewBoard(dateStr);
   }
 
+  // ★時間を抽出する関数（ソート用ヘルパー）
+  function extractTimeValue(report) {
+    const timeRaw = (report.status === '早退') ? (report.leaveTime || '') : (report.arrival || '');
+    if (!timeRaw || timeRaw === '未定') return '99:99';
+    const match = timeRaw.match(/\d{1,2}:\d{2}/);
+    if (match) {
+      const [h, m] = match[0].split(':');
+      return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+    }
+    return '99:99';
+  }
+
+  // ★出欠状況ボードの更新（遅刻・早退を時間順にソート）
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -1251,6 +1357,13 @@
 
     const absents = dayReports.filter(r => r.status === '欠席');
     const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
+
+    // ★時間順（早い順）にソート
+    lateLeaves.sort((a, b) => {
+      const timeA = extractTimeValue(a);
+      const timeB = extractTimeValue(b);
+      return timeA.localeCompare(timeB);
+    });
 
     if (absents.length === 0) {
       absentList.innerHTML = '<p style="color: #888; font-size: 12px; text-align: center;">欠席者はいません</p>';
@@ -1274,14 +1387,22 @@
         item.className = "report-item";
         
         let badgeLabel = r.status === '早退' ? '早退' : '遅刻';
-        let timeStr = r.status === '早退' ? `〜 ${r.leaveTime || '未定'}` : `〜 ${r.arrival || '未定'}`;
+        
+        // 時刻表記（HH:MM形式または旧形式の安全表示）
+        let timeStr = "";
+        if (r.status === '早退') {
+          timeStr = r.leaveTime ? (r.leaveTime.includes(':') ? `${r.leaveTime} 早退` : r.leaveTime) : '未定';
+        } else {
+          timeStr = r.arrival ? (r.arrival.includes(':') ? `${r.arrival} 到着予定` : r.arrival) : '未定';
+        }
 
         item.innerHTML = `
           <div>
             <span class="badge-text">${badgeLabel}</span>
             <strong>${r.name}</strong>
           </div>
-          <div style="font-size: 11px; color: #555;">${timeStr} (${r.reason === 'その他' ? r.otherReason : r.reason})</div>
+          <div class="time-highlight">${timeStr}</div>
+          <div style="font-size: 11px; color: #666; margin-top: 2px;">理由: ${r.reason === 'その他' ? r.otherReason : r.reason}</div>
         `;
         lateLeaveList.appendChild(item);
       });
@@ -1365,12 +1486,12 @@
 
   document.getElementById('btnUndecided').onclick = (e) => {
     e.target.classList.toggle('active');
-    const inputMin = document.getElementById('arriveMin');
+    const inputTime = document.getElementById('arriveTime');
     if (e.target.classList.contains('active')) {
-      inputMin.value = "";
-      inputMin.disabled = true;
+      inputTime.value = "";
+      inputTime.disabled = true;
     } else {
-      inputMin.disabled = false;
+      inputTime.disabled = false;
     }
   };
 
@@ -1385,15 +1506,16 @@
     let arrivalInfo = "";
     let leaveInfo = "";
 
+    // ★遅刻時刻（HH:MM形式または未定）
     if (currentStatus === "遅刻") {
       const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
-      const min = document.getElementById('arriveMin').value;
-      if (!isUndecided && !min) return alert("到着予定時刻（分後）を入力するか、未定を選択してください");
-      arrivalInfo = isUndecided ? "未定" : `${min}分後`;
+      const timeVal = document.getElementById('arriveTime').value;
+      if (!isUndecided && !timeVal) return alert("到着予定時刻を選択するか、未定を選択してください");
+      arrivalInfo = isUndecided ? "未定" : timeVal;
     } else if (currentStatus === "早退") {
       const lTime = document.getElementById('leaveTime').value;
-      if (!lTime) return alert("早退予定時刻を入力してください");
-      leaveInfo = `${lTime}頃`;
+      if (!lTime) return alert("早退予定時刻を選択してください");
+      leaveInfo = lTime;
     }
 
     try {
@@ -1545,9 +1667,11 @@
     if (!currentGroup || !isCurrentAdmin) return alert("管理者権限がありません");
 
     const year = document.getElementById('eventYear').value;
-    const colorKey = document.getElementById('eventCategorySelect').value;
-    const labels = getGroupColorLabels();
-    const categoryTitle = labels[colorKey] || "予定";
+    const colorSelect = document.getElementById('eventCategorySelect');
+    const selectedColorHex = colorSelect.value;
+    const selectedOption = colorSelect.options[colorSelect.selectedIndex];
+    const categoryTitle = selectedOption ? selectedOption.dataset.categoryName : "予定";
+
     const title = document.getElementById('eventTitle').value.trim();
     const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
     const timeType = document.querySelector('input[name="timeType"]:checked').value;
@@ -1612,7 +1736,7 @@
         return addDoc(collection(db, "events"), {
           groupId: currentGroup.id,
           year,
-          color: colorKey,
+          color: selectedColorHex,
           category: categoryTitle,
           categoryTitle: categoryTitle,
           date: dateStr,
