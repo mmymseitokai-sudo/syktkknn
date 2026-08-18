@@ -122,7 +122,7 @@
 
 <div class="app-container">
 
-    <!-- 画面-1: 初期ローディング画面（自動ログイン判定中） -->
+    <!-- 画面-1: 初期ローディング画面 -->
     <div id="loading-screen" class="screen" style="display: block; text-align: center; padding: 40px 0;">
         <div class="header-title" style="border-bottom:none;">出欠連絡・管理システム</div>
         <p style="font-size: 13px; color: #555;">読み込み中...</p>
@@ -211,7 +211,6 @@
                 <div class="menu-sub">グループ所属メンバー名簿</div>
             </div>
 
-            <!-- 管理者の時だけ表示される管理メニュー -->
             <div class="menu-card admin-only-feature" style="display:none;" onclick="window.showScreen('admin-add-events')">
                 <div class="menu-title">予定の追加・削除</div>
                 <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
@@ -482,6 +481,10 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // ★流入元（LINE経由か検索エンジン経由か）の自動判定
+  const urlParams = new URLSearchParams(window.location.search);
+  const isLineEntry = urlParams.has('openExternalBrowser') || document.referrer.includes('line.me') || document.referrer.includes('naver');
+
   let currentUser = null;
   let userData = null;
   let myGroups = [];
@@ -541,7 +544,7 @@
     return `${prefix}-${code}`;
   }
 
-  // ★ブラウザ戻るボタン（History API）連動
+  // ★画面遷移と戻るボタン連動（LINE戻り防止＆検索エンジン復帰）
   window.showScreen = (screenId, pushHistory = true) => {
     if (currentScreenId === screenId && document.getElementById(screenId).style.display === 'block') return;
     
@@ -549,7 +552,9 @@
     const target = document.getElementById(screenId);
     if (target) target.style.display = 'block';
 
-    if (pushHistory && screenId !== 'loading-screen' && screenId !== 'login-screen') {
+    const isTop = (screenId === 'user-home' || screenId === 'login-screen' || screenId === 'loading-screen');
+
+    if (pushHistory && !isTop) {
       history.pushState({ screen: screenId }, '', '');
     }
     currentScreenId = screenId;
@@ -578,8 +583,23 @@
   };
 
   window.addEventListener('popstate', (e) => {
-    const screen = (e.state && e.state.screen) ? e.state.screen : (currentUser ? 'user-home' : 'login-screen');
-    window.showScreen(screen, false);
+    if (e.state && e.state.screen) {
+      window.showScreen(e.state.screen, false);
+    } else {
+      const topScreen = currentUser ? 'user-home' : 'login-screen';
+      if (isLineEntry) {
+        // LINE経由：トップページで戻るを押しても戻れなくする
+        history.pushState({ isHomeGuard: true }, '', location.href);
+        window.showScreen(topScreen, false);
+      } else {
+        // 検索エンジン経由等：トップページで戻るを押したら自然に前のページへ戻す
+        if (currentScreenId === topScreen) {
+          history.back();
+        } else {
+          window.showScreen(topScreen, false);
+        }
+      }
+    }
   });
 
   window.copyGroupCode = (type) => {
@@ -629,7 +649,7 @@
     }
   };
 
-  // ★自動ログイン＆セッション維持
+  // 自動ログイン判定
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
@@ -1369,7 +1389,7 @@
     }
   };
 
-  // 管理者用予定追加・削除ロジック
+  // 予定追加・削除ロジック
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
     const listEl = document.getElementById('selectedDatesList');
@@ -1546,44 +1566,4 @@
     let timeText = "";
     if (timeType === "custom") {
       const s = document.getElementById('startTime').value;
-      const e = document.getElementById('endTime').value;
-      if (!s || !e) return alert("開始時間と終了時間を指定してください");
-      timeText = `${s}〜${e}`;
-    } else if (timeType === "lunch") {
-      timeText = "昼休み";
-    } else if (timeType === "afterschool") {
-      timeText = "放課後";
-    }
-
-    if (!confirm(`合計 ${targetDates.length} 件の予定を一括登録しますか？`)) return;
-
-    try {
-      const promises = targetDates.map(dateStr => {
-        return addDoc(collection(db, "events"), {
-          groupId: currentGroup.id,
-          year,
-          color: colorKey,
-          category: categoryTitle,
-          categoryTitle: categoryTitle,
-          date: dateStr,
-          title,
-          timeType,
-          timeText,
-          createdAt: serverTimestamp()
-        });
-      });
-
-      await Promise.all(promises);
-      alert(`${targetDates.length} 件の予定を一括登録しました。`);
-      
-      selectedDatesForAdd.clear();
-      updateSelectedDatesUI();
-      document.getElementById('eventTitle').value = "";
-      window.showScreen('user-home');
-    } catch (e) {
-      alert("登録エラー: " + e.message);
-    }
-  };
-</script>
-</body>
-</html>
+      const e = document.getElemen
