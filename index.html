@@ -49,7 +49,7 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* ★超淡色パステル丸マーク（黒文字完全統一） */
+        /* パステル丸マーク（黒文字統一・淡色） */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; color: #222222 !important; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
@@ -105,6 +105,7 @@
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         
+        /* 12色設定行 */
         .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
 
@@ -187,6 +188,7 @@
             </div>
         </div>
 
+        <!-- 管理者用コード枠 -->
         <div id="adminCodeSection" class="admin-code-box" style="display:none;">
             <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
@@ -215,7 +217,7 @@
             </div>
             <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
-                <div class="menu-sub">パステル専用カラーホイールで項目名変更</div>
+                <div class="menu-sub">パステルカラー12色の項目名・配色変更</div>
             </div>
         </div>
     </div>
@@ -445,7 +447,7 @@
         <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
         <div class="header-title">カテゴリ・色設定（最大12色）</div>
         <p style="font-size: 12px; color: #555; margin-bottom: 12px;">
-            四角をタップして<strong>パステル専用カラーホイールから色を選択</strong>し、項目名を入力してください。
+            四角をタップして<strong>パステル専用カラーホイール（中心が黒）から色を選択</strong>し、項目名を入力してください。
         </p>
 
         <div style="border: 1px solid #ced4da; padding: 12px; border-radius: 6px; background: #fafafa;">
@@ -459,7 +461,7 @@
 
 </div>
 
-<!-- ★中心が黒のパステルカラーホイール モーダル -->
+<!-- パステルカラーホイール モーダル -->
 <div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
     <div class="swatch-modal" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -467,28 +469,25 @@
             <button type="button" class="btn-back" style="padding:2px 8px; margin-bottom:0;" onclick="closeSwatchModalDirect()">閉じる</button>
         </div>
 
-        <!-- 虹色のパステル円（中心が黒） -->
         <div class="wheel-container" id="wheelContainer">
             <canvas id="colorWheelCanvas" width="200" height="200"></canvas>
             <div class="wheel-handle" id="wheelHandle"></div>
         </div>
 
-        <!-- パステルの濃淡調整スライダー -->
+        <!-- ★パステルのあざやかさ上限を45%に設定 -->
         <div style="margin: 6px 0 10px 0;">
             <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; margin-bottom:2px;">
                 <span>パステルのあざやかさ</span>
-                <span id="saturationValText">25%</span>
+                <span id="saturationValText">30%</span>
             </div>
-            <input type="range" id="saturationSlider" min="10" max="35" value="25" style="width:100%; margin-bottom:0;">
+            <input type="range" id="saturationSlider" min="10" max="45" value="30" style="width:100%; margin-bottom:0;">
         </div>
 
-        <!-- プレビュー＆決定ボタン -->
         <div class="preview-bar">
             <div class="preview-circle" id="wheelColorPreview" style="background-color: #ffd9e2;"></div>
             <button class="submit-btn" style="width:auto; padding:6px 18px; margin-top:0; font-size:13px;" onclick="applyWheelColor()">この色に決定</button>
         </div>
 
-        <!-- 定番パステルスウォッチ -->
         <div style="font-size:11px; color:#666; text-align:left; margin-top:8px;">定番パステルから選ぶ：</div>
         <div class="swatch-grid" id="swatchPaletteGrid"></div>
     </div>
@@ -585,20 +584,20 @@
   let activeEditingSlotIndex = -1;
   let currentPickedHex = "#ffd9e2";
 
-  // ★超淡色ミルキーパステル基本12色
+  // 基本12色パステルカラープリセット
   const defaultCategorySlots12 = [
-    { color: '#ffd9e2', name: 'ミーティング' }, // ミルキーピンク
-    { color: '#ffe5ec', name: '企画準備' },     // さくらピンク
-    { color: '#ffe8d6', name: '衣装係' },       // アプリコット
-    { color: '#fef3c7', name: '買い出し' },     // クリームイエロー
-    { color: '#fef9c3', name: '装飾係' },       // レモンミルク
-    { color: '#ecfccb', name: '清掃活動' },     // ペールライム
-    { color: '#d1fae5', name: '文化祭準備' },   // ミントグリーン
-    { color: '#cffafe', name: '広報・SNS' },    // アイスシアン
-    { color: '#e0f2fe', name: 'リハーサル' },   // スカイブルー
-    { color: '#ede9fe', name: '音響・照明' },   // ラベンダー
-    { color: '#f3e8ff', name: 'ステージ' },     // ペールパープル
-    { color: '#e9ecef', name: '提出締切' }      // ライトグレー
+    { color: '#ffd9e2', name: 'ミーティング' },
+    { color: '#ffe5ec', name: '企画準備' },
+    { color: '#ffe8d6', name: '衣装係' },
+    { color: '#fef3c7', name: '買い出し' },
+    { color: '#fef9c3', name: '装飾係' },
+    { color: '#ecfccb', name: '清掃活動' },
+    { color: '#d1fae5', name: '文化祭準備' },
+    { color: '#cffafe', name: '広報・SNS' },
+    { color: '#e0f2fe', name: 'リハーサル' },
+    { color: '#ede9fe', name: '音響・照明' },
+    { color: '#f3e8ff', name: 'ステージ' },
+    { color: '#e9ecef', name: '提出締切' }
   ];
 
   // 厳選36色パステルスウォッチ
@@ -611,11 +610,10 @@
     '#ede9fe', '#e0cffc', '#f3e8ff', '#f0d9ff', '#f8f0fc', '#e9ecef'
   ];
 
-  // ★【重要】過去データやどんな濃い色でも「目に優しい淡いパステルカラー」に強制変換するフィルター
+  // ★【重要】MAX 45% 対応の強制パステル化フィルター
   function toPastelColor(input) {
     if (!input) return '#ffd9e2';
     
-    // 旧カテゴリ文字列のフォールバック
     const oldColors = {
       red: '#ffd9e2', blue: '#e0f2fe', green: '#d1fae5', purple: '#ede9fe', orange: '#ffe8d6', black: '#e9ecef'
     };
@@ -629,7 +627,6 @@
     let g = parseInt(hex.substring(2, 4), 16) / 255;
     let b = parseInt(hex.substring(4, 6), 16) / 255;
 
-    // RGB -> HSL
     let max = Math.max(r, g, b), min = Math.min(r, g, b);
     let h, s, l = (max + min) / 2;
 
@@ -646,11 +643,11 @@
       h /= 6;
     }
 
-    if (s === 0) return '#e9ecef'; // 無彩色は薄グレー
+    if (s === 0) return '#e9ecef';
 
-    // ★彩度を28%、輝度を90%の超淡色パステル領域に強制補正
-    s = 0.35;
-    l = 0.90;
+    // ★彩度の上限を45%に設定、明度をしっかり確保してパステル調を維持
+    s = 0.45;
+    l = 0.88;
 
     function hue2rgb(p, q, t) {
       if (t < 0) t += 1;
@@ -692,7 +689,7 @@
     return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  // ★中心が黒のパステルカラーホイール
+  // ★中心が黒のパステルカラーホイール（MAX 45%）
   function drawColorWheel() {
     const canvas = document.getElementById('colorWheelCanvas');
     if (!canvas) return;
@@ -705,7 +702,7 @@
 
     const imgData = ctx.createImageData(width, height);
     const data = imgData.data;
-    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 25) / 100;
+    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 30) / 100;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -1496,8 +1493,6 @@
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        
-        // ★過去データも含めてすべて強制パステル変換
         const eventColor = toPastelColor(ev.color || ev.category);
 
         const circle = document.createElement('div');
@@ -1997,7 +1992,7 @@
         return addDoc(collection(db, "events"), {
           groupId: currentGroup.id,
           year,
-          color: selectedColorHex, // ★強制パステル化された色で保存
+          color: selectedColorHex,
           category: categoryTitle,
           categoryTitle: categoryTitle,
           title,
