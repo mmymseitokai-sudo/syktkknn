@@ -49,8 +49,8 @@
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
 
-        /* パステル丸マーク */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.08); }
+        /* パステル丸マーク（黒文字統一） */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; color: #222222 !important; transition: 0.15s; border: 1px solid rgba(0,0,0,0.1); }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
@@ -59,8 +59,9 @@
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.15); }
 
-        .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 10px; margin-bottom: 12px; text-align: center; }
+        .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 12px; margin-bottom: 12px; text-align: center; }
         .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; line-height: 1.4; }
+        .event-desc-box { font-size: 12px; color: #333333; margin-top: 8px; white-space: pre-wrap; background: #f8f9fa; padding: 8px 10px; border-radius: 4px; text-align: left; border: 1px solid #e9ecef; line-height: 1.4; }
 
         .already-sent-box { border: 1px solid #111111; padding: 10px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; text-align: center; }
         .cancel-btn { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: bold; }
@@ -73,7 +74,7 @@
         .chip { padding: 6px 12px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; margin-bottom: 6px; display: inline-block; }
         .chip.active { background: #111111; color: white; }
         
-        input[type="text"], input[type="date"], input[type="time"], select { width: 100%; padding: 8px 10px; border: 1px solid #111111; border-radius: 4px; margin-bottom: 12px; font-size: 16px; -webkit-appearance: none; appearance: none; background-color: #fff; }
+        input[type="text"], input[type="date"], input[type="time"], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #111111; border-radius: 4px; margin-bottom: 12px; font-size: 16px; -webkit-appearance: none; appearance: none; background-color: #fff; }
         .submit-btn, .add-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 5px; }
 
         .form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
@@ -232,6 +233,8 @@
         <div class="selected-event-card" id="reportSelectedEventCard">
             <div style="font-size: 12px; color: #555;">カレンダーの日付を選択してください</div>
             <div class="selected-event-title" id="reportSelectedEventTitle">予定が未選択です</div>
+            <!-- ★予定の詳細文表示エリア -->
+            <div id="reportSelectedEventDesc" class="event-desc-box" style="display: none;"></div>
         </div>
 
         <div id="alreadySentBox" class="already-sent-box" style="display:none;">
@@ -250,7 +253,6 @@
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
-            <!-- ★遅刻：時刻入力（HH:MM） -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定時刻</div>
                 <div style="display: flex; gap: 8px; align-items: center;">
@@ -259,7 +261,6 @@
                 </div>
             </div>
 
-            <!-- ★早退：時刻入力（HH:MM） -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
                 <input type="time" id="leaveTime" style="width: 100%; font-size:16px;">
@@ -299,7 +300,6 @@
                 </div>
             </div>
 
-            <!-- ★時間順に並ぶ遅刻・早退リスト -->
             <div class="board-card">
                 <div class="board-header">遅刻・早退</div>
                 <div id="lateLeaveList">
@@ -366,7 +366,10 @@
             <input type="text" id="eventTitle" placeholder="予定タイトル（例：全体ミーティング）" style="flex: 2; min-width: 160px; font-size:16px;">
         </div>
 
-        <div style="font-weight: bold; font-size: 12px; margin-top: 8px;">登録方法：</div>
+        <!-- ★予定詳細文入力欄 -->
+        <textarea id="eventDescription" placeholder="詳細・連絡事項・持ち物など（任意）" rows="2" style="width: 100%; padding: 8px 10px; border: 1px solid #111111; border-radius: 4px; font-size: 15px; margin-bottom: 10px;"></textarea>
+
+        <div style="font-weight: bold; font-size: 12px; margin-top: 4px;">登録方法：</div>
         <div class="radio-group">
             <label><input type="radio" name="repeatType" value="calendar" checked> カレンダーで日付選択（複数日可）</label>
             <label><input type="radio" name="repeatType" value="weekly"> 毎週くり返し（曜日指定）</label>
@@ -543,6 +546,7 @@
   let currentScreenId = 'login-screen';
   let activeEditingSlotIndex = -1;
 
+  // 基本の12色パステルカラープリセット
   const defaultCategorySlots12 = [
     { color: '#ffb8c6', name: 'ミーティング' },
     { color: '#ffd1dc', name: '企画準備' },
@@ -558,6 +562,7 @@
     { color: '#ced4da', name: '提出締切' }
   ];
 
+  // アイビスペイント風 厳選24色パステルパレット
   const pastelPalette24 = [
     '#ffb8c6', '#ffc2d1', '#ffd1dc', '#ffe5ec',
     '#ffc6b8', '#ffd8a8', '#ffe8cc', '#fff3b0',
@@ -566,17 +571,6 @@
     '#d0ebff', '#e0cffc', '#eebefa', '#f0d9ff',
     '#f8f0fc', '#e9ecef', '#ced4da', '#495057'
   ];
-
-  function getTextColorForBackground(hexColor) {
-    if (!hexColor) return '#222222';
-    let hex = hexColor.replace('#', '');
-    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-    const r = parseInt(hex.substring(0, 2), 16) || 0;
-    const g = parseInt(hex.substring(2, 4), 16) || 0;
-    const b = parseInt(hex.substring(4, 6), 16) || 0;
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 150) ? '#222222' : '#ffffff';
-  }
 
   function initMonthlySelect() {
     const daySelect = document.getElementById('monthlyDaySelect');
@@ -1243,12 +1237,12 @@
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
         const eventColor = ev.color || '#ffb8c6';
-        const textColor = getTextColorForBackground(eventColor);
 
         const circle = document.createElement('div');
         circle.className = "circle-mark";
         circle.style.backgroundColor = eventColor;
-        circle.style.color = textColor;
+        // ★文字色は黒文字統一
+        circle.style.color = '#222222';
         circle.innerText = d;
 
         if (mode === 'report') {
@@ -1313,6 +1307,15 @@
 
     document.getElementById('reportSelectedEventTitle').innerText = `${ev.date} (${ev.timeText || '時間指定なし'}) - [${ev.categoryTitle || ev.category}] ${ev.title}`;
 
+    // ★詳細文の表示
+    const descBox = document.getElementById('reportSelectedEventDesc');
+    if (ev.description && ev.description.trim() !== "") {
+      descBox.innerText = ev.description;
+      descBox.style.display = 'block';
+    } else {
+      descBox.style.display = 'none';
+    }
+
     checkExistingReport();
     updateStatusUI();
   }
@@ -1325,7 +1328,6 @@
     updateViewBoard(dateStr);
   }
 
-  // ★時間を抽出する関数（ソート用ヘルパー）
   function extractTimeValue(report) {
     const timeRaw = (report.status === '早退') ? (report.leaveTime || '') : (report.arrival || '');
     if (!timeRaw || timeRaw === '未定') return '99:99';
@@ -1337,7 +1339,6 @@
     return '99:99';
   }
 
-  // ★出欠状況ボードの更新（遅刻・早退を時間順にソート）
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -1345,7 +1346,11 @@
     const infoEl = document.getElementById('viewSelectedInfo');
     if (dayEvents.length > 0) {
       const ev = dayEvents[0];
-      infoEl.innerText = `${dateStr} ${ev.title} (${ev.timeText || '時間指定なし'})`;
+      let eventSummary = `${dateStr} ${ev.title} (${ev.timeText || '時間指定なし'})`;
+      if (ev.description && ev.description.trim() !== "") {
+        eventSummary += `\n【連絡事項】${ev.description}`;
+      }
+      infoEl.innerText = eventSummary;
     } else {
       infoEl.innerText = `${dateStr} （登録された予定はありません）`;
     }
@@ -1358,7 +1363,6 @@
     const absents = dayReports.filter(r => r.status === '欠席');
     const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
 
-    // ★時間順（早い順）にソート
     lateLeaves.sort((a, b) => {
       const timeA = extractTimeValue(a);
       const timeB = extractTimeValue(b);
@@ -1387,8 +1391,6 @@
         item.className = "report-item";
         
         let badgeLabel = r.status === '早退' ? '早退' : '遅刻';
-        
-        // 時刻表記（HH:MM形式または旧形式の安全表示）
         let timeStr = "";
         if (r.status === '早退') {
           timeStr = r.leaveTime ? (r.leaveTime.includes(':') ? `${r.leaveTime} 早退` : r.leaveTime) : '未定';
@@ -1506,7 +1508,6 @@
     let arrivalInfo = "";
     let leaveInfo = "";
 
-    // ★遅刻時刻（HH:MM形式または未定）
     if (currentStatus === "遅刻") {
       const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
       const timeVal = document.getElementById('arriveTime').value;
@@ -1541,7 +1542,6 @@
     }
   };
 
-  // 予定追加・削除ロジック
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
     const listEl = document.getElementById('selectedDatesList');
@@ -1588,6 +1588,7 @@
     if (ev.year) document.getElementById('eventYear').value = ev.year;
     if (ev.color) document.getElementById('eventCategorySelect').value = ev.color;
     if (ev.title) document.getElementById('eventTitle').value = ev.title;
+    if (ev.description) document.getElementById('eventDescription').value = ev.description;
 
     if (ev.timeType) {
       const radio = document.querySelector(`input[name="timeType"][value="${ev.timeType}"]`);
@@ -1673,6 +1674,7 @@
     const categoryTitle = selectedOption ? selectedOption.dataset.categoryName : "予定";
 
     const title = document.getElementById('eventTitle').value.trim();
+    const description = document.getElementById('eventDescription').value.trim();
     const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
     const timeType = document.querySelector('input[name="timeType"]:checked').value;
 
@@ -1736,28 +1738,4 @@
         return addDoc(collection(db, "events"), {
           groupId: currentGroup.id,
           year,
-          color: selectedColorHex,
-          category: categoryTitle,
-          categoryTitle: categoryTitle,
-          date: dateStr,
-          title,
-          timeType,
-          timeText,
-          createdAt: serverTimestamp()
-        });
-      });
-
-      await Promise.all(promises);
-      alert(`${targetDates.length} 件の予定を一括登録しました。`);
-      
-      selectedDatesForAdd.clear();
-      updateSelectedDatesUI();
-      document.getElementById('eventTitle').value = "";
-      window.showScreen('user-home');
-    } catch (e) {
-      alert("登録エラー: " + e.message);
-    }
-  };
-</script>
-</body>
-</html>
+          color: selectedCol
