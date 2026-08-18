@@ -1516,4 +1516,66 @@
       targetDates = allDays.filter(dStr => {
         const dayOfWeek = new Date(dStr + "T00:00:00").getDay();
         return checkedDays.includes(dayOfWeek);
-      })
+      });
+    } else if (repeatType === 'monthly') {
+      const start = document.getElementById('monthlyStartDate').value;
+      const end = document.getElementById('monthlyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const targetDayNum = parseInt(document.getElementById('monthlyDaySelect').value, 10);
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayNum = parseInt(dStr.split('-')[2], 10);
+        return dayNum === targetDayNum;
+      });
+    }
+
+    if (targetDates.length === 0) {
+      return alert("指定された期間・条件に該当する日付がありませんでした。");
+    }
+
+    let timeText = "";
+    if (timeType === "custom") {
+      const s = document.getElementById('startTime').value;
+      const e = document.getElementById('endTime').value;
+      if (!s || !e) return alert("開始時間と終了時間を指定してください");
+      timeText = `${s}〜${e}`;
+    } else if (timeType === "lunch") {
+      timeText = "昼休み";
+    } else if (timeType === "afterschool") {
+      timeText = "放課後";
+    }
+
+    if (!confirm(`合計 ${targetDates.length} 件の予定を一括登録しますか？`)) return;
+
+    try {
+      const promises = targetDates.map(dateStr => {
+        return addDoc(collection(db, "events"), {
+          groupId: currentGroup.id,
+          year,
+          color: colorKey, // ★パステル色キー（red, blue, green...）
+          category: categoryTitle, // 旧互換用
+          categoryTitle: categoryTitle,
+          date: dateStr,
+          title,
+          timeType,
+          timeText,
+          createdAt: serverTimestamp()
+        });
+      });
+
+      await Promise.all(promises);
+      alert(`${targetDates.length} 件の予定を一括登録しました。`);
+      
+      selectedDatesForAdd.clear();
+      updateSelectedDatesUI();
+      document.getElementById('eventTitle').value = "";
+      window.showScreen('admin-home');
+    } catch (e) {
+      alert("登録エラー: " + e.message);
+    }
+  };
+</script>
+</body>
+</html>
