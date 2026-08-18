@@ -40,7 +40,7 @@
         .cal-day.selectable:hover { text-decoration: underline; }
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
 
-        /* ★パステル6色の丸 */
+        /* パステル6色の丸 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -50,7 +50,7 @@
         .circle-black { background-color: #495057; color: #ffffff; }
         .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
 
-        /* 凡例（動的生成） */
+        /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: 10px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -88,6 +88,8 @@
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; }
         .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
         .member-row:last-child { border-bottom: none; }
+
+        .login-btn { padding: 12px 30px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -98,7 +100,7 @@
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">欠席連絡システム</div>
         <p style="margin-bottom: 20px; font-size: 13px;">Googleアカウントでログインしてください。</p>
-        <button class="submit-btn" id="loginBtn">ログイン</button>
+        <button class="login-btn" onclick="window.handleLogin()">ログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -170,7 +172,6 @@
                 <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
             </div>
             <div class="cal-grid" id="reportCalDays" style="margin-top: 4px;"></div>
-            
             <div class="cal-legend" id="reportCalLegend"></div>
         </div>
 
@@ -227,7 +228,6 @@
                 <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
             </div>
             <div class="cal-grid" id="viewCalDays" style="margin-top: 4px;"></div>
-            
             <div class="cal-legend" id="viewCalLegend"></div>
         </div>
 
@@ -252,7 +252,7 @@
         </div>
     </div>
 
-    <!-- 画面4: 生徒側メンバー一覧画面 -->
+    <!-- 画面4: 生徒側メンバー一覧画面（メール非表示） -->
     <div id="user-members" class="screen">
         <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
         <div class="header-title">所属メンバー一覧</div>
@@ -269,6 +269,10 @@
 </div>
 
 <script type="module">
+  window.addEventListener('error', (e) => {
+    alert("エラーが発生しました: " + e.message);
+  });
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { getFirestore, collection, doc, getDoc, setDoc, getDocs, addDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -302,7 +306,6 @@
   let existingReport = null;
   let viewDate = new Date();
 
-  // デフォルトの色マッピング
   const defaultColorLabels = {
     red: "ミーティング",
     blue: "文化祭準備",
@@ -314,6 +317,13 @@
 
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
 
+  window.handleLogin = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(e => {
+      alert("ログインエラー: " + e.message);
+    });
+  };
+
   window.showScreen = (screenId) => {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
     const target = document.getElementById(screenId);
@@ -322,10 +332,6 @@
     if (screenId === 'user-report') renderCalendar('report');
     if (screenId === 'user-view') renderCalendar('view');
     if (screenId === 'user-members') renderUserMemberList();
-  };
-
-  document.getElementById('loginBtn').onclick = () => {
-    signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
   };
 
   onAuthStateChanged(auth, async (user) => {
@@ -379,6 +385,7 @@
 
   function updateUserGroupSelectUI() {
     const sel = document.getElementById('userGroupSelect');
+    if (!sel) return;
     sel.innerHTML = "";
     memberGroups.forEach(g => {
       const opt = document.createElement('option');
@@ -473,18 +480,15 @@
   function showUserHome() {
     const name = (userData && (userData.name || userData.kanjiName)) || "名無し";
     document.getElementById('homeDisplayName').innerText = name;
-    document.getElementById('homeGroupName').innerText = currentGroup.name;
     window.showScreen('user-home');
     listenGroupData();
   }
 
-  // ★グループのカラー設定取得
   function getGroupColorLabels() {
     if (!currentGroup || !currentGroup.colorLabels) return defaultColorLabels;
     return { ...defaultColorLabels, ...currentGroup.colorLabels };
   }
 
-  // ★凡例の動的生成
   function renderLegends() {
     const labels = getGroupColorLabels();
     ['reportCalLegend', 'viewCalLegend'].forEach(id => {
@@ -505,7 +509,6 @@
   function listenGroupData() {
     if (!currentGroup) return;
 
-    // グループ自体の設定変更をリッスン（カテゴリ・色設定のリアルタイム同期）
     onSnapshot(doc(db, "groups", currentGroup.id), (gSnap) => {
       if (gSnap.exists()) {
         currentGroup = { id: gSnap.id, ...gSnap.data() };
@@ -623,15 +626,13 @@
 
     for (let d = 1; d <= lastDate; d++) {
       const div = document.createElement('div');
-      div.className = "cal-day";
+      div.className = "cal-day selectable";
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const dayEvents = allEvents.filter(e => e.date === dateStr);
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        div.classList.add('selectable');
-
-        // ★パステル6色のクラス判定
+        
         let colorClass = 'circle-red';
         if (ev.color && colorKeys.includes(ev.color)) {
           colorClass = `circle-${ev.color}`;
