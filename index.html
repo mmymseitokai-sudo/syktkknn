@@ -15,18 +15,16 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
-        /* ユーザーバッジ */
-        .user-badge { border: 1px solid #111111; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
-        .change-name-link { font-size: 12px; color: #111111; text-decoration: underline; cursor: pointer; }
+        .user-badge { border: 1px solid #111111; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; background: #fafafa; }
+        .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
 
-        /* ホーム画面メニューカード */
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 25px 10px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
         .menu-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
         .menu-sub { font-size: 11px; color: #555555; line-height: 1.3; }
 
-        /* カレンダー共通 */
+        /* カレンダー */
         .cal-box { border: 1px solid #111111; border-radius: 6px; padding: 10px; margin-bottom: 15px; background: #ffffff; }
         .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
         .cal-nav button { background: #ffffff; border: 1px solid #111111; border-radius: 4px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
@@ -39,7 +37,6 @@
         .cal-day.selectable:hover { text-decoration: underline; }
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
 
-        /* 色分け丸 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; box-sizing: border-box; text-align: center; color: #222222; }
         .circle-meeting { background-color: #ffb8c6; }
         .circle-prep { background-color: #bbf2c8; }
@@ -60,7 +57,6 @@
         .cancel-btn { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: bold; }
         .cancel-btn:hover { background: #111111; color: #ffffff; }
 
-        /* フォームパーツ */
         .status-group { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
         .btn-status { flex: 1; padding: 10px; border: 1px solid #111111; border-radius: 4px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 13px; }
         .btn-status.active { background: #111111; color: white; }
@@ -70,7 +66,6 @@
         input { width: 100%; padding: 8px; border: 1px solid #111111; border-radius: 4px; box-sizing: border-box; margin-bottom: 12px; font-size: 13px; }
         .submit-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; }
 
-        /* 確認画面ボード */
         .board-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         @media (max-width: 480px) { .board-container { grid-template-columns: 1fr; } }
         .board-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; min-height: 180px; }
@@ -91,21 +86,37 @@
         <button class="submit-btn" id="loginBtn">ログイン</button>
     </div>
 
-    <!-- 画面0.5: 初回氏名登録画面 -->
+    <!-- 画面0.4: 氏名登録画面 -->
     <div id="profile-screen" class="screen">
         <div class="header-title">初期登録</div>
-        <p style="font-size: 13px; margin-bottom: 15px;">初回登録です。氏名を入力してください。</p>
+        <p style="font-size: 13px; margin-bottom: 15px;">お名前を入力してください。</p>
         <div class="info-text">氏名（フルネーム）</div>
         <input type="text" id="regName" placeholder="例：山田 太郎">
-        <button class="submit-btn" id="saveProfileBtn">登録して進む</button>
+        <button class="submit-btn" id="saveProfileBtn">次へ進む</button>
     </div>
 
-    <!-- 画面1: ホーム画面（★選択画面・メニュー） -->
+    <!-- 画面0.6: グループ参加コード入力画面（未所属時） -->
+    <div id="join-group-screen" class="screen">
+        <div class="header-title">グループ参加</div>
+        <p style="font-size: 13px; margin-bottom: 15px;">管理者から案内された「メンバー用コード」を入力してください。</p>
+        <div class="info-text">メンバー用コード</div>
+        <input type="text" id="joinMemberCodeInput" placeholder="例：M-XXXXXX">
+        <button class="submit-btn" id="joinGroupBtn">グループに参加する</button>
+    </div>
+
+    <!-- 画面1: ホーム画面（選択画面） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
+        
         <div class="user-badge">
-            <div><strong><span id="homeDisplayName"></span></strong> さん</div>
-            <span class="change-name-link" id="editProfileBtn">氏名変更</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <div>グループ：<strong><span id="homeGroupName">-</span></strong></div>
+                <span class="change-link" onclick="window.showScreen('join-group-screen')">グループ変更</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <div>氏名：<strong><span id="homeDisplayName">-</span></strong> さん</div>
+                <span class="change-link" id="editProfileBtn">氏名変更</span>
+            </div>
         </div>
 
         <div class="menu-grid">
@@ -125,7 +136,7 @@
         <button class="btn-back" onclick="window.showScreen('user-home')">← メニューへ戻る</button>
         <div class="header-title">欠席・遅刻・早退の連絡</div>
 
-        <div class="calendar-box">
+        <div class="cal-box">
             <div class="cal-nav">
                 <button onclick="window.changeMonth(-1, 'report')">前月</button>
                 <span id="reportCalMonthDisplay">0月</span>
@@ -148,13 +159,11 @@
             <div class="selected-event-title" id="reportSelectedEventTitle">予定が未選択です</div>
         </div>
 
-        <!-- 自分が連絡済みの場合の取り消し枠 -->
         <div id="alreadySentBox" class="already-sent-box" style="display:none;">
             <div>連絡済み：<strong id="sentStatusText"></strong></div>
             <button class="cancel-btn" id="cancelReportBtn">送信した連絡を取り消す</button>
         </div>
 
-        <!-- 連絡フォーム -->
         <div id="formSection" style="opacity: 0.3; pointer-events: none;">
             <div class="status-group">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
@@ -232,7 +241,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-  import { getFirestore, collection, doc, getDoc, setDoc, addDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, getDocs, addDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDSFJupOUtPV1zNlPxcYaQOzZyVU34w7o0",
@@ -250,6 +259,7 @@
 
   let currentUser = null;
   let userData = null;
+  let currentGroup = null; // { id, name }
   let currentStatus = "欠席";
   let selectedReason = "";
   let allEvents = [];
@@ -260,7 +270,6 @@
   let existingReport = null;
   let viewDate = new Date();
 
-  // 画面遷移
   window.showScreen = (screenId) => {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
     const target = document.getElementById(screenId);
@@ -277,36 +286,83 @@
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
-      checkUserProfile();
+      checkUserProfileAndGroup();
     } else {
       window.showScreen('login-screen');
     }
   });
 
-  async function checkUserProfile() {
+  // 氏名およびグループ所属確認
+  async function checkUserProfileAndGroup() {
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       const docSnap = await getDoc(userDocRef);
-      if (docSnap.exists()) {
-        userData = docSnap.data();
-        showUserHome();
-      } else {
+
+      if (!docSnap.exists() || (!docSnap.data().name && !docSnap.data().kanjiName)) {
         window.showScreen('profile-screen');
+        return;
       }
+
+      userData = docSnap.data();
+
+      // グループ所属確認
+      if (!userData.memberGroupId) {
+        window.showScreen('join-group-screen');
+        return;
+      }
+
+      const groupDocRef = doc(db, "groups", userData.memberGroupId);
+      const groupSnap = await getDoc(groupDocRef);
+
+      if (!groupSnap.exists()) {
+        window.showScreen('join-group-screen');
+        return;
+      }
+
+      currentGroup = { id: groupSnap.id, name: groupSnap.data().name };
+      showUserHome();
     } catch (e) {
-      alert("エラー: " + e.message);
+      alert("確認エラー: " + e.message);
     }
   }
 
+  // 氏名登録
   document.getElementById('saveProfileBtn').onclick = async () => {
     const name = document.getElementById('regName').value.trim();
     if (!name) return alert("氏名を入力してください");
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       userData = { name: name, email: currentUser.email, updatedAt: serverTimestamp() };
-      await setDoc(userDocRef, userData);
-      showUserHome();
+      await setDoc(userDocRef, userData, { merge: true });
+      checkUserProfileAndGroup();
     } catch (e) { alert("登録エラー: " + e.message); }
+  };
+
+  // メンバーコードでグループ参加
+  document.getElementById('joinGroupBtn').onclick = async () => {
+    const code = document.getElementById('joinMemberCodeInput').value.trim().toUpperCase();
+    if (!code) return alert("メンバー用コードを入力してください");
+
+    try {
+      const q = query(collection(db, "groups"), where("memberCode", "==", code));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        return alert("該当するグループが見つかりませんでした。コードを確認してください。");
+      }
+
+      const targetGroupDoc = snap.docs[0];
+      await setDoc(doc(db, "users", currentUser.uid), {
+        memberGroupId: targetGroupDoc.id,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      currentGroup = { id: targetGroupDoc.id, name: targetGroupDoc.data().name };
+      alert(`グループ「${currentGroup.name}」に参加しました！`);
+      showUserHome();
+    } catch (e) {
+      alert("参加エラー: " + e.message);
+    }
   };
 
   document.getElementById('editProfileBtn').onclick = () => {
@@ -317,29 +373,35 @@
   function showUserHome() {
     const name = (userData && (userData.name || userData.kanjiName)) || "名無し";
     document.getElementById('homeDisplayName').innerText = name;
+    document.getElementById('homeGroupName').innerText = currentGroup.name;
     window.showScreen('user-home');
-    loadEvents();
-    loadReports();
+    listenGroupData();
   }
 
-  function loadEvents() {
-    const q = query(collection(db, "events"), orderBy("date", "asc"));
-    onSnapshot(q, (snapshot) => {
+  // グループ内データの受信
+  function listenGroupData() {
+    if (!currentGroup) return;
+
+    onSnapshot(query(collection(db, "events")), (snapshot) => {
       allEvents = [];
       snapshot.forEach(docSnap => {
-        allEvents.push({ id: docSnap.id, ...docSnap.data() });
+        const data = docSnap.data();
+        if (data.groupId === currentGroup.id) {
+          allEvents.push({ id: docSnap.id, ...data });
+        }
       });
+      allEvents.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
       renderCalendar('report');
       renderCalendar('view');
     });
-  }
 
-  function loadReports() {
-    const q = query(collection(db, "reports"));
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(query(collection(db, "reports")), (snapshot) => {
       allReports = [];
       snapshot.forEach(docSnap => {
-        allReports.push({ id: docSnap.id, ...docSnap.data() });
+        const data = docSnap.data();
+        if (data.groupId === currentGroup.id) {
+          allReports.push({ id: docSnap.id, ...data });
+        }
       });
       if (selectedEventForReport) checkExistingReport();
       if (selectedDateForView) updateViewBoard(selectedDateForView);
@@ -424,7 +486,6 @@
     }
   }
 
-  // 連絡画面の日付選択
   function selectEventForReport(ev, dayElement) {
     selectedEventForReport = ev;
     document.querySelectorAll('#reportCalDays .cal-day').forEach(el => el.classList.remove('selected'));
@@ -436,7 +497,6 @@
     updateStatusUI();
   }
 
-  // 確認画面の日付選択
   function selectEventForView(dateStr, dayElement) {
     selectedDateForView = dateStr;
     document.querySelectorAll('#viewCalDays .cal-day').forEach(el => el.classList.remove('selected'));
@@ -445,7 +505,6 @@
     updateViewBoard(dateStr);
   }
 
-  // 確認画面の出欠ボード更新
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -603,6 +662,7 @@
   };
 
   document.getElementById('submitBtn').onclick = async () => {
+    if (!currentGroup) return alert("グループに参加していません");
     if (!selectedEventForReport) return alert("カレンダーから予定を選択してください");
     if (!selectedReason) return alert("理由を選択してください");
     
@@ -625,6 +685,7 @@
 
     try {
       await addDoc(collection(db, "reports"), {
+        groupId: currentGroup.id, // ★グループIDを紐付け
         name: (userData && (userData.name || userData.kanjiName)) || "名無し",
         email: currentUser.email,
         eventTitle: selectedEventForReport.title,
@@ -639,7 +700,7 @@
         timestamp: serverTimestamp()
       });
       alert("送信が完了しました。");
-      window.showScreen('user-home'); // 送信後はメニューへ戻る
+      window.showScreen('user-home');
     } catch (e) {
       alert("送信エラー: " + e.message);
     }
