@@ -359,4 +359,526 @@
       memberGroups = [];
       for (const gId of groupIds) {
         const gSnap = await getDoc(doc(db, "groups", gId));
-        if (gSnap.ex
+        if (gSnap.exists()) {
+          memberGroups.push({ id: gSnap.id, ...gSnap.data() });
+        }
+      }
+
+      if (memberGroups.length === 0) {
+        document.getElementById('joinBackBtn').style.display = 'none';
+        window.showScreen('join-group-screen');
+      } else {
+        currentGroup = memberGroups[0];
+        updateUserGroupSelectUI();
+        showUserHome();
+      }
+    } catch (e) {
+      alert("確認エラー: " + e.message);
+    }
+  }
+
+  function updateUserGroupSelectUI() {
+    const sel = document.getElementById('userGroupSelect');
+    sel.innerHTML = "";
+    memberGroups.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.id;
+      opt.innerText = g.name;
+      if (currentGroup && g.id === currentGroup.id) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById('userGroupSelect').onchange = (e) => {
+    const selectedId = e.target.value;
+    currentGroup = memberGroups.find(g => g.id === selectedId);
+    showUserHome();
+  };
+
+  window.openJoinGroup = () => {
+    document.getElementById('joinBackBtn').style.display = (memberGroups.length > 0) ? 'inline-block' : 'none';
+    window.showScreen('join-group-screen');
+  };
+
+  window.leaveCurrentMemberGroup = async () => {
+    if (!currentGroup) return;
+    if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
+
+    try {
+      const updatedMemberGroupIds = memberGroups.filter(g => g.id !== currentGroup.id).map(g => g.id);
+      await setDoc(doc(db, "users", currentUser.uid), {
+        memberGroupIds: updatedMemberGroupIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`グループ「${currentGroup.name}」を脱会しました。`);
+      checkUserProfileAndGroups();
+    } catch (e) {
+      alert("脱会エラー: " + e.message);
+    }
+  };
+
+  document.getElementById('saveProfileBtn').onclick = async () => {
+    const name = document.getElementById('regName').value.trim();
+    if (!name) return alert("氏名を入力してください");
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      userData = { name: name, email: currentUser.email, updatedAt: serverTimestamp() };
+      await setDoc(userDocRef, userData, { merge: true });
+      checkUserProfileAndGroups();
+    } catch (e) { alert("登録エラー: " + e.message); }
+  };
+
+  document.getElementById('joinGroupBtn').onclick = async () => {
+    const code = document.getElementById('joinMemberCodeInput').value.trim().toUpperCase();
+    if (!code) return alert("メンバー用コードを入力してください");
+
+    try {
+      const q = query(collection(db, "groups"), where("memberCode", "==", code));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        return alert("該当するグループが見つかりませんでした。コードを確認してください。");
+      }
+
+      const targetGroupDoc = snap.docs[0];
+      const targetGroupId = targetGroupDoc.id;
+
+      if (!memberGroups.some(g => g.id === targetGroupId)) {
+        const newGroupData = { id: targetGroupId, ...targetGroupDoc.data() };
+        memberGroups.push(newGroupData);
+        currentGroup = newGroupData;
+
+        const currentGroupIds = memberGroups.map(g => g.id);
+        await setDoc(doc(db, "users", currentUser.uid), {
+          memberGroupIds: currentGroupIds,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+
+      alert(`グループ「${targetGroupDoc.data().name}」に参加しました！`);
+      document.getElementById('joinMemberCodeInput').value = "";
+      updateUserGroupSelectUI();
+      showUserHome();
+    } catch (e) {
+      alert("参加エラー: " + e.message);
+    }
+  };
+
+  document.getElementById('editProfileBtn').onclick = () => {
+    document.getElementById('regName').value = (userData && (userData.name || userData.kanjiName)) || "";
+    window.showScreen('profile-screen');
+  };
+
+  function showUserHome() {
+    const name = (userData && (userData.name || userData.kanjiName)) || "名無し";
+    document.getElementById('homeDisplayName').innerText = name;
+    document.getElementById('homeGroupName').innerText = currentGroup.name;
+    window.showScreen('user-home');
+    listenGroupData();
+  }
+
+  // ★グループのカラー設定取得
+  function getGroupColorLabels() {
+    if (!currentGroup || !currentGroup.colorLabels) return defaultColorLabels;
+    return { ...defaultColorLabels, ...currentGroup.colorLabels };
+  }
+
+  // ★凡例の動的生成
+  function renderLegends() {
+    const labels = getGroupColorLabels();
+    ['reportCalLegend', 'viewCalLegend'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = "";
+      colorKeys.forEach(k => {
+        if (labels[k]) {
+          const item = document.createElement('div');
+          item.className = "legend-item";
+          item.innerHTML = `<span class="dot ${k}"></span> ${labels[k]}`;
+          el.appendChild(item);
+        }
+      });
+    });
+  }
+
+  function listenGroupData() {
+    if (!currentGroup) return;
+
+    // グループ自体の設定変更をリッスン（カテゴリ・色設定のリアルタイム同期）
+    onSnapshot(doc(db, "groups", currentGroup.id), (gSnap) => {
+      if (gSnap.exists()) {
+        currentGroup = { id: gSnap.id, ...gSnap.data() };
+        renderLegends();
+        renderCalendar('report');
+        renderCalendar('view');
+      }
+    });
+
+    onSnapshot(query(collection(db, "events")), (snapshot) => {
+      allEvents = [];
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.groupId === currentGroup.id) {
+          allEvents.push({ id: docSnap.id, ...data });
+        }
+      });
+      allEvents.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      renderCalendar('report');
+      renderCalendar('view');
+    });
+
+    onSnapshot(query(collection(db, "reports")), (snapshot) => {
+      allReports = [];
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.groupId === currentGroup.id) {
+          allReports.push({ id: docSnap.id, ...data });
+        }
+      });
+      if (selectedEventForReport) checkExistingReport();
+      if (selectedDateForView) updateViewBoard(selectedDateForView);
+    });
+
+    onSnapshot(query(collection(db, "users")), (snap) => {
+      allUsers = [];
+      snap.forEach(d => {
+        allUsers.push({ id: d.id, ...d.data() });
+      });
+      renderUserMemberList();
+    });
+  }
+
+  function renderUserMemberList() {
+    if (!currentGroup) return;
+    document.getElementById('userMemberViewGroupName').innerText = currentGroup.name;
+
+    const groupMembers = allUsers.filter(u => {
+      const inAdmin = (u.adminGroupIds && u.adminGroupIds.includes(currentGroup.id)) || u.adminGroupId === currentGroup.id;
+      const inMember = (u.memberGroupIds && u.memberGroupIds.includes(currentGroup.id)) || u.memberGroupId === currentGroup.id;
+      return inAdmin || inMember;
+    });
+
+    document.getElementById('userMemberCountText').innerText = groupMembers.length;
+    const container = document.getElementById('userMemberListContainer');
+    container.innerHTML = "";
+
+    if (groupMembers.length === 0) {
+      container.innerHTML = '<p style="color:#888; font-size:12px; text-align:center;">メンバーはまだ登録されていません</p>';
+      return;
+    }
+
+    groupMembers.sort((a, b) => {
+      const aIsAdmin = (a.adminGroupIds && a.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
+      const bIsAdmin = (b.adminGroupIds && b.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
+      return bIsAdmin - aIsAdmin;
+    });
+
+    groupMembers.forEach(m => {
+      const isAdmin = (m.adminGroupIds && m.adminGroupIds.includes(currentGroup.id)) || m.adminGroupId === currentGroup.id;
+      const roleBadge = isAdmin ? '<span class="badge-text" style="background:#212529; color:white;">管理者</span>' : '<span class="badge-text">メンバー</span>';
+      const name = m.name || m.kanjiName || "名無し";
+
+      const row = document.createElement('div');
+      row.className = "member-row";
+      row.innerHTML = `
+        <div style="display:flex; align-items:center;">
+          ${roleBadge}
+          <strong>${name}</strong>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  window.changeMonth = (diff, mode) => {
+    viewDate.setMonth(viewDate.getMonth() + diff);
+    renderCalendar(mode);
+  };
+
+  function renderCalendar(mode) {
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const displayId = mode === 'report' ? 'reportCalMonthDisplay' : 'viewCalMonthDisplay';
+    const containerId = mode === 'report' ? 'reportCalDays' : 'viewCalDays';
+
+    const displayEl = document.getElementById(displayId);
+    const container = document.getElementById(containerId);
+    if (!displayEl || !container) return;
+
+    displayEl.innerText = `${year}年 ${month + 1}月`;
+    renderLegends();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const prevLastDate = new Date(year, month, 0).getDate();
+
+    container.innerHTML = "";
+
+    for (let i = 0; i < firstDay; i++) {
+      const div = document.createElement('div');
+      div.className = "cal-day";
+      container.appendChild(div);
+    }
+
+    for (let d = 1; d <= lastDate; d++) {
+      const div = document.createElement('div');
+      div.className = "cal-day";
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dayEvents = allEvents.filter(e => e.date === dateStr);
+
+      if (dayEvents.length > 0) {
+        const ev = dayEvents[0];
+        div.classList.add('selectable');
+
+        // ★パステル6色のクラス判定
+        let colorClass = 'circle-red';
+        if (ev.color && colorKeys.includes(ev.color)) {
+          colorClass = `circle-${ev.color}`;
+        } else {
+          if (ev.category === '文化祭準備') colorClass = 'circle-blue';
+          else if (ev.category === 'その他') colorClass = 'circle-green';
+        }
+
+        const circle = document.createElement('div');
+        circle.className = `circle-mark ${colorClass}`;
+        circle.innerText = d;
+
+        if (mode === 'report') {
+          if (selectedEventForReport && selectedEventForReport.id === ev.id) {
+            div.classList.add('selected');
+          }
+          div.onclick = () => selectEventForReport(ev, div);
+        } else {
+          if (selectedDateForView === dateStr) {
+            div.classList.add('selected');
+          }
+          div.onclick = () => selectEventForView(dateStr, div);
+        }
+
+        div.appendChild(circle);
+      } else {
+        div.innerText = d;
+      }
+
+      container.appendChild(div);
+    }
+
+    const totalCells = firstDay + lastDate;
+    const nextDays = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= nextDays; i++) {
+      const div = document.createElement('div');
+      div.className = "cal-day other-month";
+      div.innerText = i;
+      container.appendChild(div);
+    }
+  }
+
+  function selectEventForReport(ev, dayElement) {
+    selectedEventForReport = ev;
+    document.querySelectorAll('#reportCalDays .cal-day').forEach(el => el.classList.remove('selected'));
+    dayElement.classList.add('selected');
+
+    document.getElementById('reportSelectedEventTitle').innerText = `${ev.date} (${ev.timeText || '時間指定なし'}) - [${ev.categoryTitle || ev.category}] ${ev.title}`;
+
+    checkExistingReport();
+    updateStatusUI();
+  }
+
+  function selectEventForView(dateStr, dayElement) {
+    selectedDateForView = dateStr;
+    document.querySelectorAll('#viewCalDays .cal-day').forEach(el => el.classList.remove('selected'));
+    dayElement.classList.add('selected');
+
+    updateViewBoard(dateStr);
+  }
+
+  function updateViewBoard(dateStr) {
+    const dayEvents = allEvents.filter(e => e.date === dateStr);
+    const dayReports = allReports.filter(r => r.eventDate === dateStr);
+
+    const infoEl = document.getElementById('viewSelectedInfo');
+    if (dayEvents.length > 0) {
+      const ev = dayEvents[0];
+      infoEl.innerText = `${dateStr} ${ev.title} (${ev.timeText || '時間指定なし'})`;
+    } else {
+      infoEl.innerText = `${dateStr} （登録された予定はありません）`;
+    }
+
+    const absentList = document.getElementById('absentList');
+    const lateLeaveList = document.getElementById('lateLeaveList');
+    absentList.innerHTML = "";
+    lateLeaveList.innerHTML = "";
+
+    const absents = dayReports.filter(r => r.status === '欠席');
+    const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
+
+    if (absents.length === 0) {
+      absentList.innerHTML = '<p style="color: #888; font-size: 12px; text-align: center;">欠席者はいません</p>';
+    } else {
+      absents.forEach(r => {
+        const item = document.createElement('div');
+        item.className = "report-item";
+        item.innerHTML = `
+          <div><strong>${r.name}</strong></div>
+          <div style="font-size: 11px; color: #555;">理由: ${r.reason === 'その他' ? r.otherReason : r.reason}</div>
+        `;
+        absentList.appendChild(item);
+      });
+    }
+
+    if (lateLeaves.length === 0) {
+      lateLeaveList.innerHTML = '<p style="color: #888; font-size: 12px; text-align: center;">遅刻・早退者はいません</p>';
+    } else {
+      lateLeaves.forEach(r => {
+        const item = document.createElement('div');
+        item.className = "report-item";
+        
+        let badgeLabel = r.status === '早退' ? '早退' : '遅刻';
+        let timeStr = r.status === '早退' ? `〜 ${r.leaveTime || '未定'}` : `〜 ${r.arrival || '未定'}`;
+
+        item.innerHTML = `
+          <div>
+            <span class="badge-text">${badgeLabel}</span>
+            <strong>${r.name}</strong>
+          </div>
+          <div style="font-size: 11px; color: #555;">${timeStr} (${r.reason === 'その他' ? r.otherReason : r.reason})</div>
+        `;
+        lateLeaveList.appendChild(item);
+      });
+    }
+  }
+
+  function checkExistingReport() {
+    if (!selectedEventForReport || !currentUser) return;
+    existingReport = allReports.find(r => r.eventDate === selectedEventForReport.date && r.email === currentUser.email);
+
+    const alreadyBox = document.getElementById('alreadySentBox');
+    const formSection = document.getElementById('formSection');
+
+    if (existingReport) {
+      alreadyBox.style.display = 'block';
+      let detail = existingReport.status;
+      if (existingReport.status === '遅刻') detail += ` (${existingReport.arrival || ''})`;
+      if (existingReport.status === '早退') detail += ` (${existingReport.leaveTime || ''})`;
+      detail += ` - 理由: ${existingReport.reason}`;
+      document.getElementById('sentStatusText').innerText = detail;
+
+      formSection.style.opacity = "0.3";
+      formSection.style.pointerEvents = "none";
+    } else {
+      alreadyBox.style.display = 'none';
+      formSection.style.opacity = "1";
+      formSection.style.pointerEvents = "auto";
+    }
+  }
+
+  document.getElementById('cancelReportBtn').onclick = async () => {
+    if (!existingReport) return;
+    if (!confirm("この連絡を取り消しますか？")) return;
+
+    try {
+      await deleteDoc(doc(db, "reports", existingReport.id));
+      alert("連絡を取り消しました。");
+    } catch (e) {
+      alert("削除エラー: " + e.message);
+    }
+  };
+
+  function updateReasons() {
+    const reasons = (currentStatus === "欠席" || currentStatus === "早退")
+        ? ["体調不良", "部活動", "委員会", "家庭の用事", "その他"]
+        : ["部活動", "委員会", "家庭の用事", "その他"];
+
+    const container = document.getElementById('reasonContainer');
+    container.innerHTML = "";
+    selectedReason = "";
+    document.getElementById('otherReason').style.display = "none";
+
+    reasons.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.innerText = r;
+      div.onclick = () => {
+        document.querySelectorAll('#reasonContainer .chip').forEach(c => c.classList.remove('active'));
+        div.classList.add('active');
+        selectedReason = r;
+        document.getElementById('otherReason').style.display = (r === "その他") ? "block" : "none";
+      };
+      container.appendChild(div);
+    });
+  }
+
+  document.getElementById('btnAbsent').onclick = () => { currentStatus = "欠席"; updateStatusUI(); };
+  document.getElementById('btnLate').onclick = () => { currentStatus = "遅刻"; updateStatusUI(); };
+  document.getElementById('btnLeave').onclick = () => { currentStatus = "早退"; updateStatusUI(); };
+
+  function updateStatusUI() {
+    document.getElementById('btnAbsent').className = currentStatus === "欠席" ? "btn-status active" : "btn-status";
+    document.getElementById('btnLate').className = currentStatus === "遅刻" ? "btn-status active" : "btn-status";
+    document.getElementById('btnLeave').className = currentStatus === "早退" ? "btn-status active" : "btn-status";
+
+    document.getElementById('arrivalSection').style.display = currentStatus === "遅刻" ? "block" : "none";
+    document.getElementById('leaveSection').style.display = currentStatus === "早退" ? "block" : "none";
+
+    updateReasons();
+  }
+
+  document.getElementById('btnUndecided').onclick = (e) => {
+    e.target.classList.toggle('active');
+    const inputMin = document.getElementById('arriveMin');
+    if (e.target.classList.contains('active')) {
+      inputMin.value = "";
+      inputMin.disabled = true;
+    } else {
+      inputMin.disabled = false;
+    }
+  };
+
+  document.getElementById('submitBtn').onclick = async () => {
+    if (!currentGroup) return alert("グループに参加していません");
+    if (!selectedEventForReport) return alert("カレンダーから予定を選択してください");
+    if (!selectedReason) return alert("理由を選択してください");
+    
+    const otherText = document.getElementById('otherReason').value;
+    if (selectedReason === "その他" && !otherText) return alert("その他の具体的な理由を入力してください");
+
+    let arrivalInfo = "";
+    let leaveInfo = "";
+
+    if (currentStatus === "遅刻") {
+      const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
+      const min = document.getElementById('arriveMin').value;
+      if (!isUndecided && !min) return alert("到着予定時刻（分後）を入力するか、未定を選択してください");
+      arrivalInfo = isUndecided ? "未定" : `${min}分後`;
+    } else if (currentStatus === "早退") {
+      const lTime = document.getElementById('leaveTime').value;
+      if (!lTime) return alert("早退予定時刻を入力してください");
+      leaveInfo = `${lTime}頃`;
+    }
+
+    try {
+      await addDoc(collection(db, "reports"), {
+        groupId: currentGroup.id,
+        name: (userData && (userData.name || userData.kanjiName)) || "名無し",
+        email: currentUser.email,
+        eventTitle: selectedEventForReport.title,
+        eventDate: selectedEventForReport.date,
+        timeText: selectedEventForReport.timeText || "",
+        year: selectedEventForReport.year || "令和6年度",
+        status: currentStatus,
+        reason: selectedReason,
+        otherReason: otherText,
+        arrival: arrivalInfo,
+        leaveTime: leaveInfo,
+        timestamp: serverTimestamp()
+      });
+      alert("送信が完了しました。");
+      window.showScreen('user-home');
+    } catch (e) {
+      alert("送信エラー: " + e.message);
+    }
+  };
+</script>
+</body>
+</html>
