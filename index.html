@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -122,11 +122,11 @@
 
 <div class="app-container">
 
-    <!-- 画面0: ログイン画面（初期表示：フリーズ知らず） -->
+    <!-- 画面0: ログイン画面（即時表示） -->
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">出欠連絡・管理システム</div>
         <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
-        <button class="submit-btn" id="loginBtn" onclick="window.handleLogin()">ログイン</button>
+        <button class="submit-btn" id="loginBtn" onclick="window.handleLoginClick()">ログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -182,7 +182,7 @@
             </div>
         </div>
 
-        <!-- 管理者用コード表示ボックス -->
+        <!-- 管理者用コード枠 -->
         <div id="adminCodeSection" class="admin-code-box" style="display:none;">
             <div style="font-weight:bold; margin-bottom:4px;">このグループの参加コード（管理者機能）：</div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
@@ -452,11 +452,20 @@
 
 </div>
 
-<script type="module">
-  window.addEventListener('error', (e) => {
-    console.error("App Error:", e);
-  });
+<!-- 早期クリック即応ハンドラ -->
+<script>
+  window.isFirebaseReady = false;
+  window.handleLoginClick = function() {
+    const btn = document.getElementById('loginBtn');
+    if (!window.isFirebaseReady) {
+      if (btn) btn.innerText = "通信準備中...";
+      return;
+    }
+    if (window.doLogin) window.doLogin();
+  };
+</script>
 
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { getFirestore, collection, doc, getDoc, setDoc, getDocs, addDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -474,6 +483,31 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  window.isFirebaseReady = true;
+
+  // ログイン実行関数
+  window.doLogin = () => {
+    const btn = document.getElementById('loginBtn');
+    if (btn) {
+      btn.innerText = "ログイン中...";
+      btn.disabled = true;
+    }
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(e => {
+      alert("ログインエラー: " + e.message);
+      if (btn) {
+        btn.innerText = "ログイン";
+        btn.disabled = false;
+      }
+    });
+  };
+
+  // 早期にボタンが押されていた場合の実行
+  const loginBtn = document.getElementById('loginBtn');
+  if (loginBtn && loginBtn.innerText === "通信準備中...") {
+    window.doLogin();
+  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const isLineEntry = urlParams.has('openExternalBrowser') || document.referrer.includes('line.me') || document.referrer.includes('naver');
@@ -510,10 +544,6 @@
     black: "締切"
   };
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
-
-  window.handleLogin = () => {
-    signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
-  };
 
   function initMonthlySelect() {
     const daySelect = document.getElementById('monthlyDaySelect');
@@ -639,17 +669,23 @@
     }
   });
 
-  // 自動ログイン（ログイン済みならホームへ直行）
+  // 自動ログイン
   onAuthStateChanged(auth, async (user) => {
+    const btn = document.getElementById('loginBtn');
     if (user) {
       currentUser = user;
       const notice = document.getElementById('loginNoticeText');
       if (notice) notice.innerText = "ログイン確認中...";
+      if (btn) btn.innerText = "ログイン中...";
       checkUserProfileAndGroups();
     } else {
       currentUser = null;
       const notice = document.getElementById('loginNoticeText');
       if (notice) notice.innerText = "Googleアカウントでログインしてください。";
+      if (btn) {
+        btn.innerText = "ログイン";
+        btn.disabled = false;
+      }
       window.showScreen('login-screen', false);
     }
   });
@@ -1506,4 +1542,98 @@
   }
 
   document.getElementById('addEventBtn').onclick = async () => {
-    if (!currentGroup || !isCurrentAdmin) return
+    if (!currentGroup || !isCurrentAdmin) return alert("管理者権限がありません");
+
+    const year = document.getElementById('eventYear').value;
+    const colorKey = document.getElementById('eventCategorySelect').value;
+    const labels = getGroupColorLabels();
+    const categoryTitle = labels[colorKey] || "予定";
+    const title = document.getElementById('eventTitle').value.trim();
+    const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
+    const timeType = document.querySelector('input[name="timeType"]:checked').value;
+
+    if (!title) return alert("予定タイトルを入力してください");
+
+    let targetDates = [];
+
+    if (repeatType === 'calendar') {
+      if (selectedDatesForAdd.size === 0) {
+        return alert("カレンダーから登録したい日付をタップして選択してください。");
+      }
+      targetDates = Array.from(selectedDatesForAdd);
+    } else if (repeatType === 'weekly') {
+      const start = document.getElementById('weeklyStartDate').value;
+      const end = document.getElementById('weeklyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const checkedDays = Array.from(document.querySelectorAll('.chk-weekday:checked')).map(c => parseInt(c.value, 10));
+      if (checkedDays.length === 0) return alert("くり返す曜日にチェックを入れてください");
+
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayOfWeek = new Date(dStr + "T00:00:00").getDay();
+        return checkedDays.includes(dayOfWeek);
+      });
+    } else if (repeatType === 'monthly') {
+      const start = document.getElementById('monthlyStartDate').value;
+      const end = document.getElementById('monthlyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const targetDayNum = parseInt(document.getElementById('monthlyDaySelect').value, 10);
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayNum = parseInt(dStr.split('-')[2], 10);
+        return dayNum === targetDayNum;
+      });
+    }
+
+    if (targetDates.length === 0) {
+      return alert("指定された期間・条件に該当する日付がありませんでした。");
+    }
+
+    let timeText = "";
+    if (timeType === "custom") {
+      const s = document.getElementById('startTime').value;
+      const e = document.getElementById('endTime').value;
+      if (!s || !e) return alert("開始時間と終了時間を指定してください");
+      timeText = `${s}〜${e}`;
+    } else if (timeType === "lunch") {
+      timeText = "昼休み";
+    } else if (timeType === "afterschool") {
+      timeText = "放課後";
+    }
+
+    if (!confirm(`合計 ${targetDates.length} 件の予定を一括登録しますか？`)) return;
+
+    try {
+      const promises = targetDates.map(dateStr => {
+        return addDoc(collection(db, "events"), {
+          groupId: currentGroup.id,
+          year,
+          color: colorKey,
+          category: categoryTitle,
+          categoryTitle: categoryTitle,
+          date: dateStr,
+          title,
+          timeType,
+          timeText,
+          createdAt: serverTimestamp()
+        });
+      });
+
+      await Promise.all(promises);
+      alert(`${targetDates.length} 件の予定を一括登録しました。`);
+      
+      selectedDatesForAdd.clear();
+      updateSelectedDatesUI();
+      document.getElementById('eventTitle').value = "";
+      window.showScreen('user-home');
+    } catch (e) {
+      alert("登録エラー: " + e.message);
+    }
+  };
+</script>
+</body>
+</html>
