@@ -16,11 +16,16 @@
         
         /* グループ管理カード */
         .group-selector-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
-        .group-info-card { border: 1px solid #111111; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; background: #f8f9fa; font-size: 13px; }
-        .code-row { display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap; }
-        .code-item { display: flex; align-items: center; gap: 6px; }
+        .group-info-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 20px; background: #f8f9fa; font-size: 13px; }
+        .code-row { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
+        .code-item { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .code-box { background: white; border: 1px solid #ced4da; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 13px; font-weight: bold; }
+        
         .btn-copy-code { background: #111111; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: bold; }
+        .btn-copy-code:hover { opacity: 0.8; }
+        .btn-regen-code { background: #ffffff; color: #111111; border: 1px solid #111111; border-radius: 4px; padding: 3px 6px; font-size: 11px; cursor: pointer; }
+        .btn-regen-code:hover { background: #eee; }
+
         .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
         .btn-leave-group { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 2px 6px; font-size: 11px; cursor: pointer; font-weight: bold; }
         .btn-leave-group:hover { background: #dc3545; color: white; }
@@ -96,6 +101,10 @@
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; }
         .member-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; }
         .member-row:last-child { border-bottom: none; }
+        
+        /* ★除名ボタン */
+        .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 8px; font-size: 11px; cursor: pointer; font-weight: bold; margin-left: 8px; }
+        .btn-kick-member:hover { background: #dc3545; color: white; }
 
         .login-btn { padding: 12px 30px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; font-size: 14px; }
         .group-setup-card { border: 1px solid #111111; padding: 20px; border-radius: 6px; margin-bottom: 15px; }
@@ -151,7 +160,6 @@
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:12px; font-weight:bold;">管理グループ：</span>
                     <select id="adminGroupSelect" style="font-weight:bold;"></select>
-                    <!-- ★グループ脱会ボタン -->
                     <button class="btn-leave-group" onclick="leaveCurrentAdminGroup()">脱会</button>
                 </div>
                 <button type="button" class="btn-back" style="margin-bottom:0; font-size:11px;" onclick="openGroupSetup()">＋ グループ追加</button>
@@ -165,11 +173,15 @@
                     <span>メンバー用:</span>
                     <span class="code-box" id="displayMemberCode">-</span>
                     <button class="btn-copy-code" onclick="copyCode('member')">コピー</button>
+                    <!-- ★再発行ボタン -->
+                    <button class="btn-regen-code" onclick="regenerateCode('member')">再発行</button>
                 </div>
                 <div class="code-item">
                     <span>管理者用:</span>
                     <span class="code-box" id="displayAdminCode">-</span>
                     <button class="btn-copy-code" onclick="copyCode('admin')">コピー</button>
+                    <!-- ★再発行ボタン -->
+                    <button class="btn-regen-code" onclick="regenerateCode('admin')">再発行</button>
                 </div>
             </div>
         </div>
@@ -189,7 +201,7 @@
             </div>
             <div class="menu-card" onclick="window.showScreen('admin-members')">
                 <div class="menu-title">メンバー一覧</div>
-                <div class="menu-sub">グループ所属メンバー名簿の確認</div>
+                <div class="menu-sub">名簿確認・メンバーの除名管理</div>
             </div>
         </div>
     </div>
@@ -420,7 +432,7 @@
         </div>
     </div>
 
-    <!-- 画面5: メンバー一覧画面（管理者のみメールアドレス表示） -->
+    <!-- 画面5: メンバー一覧画面（除名ボタン付き） -->
     <div id="admin-members" class="screen">
         <button class="btn-back" onclick="window.showScreen('admin-home')">← メニューへ戻る</button>
         <h2>所属メンバー一覧</h2>
@@ -491,6 +503,7 @@
     return `${prefix}-${code}`;
   }
 
+  // ★コードコピー機能
   window.copyCode = (type) => {
     if (!currentGroup) return;
     const text = type === 'member' ? currentGroup.memberCode : currentGroup.adminCode;
@@ -518,6 +531,29 @@
     }
     document.body.removeChild(textArea);
   }
+
+  // ★コード再発行機能
+  window.regenerateCode = async (type) => {
+    if (!currentGroup) return;
+    const label = type === 'member' ? 'メンバー用コード' : '管理者用コード';
+    if (!confirm(`新しい${label}を再発行しますか？\n※これまでのコードは使えなくなります。`)) return;
+
+    try {
+      const newCode = generateCode(type === 'member' ? 'M' : 'A');
+      const updateData = {};
+      if (type === 'member') updateData.memberCode = newCode;
+      else updateData.adminCode = newCode;
+
+      await setDoc(doc(db, "groups", currentGroup.id), updateData, { merge: true });
+      currentGroup = { ...currentGroup, ...updateData };
+
+      document.getElementById('displayMemberCode').innerText = currentGroup.memberCode;
+      document.getElementById('displayAdminCode').innerText = currentGroup.adminCode;
+      alert(`新しい${label}「${newCode}」を発行しました！`);
+    } catch (e) {
+      alert("再発行エラー: " + e.message);
+    }
+  };
 
   window.showScreen = (screenId) => {
     document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
@@ -649,7 +685,6 @@
     window.showScreen('group-setup-screen');
   };
 
-  // ★管理者脱会処理
   window.leaveCurrentAdminGroup = async () => {
     if (!currentGroup) return;
     if (!confirm(`グループ「${currentGroup.name}」の管理者を抜けますか（脱会）？\n※他の管理者の権限やデータは残ります。`)) return;
@@ -780,7 +815,7 @@
     });
   }
 
-  // 管理者側メンバー名簿（管理者のみメールアドレスを表示）
+  // ★メンバー名簿の描画（除名ボタン付き）
   function renderMemberList() {
     if (!currentGroup) return;
     document.getElementById('memberViewGroupName').innerText = currentGroup.name;
@@ -810,6 +845,10 @@
       const isAdmin = (m.adminGroupIds && m.adminGroupIds.includes(currentGroup.id)) || m.adminGroupId === currentGroup.id;
       const roleBadge = isAdmin ? '<span class="badge-text" style="background:#212529; color:white;">管理者</span>' : '<span class="badge-text">メンバー</span>';
       const name = m.name || m.kanjiName || "名無し";
+      
+      // 自分以外には除名ボタンを表示
+      const isSelf = currentUser && m.id === currentUser.uid;
+      const kickBtnHtml = !isSelf ? `<button class="btn-kick-member" onclick="kickMember('${m.id}', '${name}')">除名</button>` : '';
 
       const row = document.createElement('div');
       row.className = "member-row";
@@ -818,11 +857,44 @@
           ${roleBadge}
           <strong>${name}</strong>
         </div>
-        <div style="font-size:11px; color:#666;">${m.email || ''}</div>
+        <div style="display:flex; align-items:center;">
+          <span style="font-size:11px; color:#666;">${m.email || ''}</span>
+          ${kickBtnHtml}
+        </div>
       `;
       container.appendChild(row);
     });
   }
+
+  // ★メンバー除名処理
+  window.kickMember = async (targetUid, targetName) => {
+    if (!currentGroup) return;
+    if (!confirm(`「${targetName}」さんをグループ「${currentGroup.name}」から除名しますか？\n※このユーザーはこのグループにアクセスできなくなります。`)) return;
+
+    try {
+      const userRef = doc(db, "users", targetUid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const uData = userSnap.data();
+        let memberGroupIds = Array.isArray(uData.memberGroupIds) ? uData.memberGroupIds : (uData.memberGroupId ? [uData.memberGroupId] : []);
+        let adminGroupIds = Array.isArray(uData.adminGroupIds) ? uData.adminGroupIds : (uData.adminGroupId ? [uData.adminGroupId] : []);
+
+        memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
+        adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
+
+        await setDoc(userRef, {
+          memberGroupIds,
+          adminGroupIds,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+
+      alert(`「${targetName}」さんを除名しました。`);
+    } catch (e) {
+      alert("除名エラー: " + e.message);
+    }
+  };
 
   document.querySelectorAll('input[name="repeatType"]').forEach(r => {
     r.addEventListener('change', (e) => {
