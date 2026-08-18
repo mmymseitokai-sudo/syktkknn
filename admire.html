@@ -48,7 +48,7 @@
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
         .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
 
-        /* ★パステル6色の丸 */
+        /* パステル6色の丸 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; text-align: center; box-sizing: border-box; }
         .circle-red { background-color: #ffb8c6; color: #222222; }
         .circle-blue { background-color: #b4d9ff; color: #222222; }
@@ -60,7 +60,7 @@
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
         .cal-day.view-selected { outline: 2px solid #111111; outline-offset: -2px; }
 
-        /* 凡例（動的生成） */
+        /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: 10px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -114,7 +114,6 @@
         .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 8px; font-size: 11px; cursor: pointer; font-weight: bold; margin-left: 8px; }
         .btn-kick-member:hover { background: #dc3545; color: white; }
 
-        /* カテゴリ・色設定フォーム */
         .color-setting-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .color-sample-box { width: 30px; height: 30px; border-radius: 4px; border: 1px solid #ced4da; flex-shrink: 0; }
 
@@ -130,7 +129,7 @@
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <h1>生徒会 管理システム</h1>
         <p style="font-size: 13px;">Googleアカウントでログインしてください。</p>
-        <button class="login-btn" id="loginBtn">管理者ログイン</button>
+        <button class="login-btn" onclick="window.handleLogin()">管理者ログイン</button>
     </div>
 
     <!-- 画面0.4: 管理者氏名登録画面 -->
@@ -213,7 +212,6 @@
                 <div class="menu-title">メンバー一覧</div>
                 <div class="menu-sub">名簿確認・メンバーの除名管理</div>
             </div>
-            <!-- ★カテゴリ・色設定ボタン -->
             <div class="menu-card" style="grid-column: span 2;" onclick="window.showScreen('admin-colors')">
                 <div class="menu-title">カテゴリ・色設定</div>
                 <div class="menu-sub">チーム専用のパステル6色（赤・青・緑・紫・オレンジ・黒）の項目名を変更</div>
@@ -239,7 +237,6 @@
                 <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
             </div>
             <div class="cal-grid" id="addCalDays" style="margin-top: 4px;"></div>
-            
             <div class="cal-legend" id="addCalLegend"></div>
         </div>
 
@@ -264,7 +261,6 @@
                     <option value="令和7年度">令和7年度</option>
                     <option value="令和8年度">令和8年度</option>
                 </select>
-                <!-- ★動的カテゴリ選択 -->
                 <select id="eventCategorySelect" style="flex: 1.5; font-weight: bold;"></select>
                 <input type="text" id="eventTitle" placeholder="予定タイトル（例：全体ミーティング）" style="flex: 2; min-width: 180px;">
             </div>
@@ -350,7 +346,6 @@
                 <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
             </div>
             <div class="cal-grid" id="viewCalDays" style="margin-top: 4px;"></div>
-            
             <div class="cal-legend" id="viewCalLegend"></div>
         </div>
 
@@ -390,7 +385,6 @@
                 <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
             </div>
             <div class="cal-grid" id="reportCalDays" style="margin-top: 4px;"></div>
-            
             <div class="cal-legend" id="reportCalLegend"></div>
         </div>
 
@@ -446,7 +440,7 @@
         </div>
     </div>
 
-    <!-- ★画面6: カテゴリ・色設定画面 -->
+    <!-- 画面6: カテゴリ・色設定画面 -->
     <div id="admin-colors" class="screen">
         <button class="btn-back" onclick="window.showScreen('admin-home')">← メニューへ戻る</button>
         <h2>カテゴリ・色設定</h2>
@@ -455,37 +449,31 @@
         </p>
 
         <div style="border: 1px solid #ced4da; padding: 20px; border-radius: 6px; background: #fafafa;">
-            <!-- 赤 -->
             <div class="color-setting-row">
                 <div class="color-sample-box" style="background-color: #ffb8c6;"></div>
                 <span style="font-size: 13px; font-weight: bold; width: 60px;">赤色：</span>
                 <input type="text" id="colorLabel_red" placeholder="例：ミーティング" style="flex: 1;">
             </div>
-            <!-- 青 -->
             <div class="color-setting-row">
                 <div class="color-sample-box" style="background-color: #b4d9ff;"></div>
                 <span style="font-size: 13px; font-weight: bold; width: 60px;">青色：</span>
                 <input type="text" id="colorLabel_blue" placeholder="例：文化祭準備" style="flex: 1;">
             </div>
-            <!-- 緑 -->
             <div class="color-setting-row">
                 <div class="color-sample-box" style="background-color: #bbf2c8;"></div>
                 <span style="font-size: 13px; font-weight: bold; width: 60px;">緑色：</span>
                 <input type="text" id="colorLabel_green" placeholder="例：その他" style="flex: 1;">
             </div>
-            <!-- 紫 -->
             <div class="color-setting-row">
                 <div class="color-sample-box" style="background-color: #e0cffc;"></div>
                 <span style="font-size: 13px; font-weight: bold; width: 60px;">紫色：</span>
                 <input type="text" id="colorLabel_purple" placeholder="例：リハーサル" style="flex: 1;">
             </div>
-            <!-- オレンジ -->
             <div class="color-setting-row">
                 <div class="color-sample-box" style="background-color: #ffd8a8;"></div>
                 <span style="font-size: 13px; font-weight: bold; width: 60px;">橙色：</span>
                 <input type="text" id="colorLabel_orange" placeholder="例：買い出し" style="flex: 1;">
             </div>
-            <!-- 黒 -->
             <div class="color-setting-row">
                 <div class="color-sample-box" style="background-color: #495057;"></div>
                 <span style="font-size: 13px; font-weight: bold; width: 60px;">黒色：</span>
@@ -499,6 +487,10 @@
 </div>
 
 <script type="module">
+  window.addEventListener('error', (e) => {
+    alert("エラーが発生しました: " + e.message);
+  });
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -536,7 +528,6 @@
   let adminSelectedReason = "";
   let adminExistingReport = null;
 
-  // デフォルトの色マッピング
   const defaultColorLabels = {
     red: "ミーティング",
     blue: "文化祭準備",
@@ -548,13 +539,26 @@
 
   const colorKeys = ['red', 'blue', 'green', 'purple', 'orange', 'black'];
 
-  const daySelect = document.getElementById('monthlyDaySelect');
-  for (let i = 1; i <= 31; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.innerText = `${i}日`;
-    daySelect.appendChild(opt);
+  // ★ログイン処理（グローバル定義）
+  window.handleLogin = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).catch(e => {
+      alert("ログインエラー: " + e.message);
+    });
+  };
+
+  function initMonthlySelect() {
+    const daySelect = document.getElementById('monthlyDaySelect');
+    if (!daySelect) return;
+    daySelect.innerHTML = "";
+    for (let i = 1; i <= 31; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.innerText = `${i}日`;
+      daySelect.appendChild(opt);
+    }
   }
+  initMonthlySelect();
 
   function generateCode(prefix) {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -629,22 +633,10 @@
       updateQuickCopySelect();
       updateCategoryFormOptions();
     }
-    if (screenId === 'admin-view') {
-      renderCalendar('view');
-    }
-    if (screenId === 'admin-report') {
-      renderCalendar('report');
-    }
-    if (screenId === 'admin-members') {
-      renderMemberList();
-    }
-    if (screenId === 'admin-colors') {
-      loadColorSettingsScreen();
-    }
-  };
-
-  document.getElementById('loginBtn').onclick = () => {
-    signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert("ログインエラー: " + e.message));
+    if (screenId === 'admin-view') renderCalendar('view');
+    if (screenId === 'admin-report') renderCalendar('report');
+    if (screenId === 'admin-members') renderMemberList();
+    if (screenId === 'admin-colors') loadColorSettingsScreen();
   };
 
   onAuthStateChanged(auth, async (user) => {
@@ -725,6 +717,7 @@
 
   function updateGroupSelectUI() {
     const sel = document.getElementById('adminGroupSelect');
+    if (!sel) return;
     sel.innerHTML = "";
     adminGroups.forEach(g => {
       const opt = document.createElement('option');
@@ -785,7 +778,7 @@
         name: groupName,
         memberCode: memberCode,
         adminCode: adminCode,
-        colorLabels: defaultColorLabels, // デフォルト色設定
+        colorLabels: defaultColorLabels,
         ownerUid: currentUser.uid,
         createdAt: serverTimestamp()
       });
@@ -847,13 +840,11 @@
     }
   };
 
-  // ★グループごとのカラーラベル取得
   function getGroupColorLabels() {
     if (!currentGroup || !currentGroup.colorLabels) return defaultColorLabels;
     return { ...defaultColorLabels, ...currentGroup.colorLabels };
   }
 
-  // ★カテゴリ設定画面の読み込み
   function loadColorSettingsScreen() {
     const labels = getGroupColorLabels();
     colorKeys.forEach(k => {
@@ -862,7 +853,6 @@
     });
   }
 
-  // ★カテゴリ設定の保存
   document.getElementById('saveColorLabelsBtn').onclick = async () => {
     if (!currentGroup) return;
     const newLabels = {};
@@ -884,7 +874,6 @@
     }
   };
 
-  // 予定作成フォームのカテゴリセレクトボックス更新
   function updateCategoryFormOptions() {
     const sel = document.getElementById('eventCategorySelect');
     if (!sel) return;
@@ -896,14 +885,13 @@
     colorKeys.forEach(k => {
       if (labels[k]) {
         const opt = document.createElement('option');
-        opt.value = k; // valueは色キー（red, blue...）
+        opt.value = k;
         opt.innerText = `${colorNamesJp[k]}：${labels[k]}`;
         sel.appendChild(opt);
       }
     });
   }
 
-  // 凡例の動的更新
   function renderLegends() {
     const labels = getGroupColorLabels();
     ['addCalLegend', 'viewCalLegend', 'reportCalLegend'].forEach(id => {
@@ -1089,12 +1077,10 @@
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
         
-        // ★色のクラス判定（colorKeyまたは旧カテゴリ名から判定）
         let colorClass = 'circle-red';
         if (ev.color && colorKeys.includes(ev.color)) {
           colorClass = `circle-${ev.color}`;
         } else {
-          // 旧データ互換
           if (ev.category === '文化祭準備') colorClass = 'circle-blue';
           else if (ev.category === 'その他') colorClass = 'circle-green';
         }
@@ -1554,8 +1540,8 @@
         return addDoc(collection(db, "events"), {
           groupId: currentGroup.id,
           year,
-          color: colorKey, // ★パステル色キー（red, blue, green...）
-          category: categoryTitle, // 旧互換用
+          color: colorKey,
+          category: categoryTitle,
           categoryTitle: categoryTitle,
           date: dateStr,
           title,
