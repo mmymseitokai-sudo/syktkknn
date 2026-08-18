@@ -14,21 +14,21 @@
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-block; font-size: 12px; }
         .btn-back:hover { background: #f1f1f1; }
         
-        /* グループ管理カード */
-        .group-selector-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .group-info-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 20px; background: #f8f9fa; font-size: 13px; }
-        .code-row { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
+        /* ユーザー＆グループ切り替えバッジ */
+        .group-selector-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .group-info-card { border: 1px solid #111111; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; background: #f8f9fa; font-size: 13px; }
+        .code-row { display: flex; gap: 15px; margin-top: 8px; flex-wrap: wrap; }
         .code-item { display: flex; align-items: center; gap: 6px; }
         .code-box { background: white; border: 1px solid #ced4da; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 13px; font-weight: bold; }
         .btn-copy-code { background: #111111; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: bold; }
-        .btn-copy-code:hover { opacity: 0.8; }
+        .change-link { font-size: 11px; color: #111111; text-decoration: underline; cursor: pointer; }
 
-        /* メニュー */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 30px 15px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; }
+        /* メニュー（4分割グリッド） */
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .menu-card { border: 1px solid #111111; border-radius: 6px; padding: 25px 12px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
-        .menu-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
-        .menu-sub { font-size: 12px; color: #555555; }
+        .menu-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .menu-sub { font-size: 11px; color: #555555; line-height: 1.3; }
 
         /* カレンダー */
         .cal-box { background: #fff; border: 1px solid #111111; border-radius: 6px; padding: 10px; max-width: 400px; margin: 0 auto 15px auto; }
@@ -38,15 +38,14 @@
         .cal-head { font-size: 12px; font-weight: bold; border-bottom: 1px solid #111111; padding-bottom: 3px; }
         .cal-day { min-height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; border-radius: 4px; box-sizing: border-box; }
         .cal-day.selectable:hover { text-decoration: underline; }
-        
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
+        .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
 
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; text-align: center; color: #222222; box-sizing: border-box; }
         .circle-meeting { background-color: #ffb8c6; }
         .circle-prep { background-color: #bbf2c8; }
         .circle-other { background-color: #fff099; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
-
         .cal-day.view-selected { outline: 2px solid #111111; outline-offset: -2px; }
 
         .cal-legend { display: flex; justify-content: center; gap: 12px; font-size: 11px; margin-top: 10px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; }
@@ -71,9 +70,19 @@
         .weekday-checks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
         .selected-dates-badge-box { background: #f8f9fa; border: 1px solid #111111; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; }
         
-        .add-btn { width: 100%; background: #111111; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .add-btn, .submit-btn { width: 100%; background: #111111; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .status-group { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
+        .btn-status { flex: 1; padding: 10px; border: 1px solid #111111; border-radius: 4px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 13px; }
+        .btn-status.active { background: #111111; color: white; }
+        .chip { padding: 6px 12px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; margin-bottom: 6px; display: inline-block; }
+        .chip.active { background: #111111; color: white; }
 
-        /* 確認画面ボード */
+        .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 10px; margin-bottom: 15px; text-align: center; }
+        .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; }
+        .already-sent-box { border: 1px solid #111111; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; text-align: center; }
+        .cancel-btn { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: bold; }
+
+        /* ボード ＆ 名簿リスト */
         .board-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
         @media (max-width: 600px) { .board-container { grid-template-columns: 1fr; } }
         .board-card { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; min-height: 200px; }
@@ -81,6 +90,10 @@
         .report-item { padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 11px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 6px; }
+
+        .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 15px; background: #ffffff; }
+        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; }
+        .member-row:last-child { border-bottom: none; }
 
         .login-btn { padding: 12px 30px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: block; margin: 20px auto; font-size: 14px; }
         .group-setup-card { border: 1px solid #111111; padding: 20px; border-radius: 6px; margin-bottom: 15px; }
@@ -95,6 +108,15 @@
         <h1>生徒会 管理システム</h1>
         <p style="font-size: 13px;">Googleアカウントでログインしてください。</p>
         <button class="login-btn" id="loginBtn">管理者ログイン</button>
+    </div>
+
+    <!-- 画面0.4: 管理者氏名登録画面 -->
+    <div id="admin-profile-screen" class="screen">
+        <h2>管理者 氏名登録</h2>
+        <p style="font-size: 13px; margin-bottom: 15px;">名簿に表示するお名前を入力してください。</p>
+        <div class="info-text">氏名（フルネーム）</div>
+        <input type="text" id="adminRegName" placeholder="例：山田 太郎">
+        <button class="submit-btn" id="saveAdminProfileBtn">保存して進む</button>
     </div>
 
     <!-- 画面0.5: グループ作成・参加選択画面 -->
@@ -122,18 +144,19 @@
     <div id="admin-home" class="screen">
         <h1>管理者メニュー</h1>
         
-        <!-- グループ切り替えバー -->
-        <div class="group-selector-bar">
-            <div>
-                <span style="font-size:12px; font-weight:bold;">管理中のグループ：</span>
-                <select id="adminGroupSelect" style="font-weight:bold;"></select>
-            </div>
-            <button type="button" class="btn-back" style="margin-bottom:0; font-size:11px;" onclick="openGroupSetup()">＋ グループ追加</button>
-        </div>
-
-        <!-- グループコード表示カード（コピーボタン付き） -->
+        <!-- グループ切り替え ＆ 氏名バッジ -->
         <div class="group-info-card">
-            <div style="font-size:12px; color:#555; margin-bottom:6px;">このグループの参加コード：</div>
+            <div class="group-selector-bar">
+                <div>
+                    <span style="font-size:12px; font-weight:bold;">管理グループ：</span>
+                    <select id="adminGroupSelect" style="font-weight:bold;"></select>
+                </div>
+                <button type="button" class="btn-back" style="margin-bottom:0; font-size:11px;" onclick="openGroupSetup()">＋ グループ追加</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ddd; padding-top:6px; margin-top:6px;">
+                <div>管理者：<strong><span id="adminDisplayName">-</span></strong> さん</div>
+                <span class="change-link" onclick="window.showScreen('admin-profile-screen')">氏名変更</span>
+            </div>
             <div class="code-row">
                 <div class="code-item">
                     <span>メンバー用:</span>
@@ -151,11 +174,19 @@
         <div class="menu-grid">
             <div class="menu-card" onclick="window.showScreen('admin-add')">
                 <div class="menu-title">予定の追加・削除</div>
-                <div class="menu-sub">複数日タップ登録・定期登録・丸タップ削除</div>
+                <div class="menu-sub">定期予定の一括登録・丸タップ削除</div>
             </div>
             <div class="menu-card" onclick="window.showScreen('admin-view')">
                 <div class="menu-title">出欠の確認</div>
                 <div class="menu-sub">欠席・遅刻・早退の一覧確認</div>
+            </div>
+            <div class="menu-card" onclick="window.showScreen('admin-report')">
+                <div class="menu-title">欠席・遅刻の連絡</div>
+                <div class="menu-sub">管理者自身の欠席・遅刻・早退を送信</div>
+            </div>
+            <div class="menu-card" onclick="window.showScreen('admin-members')">
+                <div class="menu-title">メンバー一覧</div>
+                <div class="menu-sub">グループ所属メンバー名簿の確認</div>
             </div>
         </div>
     </div>
@@ -325,6 +356,81 @@
         </div>
     </div>
 
+    <!-- 画面4: 管理者自身の欠席連絡画面 -->
+    <div id="admin-report" class="screen">
+        <button class="btn-back" onclick="window.showScreen('admin-home')">← メニューへ戻る</button>
+        <h2>管理者自身の欠席・遅刻連絡</h2>
+
+        <div class="cal-box">
+            <div class="cal-nav">
+                <button onclick="window.changeMonth(-1, 'report')">前月</button>
+                <span id="reportCalMonthDisplay">0月</span>
+                <button onclick="window.changeMonth(1, 'report')">翌月</button>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
+            </div>
+            <div class="cal-grid" id="reportCalDays" style="margin-top: 4px;"></div>
+            
+            <div class="cal-legend">
+                <div class="legend-item"><span class="dot meeting"></span> ミーティング</div>
+                <div class="legend-item"><span class="dot prep"></span> 文化祭準備</div>
+                <div class="legend-item"><span class="dot other"></span> その他</div>
+            </div>
+        </div>
+
+        <div class="selected-event-card" id="adminReportSelectedEventCard">
+            <div style="font-size: 12px; color: #555;">カレンダーの日付を選択してください</div>
+            <div class="selected-event-title" id="adminReportSelectedEventTitle">予定が未選択です</div>
+        </div>
+
+        <div id="adminAlreadySentBox" class="already-sent-box" style="display:none;">
+            <div>連絡済み：<strong id="adminSentStatusText"></strong></div>
+            <button class="cancel-btn" id="adminCancelReportBtn">送信した連絡を取り消す</button>
+        </div>
+
+        <div id="adminFormSection" style="opacity: 0.3; pointer-events: none;">
+            <div class="status-group">
+                <div class="btn-status active" id="btnAdminAbsent">欠席</div>
+                <div class="btn-status" id="btnAdminLate">遅刻</div>
+                <div class="btn-status" id="btnAdminLeave">早退</div>
+            </div>
+
+            <div class="info-text">理由</div>
+            <div id="adminReasonContainer"></div>
+            <input type="text" id="adminOtherReason" placeholder="具体的な理由を入力" style="display:none;">
+
+            <div id="adminArrivalSection" style="display:none;">
+                <div class="info-text">到着予定（遅刻の場合）</div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="adminArriveMin" placeholder="分後" style="width: 60%;">
+                    <div class="chip" id="btnAdminUndecided" style="width: 35%; text-align: center; box-sizing: border-box;">未定</div>
+                </div>
+            </div>
+
+            <div id="adminLeaveSection" style="display:none;">
+                <div class="info-text">早退予定時刻</div>
+                <input type="time" id="adminLeaveTime" style="width: 100%;">
+            </div>
+
+            <button class="submit-btn" id="adminSubmitBtn">報告を送信する</button>
+        </div>
+    </div>
+
+    <!-- 画面5: メンバー一覧画面 -->
+    <div id="admin-members" class="screen">
+        <button class="btn-back" onclick="window.showScreen('admin-home')">← メニューへ戻る</button>
+        <h2>所属メンバー一覧</h2>
+        
+        <div style="font-size: 13px; margin-bottom: 12px;">
+            グループ名：<strong><span id="memberViewGroupName">-</span></strong>（<span id="memberCountText">0</span>名）
+        </div>
+
+        <div class="member-list-container" id="memberListContainer">
+            <p style="color:#888; font-size:12px; text-align:center;">メンバーを読み込み中...</p>
+        </div>
+    </div>
+
 </div>
 
 <script type="module">
@@ -347,16 +453,24 @@
   const db = getFirestore(app);
 
   let currentUser = null;
-  let adminGroups = []; // [{ id, name, memberCode, adminCode }]
+  let userData = null;
+  let adminGroups = [];
   let currentGroup = null;
   let viewDate = new Date();
   let allEvents = [];
   let allReports = [];
+  let allUsers = [];
   let selectedDateForView = "";
   
   let selectedEventIdsForDelete = new Set();
   let lastSelectedEventForCopy = null;
   let selectedDatesForAdd = new Set();
+
+  // 管理者自身の欠席連絡用
+  let selectedEventForAdminReport = null;
+  let adminCurrentStatus = "欠席";
+  let adminSelectedReason = "";
+  let adminExistingReport = null;
 
   const daySelect = document.getElementById('monthlyDaySelect');
   for (let i = 1; i <= 31; i++) {
@@ -375,7 +489,6 @@
     return `${prefix}-${code}`;
   }
 
-  // ★ワンタップコピー機能（クリップボード対応）
   window.copyCode = (type) => {
     if (!currentGroup) return;
     const text = type === 'member' ? currentGroup.memberCode : currentGroup.adminCode;
@@ -420,6 +533,12 @@
     if (screenId === 'admin-view') {
       renderCalendar('view');
     }
+    if (screenId === 'admin-report') {
+      renderCalendar('report');
+    }
+    if (screenId === 'admin-members') {
+      renderMemberList();
+    }
   };
 
   document.getElementById('loginBtn').onclick = () => {
@@ -429,13 +548,43 @@
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
-      loadAdminGroups();
+      checkAdminProfileAndGroups();
     } else {
       window.showScreen('login-screen');
     }
   });
 
-  // 管理者所属グループ一覧の読み込み
+  async function checkAdminProfileAndGroups() {
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (!userSnap.exists() || (!userSnap.data().name && !userSnap.data().kanjiName)) {
+        window.showScreen('admin-profile-screen');
+        return;
+      }
+
+      userData = userSnap.data();
+      loadAdminGroups();
+    } catch (e) {
+      alert("確認エラー: " + e.message);
+    }
+  }
+
+  document.getElementById('saveAdminProfileBtn').onclick = async () => {
+    const name = document.getElementById('adminRegName').value.trim();
+    if (!name) return alert("氏名を入力してください");
+    try {
+      await setDoc(doc(db, "users", currentUser.uid), {
+        name: name,
+        email: currentUser.email,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      userData = { ...(userData || {}), name };
+      loadAdminGroups();
+    } catch (e) { alert("保存エラー: " + e.message); }
+  };
+
   async function loadAdminGroups() {
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
@@ -491,6 +640,8 @@
   };
 
   function showAdminDashboard() {
+    const name = (userData && (userData.name || userData.kanjiName)) || "管理者";
+    document.getElementById('adminDisplayName').innerText = name;
     document.getElementById('displayMemberCode').innerText = currentGroup.memberCode;
     document.getElementById('displayAdminCode').innerText = currentGroup.adminCode;
     window.showScreen('admin-home');
@@ -502,7 +653,6 @@
     window.showScreen('group-setup-screen');
   };
 
-  // 新規グループ作成
   document.getElementById('createGroupBtn').onclick = async () => {
     const groupName = document.getElementById('newGroupNameInput').value.trim();
     if (!groupName) return alert("グループ名を入力してください");
@@ -539,7 +689,6 @@
     }
   };
 
-  // 管理者コードで参加
   document.getElementById('joinAdminBtn').onclick = async () => {
     const code = document.getElementById('joinAdminCodeInput').value.trim().toUpperCase();
     if (!code) return alert("管理者コードを入力してください");
@@ -591,6 +740,7 @@
       allEvents.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
       renderCalendar('add');
       renderCalendar('view');
+      renderCalendar('report');
       updateQuickCopySelect();
     });
 
@@ -603,6 +753,60 @@
         }
       });
       if (selectedDateForView) updateBoard(selectedDateForView);
+      if (selectedEventForAdminReport) checkAdminExistingReport();
+    });
+
+    // メンバー名簿のリアルタイム受信
+    onSnapshot(query(collection(db, "users")), (snap) => {
+      allUsers = [];
+      snap.forEach(d => {
+        allUsers.push({ id: d.id, ...d.data() });
+      });
+      renderMemberList();
+    });
+  }
+
+  // メンバー名簿の描画
+  function renderMemberList() {
+    if (!currentGroup) return;
+    document.getElementById('memberViewGroupName').innerText = currentGroup.name;
+
+    const groupMembers = allUsers.filter(u => {
+      const inAdmin = (u.adminGroupIds && u.adminGroupIds.includes(currentGroup.id)) || u.adminGroupId === currentGroup.id;
+      const inMember = (u.memberGroupIds && u.memberGroupIds.includes(currentGroup.id)) || u.memberGroupId === currentGroup.id;
+      return inAdmin || inMember;
+    });
+
+    document.getElementById('memberCountText').innerText = groupMembers.length;
+    const container = document.getElementById('memberListContainer');
+    container.innerHTML = "";
+
+    if (groupMembers.length === 0) {
+      container.innerHTML = '<p style="color:#888; font-size:12px; text-align:center;">メンバーはまだ登録されていません</p>';
+      return;
+    }
+
+    groupMembers.sort((a, b) => {
+      const aIsAdmin = (a.adminGroupIds && a.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
+      const bIsAdmin = (b.adminGroupIds && b.adminGroupIds.includes(currentGroup.id)) ? 1 : 0;
+      return bIsAdmin - aIsAdmin; // 管理者を上に
+    });
+
+    groupMembers.forEach(m => {
+      const isAdmin = (m.adminGroupIds && m.adminGroupIds.includes(currentGroup.id)) || m.adminGroupId === currentGroup.id;
+      const roleBadge = isAdmin ? '<span class="badge-text" style="background:#212529; color:white;">管理者</span>' : '<span class="badge-text">メンバー</span>';
+      const name = m.name || m.kanjiName || "名無し";
+
+      const row = document.createElement('div');
+      row.className = "member-row";
+      row.innerHTML = `
+        <div style="display:flex; align-items:center;">
+          ${roleBadge}
+          <strong>${name}</strong>
+        </div>
+        <div style="font-size:11px; color:#666;">${m.email || ''}</div>
+      `;
+      container.appendChild(row);
     });
   }
 
@@ -628,8 +832,8 @@
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
-    const displayId = mode === 'add' ? 'addCalMonthDisplay' : 'viewCalMonthDisplay';
-    const containerId = mode === 'add' ? 'addCalDays' : 'viewCalDays';
+    const displayId = mode === 'add' ? 'addCalMonthDisplay' : (mode === 'view' ? 'viewCalMonthDisplay' : 'reportCalMonthDisplay');
+    const containerId = mode === 'add' ? 'addCalDays' : (mode === 'view' ? 'viewCalDays' : 'reportCalDays');
     
     const displayEl = document.getElementById(displayId);
     const container = document.getElementById(containerId);
@@ -677,7 +881,7 @@
             updateActionBar();
             renderCalendar('add');
           };
-        } else {
+        } else if (mode === 'view') {
           if (selectedDateForView === dateStr) div.classList.add('view-selected');
           div.onclick = () => {
             container.querySelectorAll('.cal-day').forEach(el => el.classList.remove('view-selected'));
@@ -685,6 +889,12 @@
             selectedDateForView = dateStr;
             updateBoard(dateStr);
           };
+        } else {
+          // 管理者自身の連絡画面
+          if (selectedEventForAdminReport && selectedEventForAdminReport.id === ev.id) {
+            div.classList.add('selected');
+          }
+          div.onclick = () => selectEventForAdminReport(ev, div);
         }
 
         div.appendChild(circle);
@@ -714,6 +924,163 @@
       container.appendChild(div);
     }
   }
+
+  // 管理者自身の連絡用カレンダー選択
+  function selectEventForAdminReport(ev, dayElement) {
+    selectedEventForAdminReport = ev;
+    document.querySelectorAll('#reportCalDays .cal-day').forEach(el => el.classList.remove('selected'));
+    dayElement.classList.add('selected');
+
+    document.getElementById('adminReportSelectedEventTitle').innerText = `${ev.date} (${ev.timeText || '時間指定なし'}) - [${ev.category}] ${ev.title}`;
+
+    checkAdminExistingReport();
+    updateAdminStatusUI();
+  }
+
+  function checkAdminExistingReport() {
+    if (!selectedEventForAdminReport || !currentUser) return;
+    adminExistingReport = allReports.find(r => r.eventDate === selectedEventForAdminReport.date && r.email === currentUser.email);
+
+    const alreadyBox = document.getElementById('adminAlreadySentBox');
+    const formSection = document.getElementById('adminFormSection');
+
+    if (adminExistingReport) {
+      alreadyBox.style.display = 'block';
+      let detail = adminExistingReport.status;
+      if (adminExistingReport.status === '遅刻') detail += ` (${adminExistingReport.arrival || ''})`;
+      if (adminExistingReport.status === '早退') detail += ` (${adminExistingReport.leaveTime || ''})`;
+      detail += ` - 理由: ${adminExistingReport.reason}`;
+      document.getElementById('adminSentStatusText').innerText = detail;
+
+      formSection.style.opacity = "0.3";
+      formSection.style.pointerEvents = "none";
+    } else {
+      alreadyBox.style.display = 'none';
+      formSection.style.opacity = "1";
+      formSection.style.pointerEvents = "auto";
+    }
+  }
+
+  document.getElementById('adminCancelReportBtn').onclick = async () => {
+    if (!adminExistingReport) return;
+    if (!confirm("この連絡を取り消しますか？")) return;
+
+    try {
+      await deleteDoc(doc(db, "reports", adminExistingReport.id));
+      alert("連絡を取り消しました。");
+    } catch (e) {
+      alert("削除エラー: " + e.message);
+    }
+  };
+
+  function updateAdminReasons() {
+    if (!selectedEventForAdminReport) return;
+    const category = selectedEventForAdminReport.category || "ミーティング";
+
+    let reasons = [];
+    if (category === "ミーティング") {
+        reasons = (adminCurrentStatus === "欠席" || adminCurrentStatus === "早退")
+            ? ["体調不良", "部活動", "委員会", "その他"]
+            : ["部活動", "委員会", "その他"];
+    } else if (category === "文化祭準備") {
+        reasons = (adminCurrentStatus === "欠席" || adminCurrentStatus === "早退")
+            ? ["体調不良", "部活動", "家庭の用事", "その他"]
+            : ["部活動", "家庭の用事", "その他"];
+    } else {
+        reasons = (adminCurrentStatus === "欠席" || adminCurrentStatus === "早退")
+            ? ["体調不良", "部活動", "家庭の用事", "委員会", "その他"]
+            : ["部活動", "家庭の用事", "委員会", "その他"];
+    }
+
+    const container = document.getElementById('adminReasonContainer');
+    container.innerHTML = "";
+    adminSelectedReason = "";
+    document.getElementById('adminOtherReason').style.display = "none";
+
+    reasons.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.innerText = r;
+      div.onclick = () => {
+        document.querySelectorAll('#adminReasonContainer .chip').forEach(c => c.classList.remove('active'));
+        div.classList.add('active');
+        adminSelectedReason = r;
+        document.getElementById('adminOtherReason').style.display = (r === "その他") ? "block" : "none";
+      };
+      container.appendChild(div);
+    });
+  }
+
+  document.getElementById('btnAdminAbsent').onclick = () => { adminCurrentStatus = "欠席"; updateAdminStatusUI(); };
+  document.getElementById('btnAdminLate').onclick = () => { adminCurrentStatus = "遅刻"; updateAdminStatusUI(); };
+  document.getElementById('btnAdminLeave').onclick = () => { adminCurrentStatus = "早退"; updateAdminStatusUI(); };
+
+  function updateAdminStatusUI() {
+    document.getElementById('btnAdminAbsent').className = adminCurrentStatus === "欠席" ? "btn-status active" : "btn-status";
+    document.getElementById('btnAdminLate').className = adminCurrentStatus === "遅刻" ? "btn-status active" : "btn-status";
+    document.getElementById('btnAdminLeave').className = adminCurrentStatus === "早退" ? "btn-status active" : "btn-status";
+
+    document.getElementById('adminArrivalSection').style.display = adminCurrentStatus === "遅刻" ? "block" : "none";
+    document.getElementById('adminLeaveSection').style.display = adminCurrentStatus === "早退" ? "block" : "none";
+
+    updateAdminReasons();
+  }
+
+  document.getElementById('btnAdminUndecided').onclick = (e) => {
+    e.target.classList.toggle('active');
+    const inputMin = document.getElementById('adminArriveMin');
+    if (e.target.classList.contains('active')) {
+      inputMin.value = "";
+      inputMin.disabled = true;
+    } else {
+      inputMin.disabled = false;
+    }
+  };
+
+  document.getElementById('adminSubmitBtn').onclick = async () => {
+    if (!currentGroup) return alert("グループが設定されていません");
+    if (!selectedEventForAdminReport) return alert("カレンダーから予定を選択してください");
+    if (!adminSelectedReason) return alert("理由を選択してください");
+    
+    const otherText = document.getElementById('adminOtherReason').value;
+    if (adminSelectedReason === "その他" && !otherText) return alert("その他の具体的な理由を入力してください");
+
+    let arrivalInfo = "";
+    let leaveInfo = "";
+
+    if (adminCurrentStatus === "遅刻") {
+      const isUndecided = document.getElementById('btnAdminUndecided').classList.contains('active');
+      const min = document.getElementById('adminArriveMin').value;
+      if (!isUndecided && !min) return alert("到着予定時刻（分後）を入力するか、未定を選択してください");
+      arrivalInfo = isUndecided ? "未定" : `${min}分後`;
+    } else if (adminCurrentStatus === "早退") {
+      const lTime = document.getElementById('adminLeaveTime').value;
+      if (!lTime) return alert("早退予定時刻を入力してください");
+      leaveInfo = `${lTime}頃`;
+    }
+
+    try {
+      await addDoc(collection(db, "reports"), {
+        groupId: currentGroup.id,
+        name: (userData && (userData.name || userData.kanjiName)) || "管理者",
+        email: currentUser.email,
+        eventTitle: selectedEventForAdminReport.title,
+        eventDate: selectedEventForAdminReport.date,
+        timeText: selectedEventForAdminReport.timeText || "",
+        year: selectedEventForAdminReport.year || "令和6年度",
+        status: adminCurrentStatus,
+        reason: adminSelectedReason,
+        otherReason: otherText,
+        arrival: arrivalInfo,
+        leaveTime: leaveInfo,
+        timestamp: serverTimestamp()
+      });
+      alert("送信が完了しました。");
+      window.showScreen('admin-home');
+    } catch (e) {
+      alert("送信エラー: " + e.message);
+    }
+  };
 
   function updateSelectedDatesUI() {
     const countEl = document.getElementById('selectedDatesCount');
