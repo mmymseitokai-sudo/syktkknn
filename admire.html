@@ -27,9 +27,12 @@
         .cal-nav button { background: white; border: 1px solid #111111; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 12px; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
         .cal-head { font-size: 12px; font-weight: bold; border-bottom: 1px solid #111111; padding-bottom: 3px; }
-        .cal-day { min-height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; border-radius: 4px; }
+        .cal-day { min-height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; border-radius: 4px; box-sizing: border-box; }
         .cal-day.selectable:hover { text-decoration: underline; }
         
+        /* ★新規登録用に選択された日付（複数選択） */
+        .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
+
         /* 色分け丸 */
         .circle-mark { width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-weight: bold; text-align: center; color: #222222; box-sizing: border-box; }
         .circle-meeting { background-color: #ffb8c6; }
@@ -46,8 +49,8 @@
         .dot.prep { background-color: #bbf2c8; }
         .dot.other { background-color: #fff099; }
 
-        /* カレンダー下部の操作バー（削除 ＆ コピー） */
-        .action-bar-group { max-width: 400px; margin: 0 auto 20px auto; display: flex; gap: 8px; }
+        /* 操作バー */
+        .action-bar-group { max-width: 400px; margin: 0 auto 15px auto; display: flex; gap: 8px; }
         .btn-action-del { flex: 1; background: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
         .btn-action-del:disabled { background: #e9ecef; color: #adb5bd; cursor: not-allowed; border: 1px solid #ced4da; }
         .btn-action-copy { flex: 1; background: #ffffff; color: #111111; border: 1px solid #111111; padding: 10px; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; }
@@ -60,7 +63,8 @@
         .radio-group { display: flex; flex-wrap: wrap; gap: 15px; margin: 6px 0 12px 0; font-size: 13px; font-weight: bold; }
         .repeat-box { background: #f8f9fa; border: 1px solid #ced4da; padding: 12px; border-radius: 6px; margin-bottom: 12px; }
         .weekday-checks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-        .weekday-checks label { font-size: 13px; cursor: pointer; }
+        
+        .selected-dates-badge-box { background: #f8f9fa; border: 1px solid #111111; padding: 10px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; }
         
         .add-btn { width: 100%; background: #111111; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 10px; }
 
@@ -95,7 +99,7 @@
         <div class="menu-grid">
             <div class="menu-card" onclick="window.showScreen('admin-add')">
                 <div class="menu-title">予定の追加・削除</div>
-                <div class="menu-sub">定期予定の一括登録・丸タップ削除・複製</div>
+                <div class="menu-sub">複数日タップ登録・定期登録・丸タップ削除</div>
             </div>
             <div class="menu-card" onclick="window.showScreen('admin-view')">
                 <div class="menu-title">出欠の確認</div>
@@ -111,7 +115,7 @@
         
         <div class="cal-box">
             <div style="font-size: 11px; text-align:center; margin-bottom:5px; color:#555;">
-                丸をタップして削除・コピー / 空白をタップして日付セット
+                日付をタップして複数日選択 / 丸をタップして削除・コピー
             </div>
             <div class="cal-nav">
                 <button onclick="window.changeMonth(-1, 'add')">前月</button>
@@ -130,7 +134,7 @@
             </div>
         </div>
 
-        <!-- 削除・コピー操作バー -->
+        <!-- 丸選択時の操作バー（削除 ＆ コピー） -->
         <div class="action-bar-group">
             <button class="btn-action-del" id="deleteEventsBtn" disabled>選択した予定を削除</button>
             <button class="btn-action-copy" id="copyEventBtn" disabled>この予定の内容をコピー</button>
@@ -162,17 +166,22 @@
                 <input type="text" id="eventTitle" placeholder="予定タイトル（例：全体ミーティング）" style="flex: 2; min-width: 180px;">
             </div>
 
-            <div style="font-weight: bold; font-size: 12px; margin-top: 8px;">登録方法（くり返し設定）：</div>
+            <div style="font-weight: bold; font-size: 12px; margin-top: 8px;">登録方法：</div>
             <div class="radio-group">
-                <label><input type="radio" name="repeatType" value="single" checked> 1日のみ（通常）</label>
+                <label><input type="radio" name="repeatType" value="calendar" checked> カレンダーで日付選択（複数日可）</label>
                 <label><input type="radio" name="repeatType" value="weekly"> 毎週くり返し（曜日指定）</label>
                 <label><input type="radio" name="repeatType" value="monthly"> 毎月くり返し（日付指定）</label>
             </div>
 
-            <!-- パターンA: 1日のみ -->
-            <div id="boxSingle" class="form-row">
-                <span style="font-size: 12px; font-weight: bold;">日付：</span>
-                <input type="date" id="selectedDateInput" style="flex: 1;">
+            <!-- パターンA: カレンダーで選択した日付一覧表示エリア -->
+            <div id="boxCalendar" class="selected-dates-badge-box">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold;">選択中の日付（<span id="selectedDatesCount">0</span>件）：</span>
+                    <button type="button" class="btn-back" style="padding: 2px 8px; font-size: 11px; margin-bottom: 0;" onclick="clearSelectedDatesForAdd()">クリア</button>
+                </div>
+                <div id="selectedDatesList" style="margin-top: 5px; color: #495057; font-size: 12px; word-break: break-all;">
+                    上のカレンダーの日付をタップして選んでください（複数日選択可能）
+                </div>
             </div>
 
             <!-- パターンB: 毎週くり返し -->
@@ -223,7 +232,7 @@
                 <input type="time" id="endTime" value="14:00">
             </div>
 
-            <button class="add-btn" id="addEventBtn">この内容で予定を登録</button>
+            <button class="add-btn" id="addEventBtn">この予定を登録する</button>
         </div>
     </div>
 
@@ -296,10 +305,11 @@
   let allEvents = [];
   let allReports = [];
   let selectedDateForView = "";
-  let selectedEventIdsForDelete = new Set();
-  let lastSelectedEventForCopy = null;
+  
+  let selectedEventIdsForDelete = new Set(); // 削除用選択
+  let lastSelectedEventForCopy = null;       // コピー用選択
+  let selectedDatesForAdd = new Set();       // ★新規登録用日付選択（複数日）
 
-  // 毎月の日付セレクトボックス初期化
   const daySelect = document.getElementById('monthlyDaySelect');
   for (let i = 1; i <= 31; i++) {
     const opt = document.createElement('option');
@@ -317,6 +327,7 @@
       selectedEventIdsForDelete.clear();
       lastSelectedEventForCopy = null;
       updateActionBar();
+      updateSelectedDatesUI();
       renderCalendar('add');
       updateQuickCopySelect();
     }
@@ -356,7 +367,7 @@
 
   document.querySelectorAll('input[name="repeatType"]').forEach(r => {
     r.addEventListener('change', (e) => {
-      document.getElementById('boxSingle').style.display = (e.target.value === 'single') ? 'flex' : 'none';
+      document.getElementById('boxCalendar').style.display = (e.target.value === 'calendar') ? 'block' : 'none';
       document.getElementById('boxWeekly').style.display = (e.target.value === 'weekly') ? 'block' : 'none';
       document.getElementById('boxMonthly').style.display = (e.target.value === 'monthly') ? 'block' : 'none';
     });
@@ -413,6 +424,7 @@
         circle.innerText = d;
 
         if (mode === 'add') {
+          // 予定がある丸の選択（削除・コピー用）
           if (selectedEventIdsForDelete.has(ev.id)) {
             circle.classList.add('is-selected');
           }
@@ -421,12 +433,13 @@
               selectedEventIdsForDelete.delete(ev.id);
             } else {
               selectedEventIdsForDelete.add(ev.id);
-              lastSelectedEventForCopy = ev; // コピー用
+              lastSelectedEventForCopy = ev;
             }
             updateActionBar();
             renderCalendar('add');
           };
         } else {
+          // 確認画面用
           if (selectedDateForView === dateStr) div.classList.add('view-selected');
           div.onclick = () => {
             container.querySelectorAll('.cal-day').forEach(el => el.classList.remove('view-selected'));
@@ -439,9 +452,25 @@
         div.appendChild(circle);
       } else {
         div.innerText = d;
+        // ★予定がない日：タップで新規登録用日付として選択（複数選択可能）
         if (mode === 'add') {
+          if (selectedDatesForAdd.has(dateStr)) {
+            div.classList.add('add-selected');
+          }
           div.onclick = () => {
-            document.getElementById('selectedDateInput').value = dateStr;
+            if (selectedDatesForAdd.has(dateStr)) {
+              selectedDatesForAdd.delete(dateStr);
+            } else {
+              selectedDatesForAdd.add(dateStr);
+            }
+            // ラジオボタンをカレンダー選択モードに切り替え
+            document.querySelector('input[name="repeatType"][value="calendar"]').checked = true;
+            document.getElementById('boxCalendar').style.display = 'block';
+            document.getElementById('boxWeekly').style.display = 'none';
+            document.getElementById('boxMonthly').style.display = 'none';
+
+            updateSelectedDatesUI();
+            renderCalendar('add');
           };
         }
       }
@@ -450,7 +479,33 @@
     }
   }
 
-  // 操作バー（削除・コピーボタン）の更新
+  // ★新規登録用日付のUI更新
+  function updateSelectedDatesUI() {
+    const countEl = document.getElementById('selectedDatesCount');
+    const listEl = document.getElementById('selectedDatesList');
+    const addBtn = document.getElementById('addEventBtn');
+
+    const count = selectedDatesForAdd.size;
+    countEl.innerText = count;
+
+    if (count === 0) {
+      listEl.innerText = "上のカレンダーの日付をタップして選んでください（複数日選択可能）";
+      addBtn.innerText = "この予定を登録する";
+    } else {
+      const sortedDates = Array.from(selectedDatesForAdd).sort();
+      listEl.innerText = sortedDates.join(', ');
+      addBtn.innerText = `この予定を登録する（${count}件一括）`;
+    }
+  }
+
+  // 選択日クリア
+  window.clearSelectedDatesForAdd = () => {
+    selectedDatesForAdd.clear();
+    updateSelectedDatesUI();
+    renderCalendar('add');
+  };
+
+  // 削除・コピー操作バー
   function updateActionBar() {
     const delBtn = document.getElementById('deleteEventsBtn');
     const copyBtn = document.getElementById('copyEventBtn');
@@ -469,7 +524,6 @@
     }
   }
 
-  // 予定コピー実行関数（共通）
   function applyEventToForm(ev) {
     if (!ev) return;
     if (ev.year) document.getElementById('eventYear').value = ev.year;
@@ -489,22 +543,19 @@
     }
 
     document.getElementById('formSectionAnchor').scrollIntoView({ behavior: 'smooth' });
-    alert(`予定「${ev.title}」の内容をコピーしました。\n日付を選択して登録してください。`);
+    alert(`予定「${ev.title}」の内容をコピーしました。\nカレンダーから日付を選択して登録してください。`);
   }
 
-  // カレンダー選択からのコピーボタン
   document.getElementById('copyEventBtn').onclick = () => {
     if (!lastSelectedEventForCopy) return;
     applyEventToForm(lastSelectedEventForCopy);
   };
 
-  // 過去の予定ドロップダウンの更新
   function updateQuickCopySelect() {
     const sel = document.getElementById('quickCopySelect');
     if (!sel) return;
     sel.innerHTML = '<option value="">選択してください...</option>';
     
-    // タイトルで重複排除
     const seenTitles = new Set();
     allEvents.forEach((ev, idx) => {
       if (ev.title && !seenTitles.has(ev.title)) {
@@ -517,16 +568,14 @@
     });
   }
 
-  // ドロップダウンからのコピー
   document.getElementById('quickCopySelect').onchange = (e) => {
     const idx = e.target.value;
     if (idx === "") return;
     const ev = allEvents[parseInt(idx, 10)];
     if (ev) applyEventToForm(ev);
-    e.target.value = ""; // リセット
+    e.target.value = "";
   };
 
-  // 削除実行
   document.getElementById('deleteEventsBtn').onclick = async () => {
     const count = selectedEventIdsForDelete.size;
     if (count === 0) return;
@@ -614,6 +663,7 @@
     return dates;
   }
 
+  // 予定登録実行
   document.getElementById('addEventBtn').onclick = async () => {
     const year = document.getElementById('eventYear').value;
     const category = document.getElementById('eventCategory').value;
@@ -625,11 +675,15 @@
 
     let targetDates = [];
 
-    if (repeatType === 'single') {
-      const d = document.getElementById('selectedDateInput').value;
-      if (!d) return alert("日付を選択してください");
-      targetDates.push(d);
-    } else if (repeatType === 'weekly') {
+    // ★パターンA: カレンダーでタップした複数日
+    if (repeatType === 'calendar') {
+      if (selectedDatesForAdd.size === 0) {
+        return alert("カレンダーから登録したい日付をタップして選択してください。");
+      }
+      targetDates = Array.from(selectedDatesForAdd);
+    } 
+    // パターンB: 毎週くり返し
+    else if (repeatType === 'weekly') {
       const start = document.getElementById('weeklyStartDate').value;
       const end = document.getElementById('weeklyEndDate').value;
       if (!start || !end) return alert("開始日と終了日を選択してください");
@@ -643,7 +697,9 @@
         const dayOfWeek = new Date(dStr + "T00:00:00").getDay();
         return checkedDays.includes(dayOfWeek);
       });
-    } else if (repeatType === 'monthly') {
+    } 
+    // パターンC: 毎月くり返し
+    else if (repeatType === 'monthly') {
       const start = document.getElementById('monthlyStartDate').value;
       const end = document.getElementById('monthlyEndDate').value;
       if (!start || !end) return alert("開始日と終了日を選択してください");
@@ -684,6 +740,9 @@
 
       await Promise.all(promises);
       alert(`${targetDates.length} 件の予定を一括登録しました。`);
+      
+      selectedDatesForAdd.clear();
+      updateSelectedDatesUI();
       document.getElementById('eventTitle').value = "";
       window.showScreen('admin-home');
     } catch (e) {
