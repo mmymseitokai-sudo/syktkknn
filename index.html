@@ -50,7 +50,7 @@
         .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
-        /* パステル丸マーク（黒文字固定） */
+        /* パステル丸マーク */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); color: #111111 !important; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
@@ -94,15 +94,15 @@
         .board-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
         .board-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; min-height: 160px; }
         .board-header { font-size: 14px; font-weight: bold; border-bottom: 1px solid #111111; padding-bottom: 6px; margin-bottom: 10px; text-align: center; }
-        .report-item { padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; line-height: 1.4; }
+        .report-item { padding: 10px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; line-height: 1.4; }
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
         
         /* ★遅刻（ピンク）＆ 早退（緑）のバッジ */
-        .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
-        .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
+        .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
+        .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
 
-        .time-highlight { font-size: 13px; font-weight: bold; color: #111111; margin-top: 3px; }
+        .time-highlight { font-size: 14px; font-weight: bold; color: #111111; margin-top: 3px; }
 
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; }
         .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
@@ -273,7 +273,7 @@
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
-            <!-- ★遅刻：時間での入力または未定 -->
+            <!-- 到着予定時刻（時間での直接入力） -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定時刻</div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
@@ -282,7 +282,7 @@
                 </div>
             </div>
 
-            <!-- ★早退：時間での入力 -->
+            <!-- 早退予定時刻（時間での直接入力） -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
                 <input type="time" id="leaveTime" style="width: 100%; font-size:16px;">
@@ -1214,6 +1214,75 @@
     return ev.color || (slots[0] ? slots[0].color : '#ff9ebb');
   }
 
+  // ★「〇〇分後」などの古いデータを予定開始時刻から「HH:MM 到着予定」に自動変換＆ソートキー生成
+  function parseReportTimeInfo(report, dayEvents) {
+    const isLate = report.status === '遅刻';
+    const raw = isLate ? (report.arrival || '') : (report.leaveTime || '');
+
+    if (!raw || raw === '未定' || raw.includes('未定')) {
+      return {
+        displayText: isLate ? '到着予定：未定' : '早退予定：未定',
+        sortKey: '99:99',
+        isUndecided: true
+      };
+    }
+
+    // 1. すでに HH:MM 形式が含まれている場合
+    const timeMatch = raw.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      const hh = timeMatch[1].padStart(2, '0');
+      const mm = timeMatch[2];
+      const timeFormatted = `${hh}:${mm}`;
+      return {
+        displayText: isLate ? `${timeFormatted} 到着予定` : `${timeFormatted} 早退予定`,
+        sortKey: timeFormatted,
+        isUndecided: false
+      };
+    }
+
+    // 2. 「〇〇分後」形式の過去データの場合
+    const minMatch = raw.match(/(\d+)\s*分/);
+    if (minMatch) {
+      const addMinutes = parseInt(minMatch[1], 10);
+      let startHH = null, startMM = null;
+      const ev = (dayEvents && dayEvents.length > 0) ? dayEvents[0] : null;
+      const timeSrc = (ev && ev.timeText) || report.timeText || "";
+      const evTimeMatch = timeSrc.match(/(\d{1,2}):(\d{2})/);
+
+      if (evTimeMatch) {
+        startHH = parseInt(evTimeMatch[1], 10);
+        startMM = parseInt(evTimeMatch[2], 10);
+      }
+
+      if (startHH !== null && startMM !== null) {
+        const totalMinutes = startHH * 60 + startMM + addMinutes;
+        const calcH = Math.floor(totalMinutes / 60) % 24;
+        const calcM = totalMinutes % 60;
+        const timeFormatted = `${String(calcH).padStart(2, '0')}:${String(calcM).padStart(2, '0')}`;
+        return {
+          displayText: isLate ? `${timeFormatted} 到着予定` : `${timeFormatted} 早退予定`,
+          sortKey: timeFormatted,
+          isUndecided: false
+        };
+      } else {
+        // 開始時刻が未設定の場合は分数をそのまま時分に換算してソート
+        const vH = String(Math.floor(addMinutes / 60)).padStart(2, '0');
+        const vM = String(addMinutes % 60).padStart(2, '0');
+        return {
+          displayText: isLate ? `${addMinutes}分後 到着予定` : `${addMinutes}分後 早退予定`,
+          sortKey: `${vH}:${vM}`,
+          isUndecided: false
+        };
+      }
+    }
+
+    return {
+      displayText: raw,
+      sortKey: '99:98',
+      isUndecided: false
+    };
+  }
+
   function renderLegends() {
     const slots = getGroupCategorySlots();
     ['reportCalLegend', 'viewCalLegend', 'addCalLegend'].forEach(id => {
@@ -1555,18 +1624,7 @@
     updateViewBoard(dateStr);
   }
 
-  function extractTimeValue(report) {
-    const timeRaw = (report.status === '早退') ? (report.leaveTime || '') : (report.arrival || '');
-    if (!timeRaw || timeRaw === '未定') return '99:99';
-    const match = timeRaw.match(/\d{1,2}:\d{2}/);
-    if (match) {
-      const [h, m] = match[0].split(':');
-      return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
-    }
-    return '99:99';
-  }
-
-  // ★出欠確認画面の表示更新（遅刻はピンク、早退は緑バッジ）
+  // ★出欠状況の確認：時間順（早い順）ソート & 自動フォーマット統一
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -1591,10 +1649,11 @@
     const absents = dayReports.filter(r => r.status === '欠席');
     const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
 
+    // ★各報告の時間情報を解析し、正確な早い順（昇順）にソート
     lateLeaves.sort((a, b) => {
-      const timeA = extractTimeValue(a);
-      const timeB = extractTimeValue(b);
-      return timeA.localeCompare(timeB);
+      const infoA = parseReportTimeInfo(a, dayEvents);
+      const infoB = parseReportTimeInfo(b, dayEvents);
+      return infoA.sortKey.localeCompare(infoB.sortKey);
     });
 
     if (absents.length === 0) {
@@ -1619,32 +1678,19 @@
         item.className = "report-item";
         
         const isLate = r.status === '遅刻';
-        // ★遅刻はピンク、早退は緑
         const badgeHtml = isLate
           ? `<span class="badge-late">遅刻</span>`
           : `<span class="badge-leave">早退</span>`;
 
-        let timeFormatted = "";
-        if (isLate) {
-          if (!r.arrival || r.arrival === '未定') {
-            timeFormatted = "到着予定：未定";
-          } else {
-            timeFormatted = r.arrival.includes('到着') ? r.arrival : `${r.arrival} 到着予定`;
-          }
-        } else {
-          if (!r.leaveTime || r.leaveTime === '未定') {
-            timeFormatted = "早退予定：未定";
-          } else {
-            timeFormatted = r.leaveTime.includes('早退') ? r.leaveTime : `${r.leaveTime} 早退予定`;
-          }
-        }
+        // ★「〇〇分後」データもすべて「〇〇:〇〇 到着予定」に自動換算して表示
+        const timeInfo = parseReportTimeInfo(r, dayEvents);
 
         item.innerHTML = `
           <div style="display: flex; align-items: center; flex-wrap: wrap;">
             ${badgeHtml}
             <strong style="font-size: 14px;">${r.name}</strong>
           </div>
-          <div class="time-highlight">${timeFormatted}</div>
+          <div class="time-highlight">${timeInfo.displayText}</div>
           <div style="font-size: 11px; color: #666; margin-top: 2px;">理由: ${r.reason === 'その他' ? r.otherReason : r.reason}</div>
         `;
         lateLeaveList.appendChild(item);
@@ -1652,7 +1698,6 @@
     }
   }
 
-  // ★送信済み表示のフォーマット統一
   function checkExistingReport() {
     if (!selectedEventForReport || !currentUser) return;
     existingReport = allReports.find(r => r.eventDate === selectedEventForReport.date && r.email === currentUser.email);
@@ -1662,17 +1707,8 @@
 
     if (existingReport) {
       alreadyBox.style.display = 'block';
-      let detail = existingReport.status;
-      if (existingReport.status === '遅刻') {
-        const arr = existingReport.arrival || '未定';
-        const arrStr = (arr === '未定') ? '未定' : (arr.includes('到着') ? arr : `${arr} 到着予定`);
-        detail += ` (${arrStr})`;
-      } else if (existingReport.status === '早退') {
-        const lev = existingReport.leaveTime || '未定';
-        const levStr = (lev === '未定') ? '未定' : (lev.includes('早退') ? lev : `${lev} 早退予定`);
-        detail += ` (${levStr})`;
-      }
-      detail += ` - 理由: ${existingReport.reason}`;
+      const timeInfo = parseReportTimeInfo(existingReport, [selectedEventForReport]);
+      let detail = `${existingReport.status}（${timeInfo.displayText}） - 理由: ${existingReport.reason}`;
       document.getElementById('sentStatusText').innerText = detail;
 
       formSection.style.opacity = "0.3";
@@ -1760,11 +1796,11 @@
     if (currentStatus === "遅刻") {
       const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
       const timeVal = document.getElementById('arriveTime').value;
-      if (!isUndecided && !timeVal) return alert("到着予定時刻を入力するか、「未定」を選択してください");
+      if (!isUndecided && !timeVal) return alert("到着予定時刻を選択するか、「未定」を選択してください");
       arrivalInfo = isUndecided ? "未定" : `${timeVal} 到着予定`;
     } else if (currentStatus === "早退") {
       const lTime = document.getElementById('leaveTime').value;
-      if (!lTime) return alert("早退予定時刻を入力してください");
+      if (!lTime) return alert("早退予定時刻を選択してください");
       leaveInfo = `${lTime} 早退予定`;
     }
 
