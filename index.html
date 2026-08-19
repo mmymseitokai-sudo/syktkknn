@@ -50,15 +50,15 @@
         .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
-        /* パステル丸マーク（選んだ通りの淡い色で表示・黒文字固定） */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.1); color: #111111 !important; }
+        /* パステル丸マーク */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.08); color: #111111 !important; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
         /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: clamp(6px, 1.8vw, 10px); font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.08); }
 
         .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 12px; margin-bottom: 12px; text-align: center; }
         .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; line-height: 1.4; }
@@ -124,7 +124,7 @@
 
         .preset-tile-btn { width: 100%; height: 44px; border-radius: 6px; border: 1px solid #111111; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.1s; }
         .preset-tile-btn:active { transform: scale(0.96); }
-        .tile-black { background-color: #ced4da; color: #111111; }
+        .tile-black { background-color: #e9ecef; color: #111111; }
         .tile-white { background-color: #ffffff; color: #111111; }
         
         .preview-tile-box { width: 100%; height: 40px; border-radius: 6px; border: 2px solid #111111; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #111111; }
@@ -476,7 +476,6 @@
         </div>
 
         <div class="palette-flex-layout">
-            <!-- 左：色相環（中心が白） ＋ パステル具合スライダー -->
             <div class="palette-left">
                 <div class="wheel-container" id="wheelContainer">
                     <canvas id="colorWheelCanvas" width="180" height="180"></canvas>
@@ -486,13 +485,12 @@
                 <div style="margin-top: 6px;">
                     <div style="display:flex; justify-content:space-between; font-size:10px; color:#555; margin-bottom:2px;">
                         <span id="sliderLabelText">パステルの濃淡</span>
-                        <span id="saturationValText">35%</span>
+                        <span id="saturationValText">15%</span>
                     </div>
-                    <input type="range" id="saturationSlider" min="15" max="45" value="35" style="width:100%; margin-bottom:0;">
+                    <input type="range" id="saturationSlider" min="8" max="25" value="15" style="width:100%; margin-bottom:0;">
                 </div>
             </div>
 
-            <!-- 右：黒色（淡いアッシュグレー）・白色タイル ＆ プレビュー・決定ボタン -->
             <div class="palette-right">
                 <button type="button" class="preset-tile-btn tile-black" id="tileBlackBtn" onclick="selectDirectColor('black')">
                     黒色
@@ -502,7 +500,7 @@
                     白色
                 </button>
 
-                <div class="preview-tile-box" id="wheelColorPreview" style="background-color: #ffb8c6;">選択中</div>
+                <div class="preview-tile-box" id="wheelColorPreview" style="background-color: #ffe4e8;">選択中</div>
                 <button class="submit-btn" style="width:100%; padding:8px 0; margin-top:0; font-size:12px;" onclick="applyWheelColor()">決定</button>
             </div>
         </div>
@@ -598,23 +596,22 @@
 
   let currentScreenId = 'login-screen';
   let activeEditingSlotIndex = -1;
-  let currentPickedHex = "#ffb8c6";
+  let currentPickedHex = "#ffe4e8";
   let currentSelectionMode = "wheel";
 
-  // 基本12色パステル（12番目は上品で淡いパステルグレー）
   const defaultCategorySlots12 = [
-    { color: '#ffb8c6', name: 'ミーティング' },
-    { color: '#ffd1dc', name: '企画準備' },
-    { color: '#ffc6b8', name: '衣装係' },
-    { color: '#ffd8a8', name: '買い出し' },
-    { color: '#fff3b0', name: '装飾係' },
-    { color: '#d9f99d', name: '清掃活動' },
-    { color: '#bbf2c8', name: '文化祭準備' },
-    { color: '#b4f8ff', name: '広報・SNS' },
-    { color: '#b4d9ff', name: 'リハーサル' },
-    { color: '#e0cffc', name: '音響・照明' },
-    { color: '#f0d9ff', name: 'ステージ' },
-    { color: '#ced4da', name: '提出締切' }
+    { color: '#ffe4e8', name: 'ミーティング' },
+    { color: '#ffe8ee', name: '企画準備' },
+    { color: '#ffede6', name: '衣装係' },
+    { color: '#fff2e2', name: '買い出し' },
+    { color: '#fffbe0', name: '装飾係' },
+    { color: '#f0fad8', name: '清掃活動' },
+    { color: '#e4f9e8', name: '文化祭準備' },
+    { color: '#e2f8fc', name: '広報・SNS' },
+    { color: '#e3f0fc', name: 'リハーサル' },
+    { color: '#eee4fc', name: '音響・照明' },
+    { color: '#f6e6fc', name: 'ステージ' },
+    { color: '#e9ecef', name: '提出締切' }
   ];
 
   function hsvToRgb(h, s, v) {
@@ -639,7 +636,6 @@
     return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  // ★中心が「白」で外側が「淡いパステル」の色相環描画
   function drawColorWheel() {
     const canvas = document.getElementById('colorWheelCanvas');
     if (!canvas) return;
@@ -652,8 +648,8 @@
 
     const imgData = ctx.createImageData(width, height);
     const data = imgData.data;
-    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 35) / 100;
-    const value = 0.98;
+    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 15) / 100;
+    const value = 0.99;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -710,7 +706,7 @@
       
       const maxSat = parseInt(slider.value, 10) / 100;
       const sat = (dist / radius) * maxSat;
-      const value = 0.98;
+      const value = 0.99;
 
       const [r, g, b] = hsvToRgb(angle, sat, value);
       currentPickedHex = rgbToHex(r, g, b);
@@ -746,9 +742,8 @@
       document.getElementById('saturationValText').innerText = `${e.target.value}%`;
       
       if (currentSelectionMode === "black") {
-        // ★淡く優しいアッシュグレー〜シルバー系（RGB 180〜225）
         const val = parseInt(e.target.value, 10);
-        const grayVal = Math.round(180 + (val - 15) * (45 / 30));
+        const grayVal = Math.round(220 + (val - 8) * (20 / 17));
         currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
         document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
         updatePreviewBox(currentPickedHex);
@@ -771,13 +766,12 @@
     }
   }
 
-  // ★黒色・白色ダイレクト選択
   window.selectDirectColor = (type) => {
     currentSelectionMode = type;
     if (type === 'black') {
       document.getElementById('sliderLabelText').innerText = "グレーの濃淡";
-      const sliderVal = parseInt(document.getElementById('saturationSlider').value, 10) || 35;
-      const grayVal = Math.round(180 + (sliderVal - 15) * (45 / 30));
+      const sliderVal = parseInt(document.getElementById('saturationSlider').value, 10) || 15;
+      const grayVal = Math.round(220 + (sliderVal - 8) * (20 / 17));
       currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
       document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
     } else {
@@ -791,7 +785,7 @@
     activeEditingSlotIndex = slotIndex;
     const btn = document.getElementById(`slot_btn_${slotIndex}`);
     if (btn) {
-      currentPickedHex = btn.dataset.color || "#ffb8c6";
+      currentPickedHex = btn.dataset.color || "#ffe4e8";
       updatePreviewBox(currentPickedHex);
     }
     currentSelectionMode = "wheel";
@@ -1206,6 +1200,19 @@
     return currentGroup.categorySlots;
   }
 
+  // ★凡例およびパレットの最新カラーを取得するヘルパー関数
+  function getEventDisplayColor(ev) {
+    if (!ev) return '#ffe4e8';
+    const slots = getGroupCategorySlots();
+    const catName = ev.categoryTitle || ev.category;
+    if (catName) {
+      const matched = slots.find(s => s.name && s.name.trim() === catName.trim());
+      if (matched && matched.color) return matched.color;
+    }
+    // カテゴリ名でマッチしない場合は、ev.colorが存在し有効ならそれを使用、それ以外はデフォルト
+    return ev.color || (slots[0] ? slots[0].color : '#ffe4e8');
+  }
+
   function renderLegends() {
     const slots = getGroupCategorySlots();
     ['reportCalLegend', 'viewCalLegend', 'addCalLegend'].forEach(id => {
@@ -1356,7 +1363,7 @@
     container.innerHTML = "";
 
     for (let i = 0; i < 12; i++) {
-      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ffb8c6', name: '' });
+      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ffe4e8', name: '' });
       const row = document.createElement('div');
       row.className = "color-slot-row";
       row.innerHTML = `
@@ -1388,7 +1395,7 @@
     for (let i = 0; i < 12; i++) {
       const btn = document.getElementById(`slot_btn_${i}`);
       const nameInput = document.getElementById(`name_slot_${i}`);
-      const color = btn ? (btn.dataset.color || '#ffb8c6') : '#ffb8c6';
+      const color = btn ? (btn.dataset.color || '#ffe4e8') : '#ffe4e8';
       const name = nameInput ? nameInput.value.trim() : '';
       newSlots.push({ color, name });
     }
@@ -1425,6 +1432,7 @@
     renderCalendar(mode);
   };
 
+  // ★カレンダー描画：現在のパレット色（凡例）と完全連動
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1457,7 +1465,8 @@
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        const eventColor = ev.color || '#ffb8c6';
+        // ★過去データに依存せず、現在のパレット色（凡例と同じ色）を確実に適用
+        const eventColor = getEventDisplayColor(ev);
 
         const circle = document.createElement('div');
         circle.className = "circle-mark";
