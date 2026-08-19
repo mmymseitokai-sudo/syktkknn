@@ -50,15 +50,15 @@
         .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
-        /* パステル丸マーク（黒文字固定） */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.1); color: #111111 !important; }
+        /* しっかり発色パステル丸マーク（黒文字固定） */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); color: #111111 !important; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
         /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: clamp(6px, 1.8vw, 10px); font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.12); }
 
         .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 12px; margin-bottom: 12px; text-align: center; }
         .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; line-height: 1.4; }
@@ -124,7 +124,7 @@
 
         .preset-tile-btn { width: 100%; height: 44px; border-radius: 6px; border: 1px solid #111111; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.1s; }
         .preset-tile-btn:active { transform: scale(0.96); }
-        .tile-black { background-color: #adb5bd; color: #111111; }
+        .tile-black { background-color: #9aa0a6; color: #111111; }
         .tile-white { background-color: #ffffff; color: #111111; }
         
         .preview-tile-box { width: 100%; height: 40px; border-radius: 6px; border: 2px solid #111111; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #111111; }
@@ -486,10 +486,10 @@
                 <div style="margin-top: 6px;">
                     <div style="display:flex; justify-content:space-between; font-size:10px; color:#555; margin-bottom:2px;">
                         <span>パステルの濃淡</span>
-                        <span id="saturationValText">35%</span>
+                        <span id="saturationValText">48%</span>
                     </div>
-                    <!-- ★4個前の設定（15〜45%、初期値35%） -->
-                    <input type="range" id="saturationSlider" min="15" max="45" value="35" style="width:100%; margin-bottom:0;">
+                    <!-- ★しっかり発色するパステルの濃淡スライダー（25%〜65%） -->
+                    <input type="range" id="saturationSlider" min="25" max="65" value="48" style="width:100%; margin-bottom:0;">
                 </div>
             </div>
 
@@ -503,7 +503,7 @@
                     白色
                 </button>
 
-                <div class="preview-tile-box" id="wheelColorPreview" style="background-color: #ffb8c6;">選択中</div>
+                <div class="preview-tile-box" id="wheelColorPreview" style="background-color: #ff9ebb;">選択中</div>
                 <button class="submit-btn" style="width:100%; padding:8px 0; margin-top:0; font-size:12px;" onclick="applyWheelColor()">決定</button>
             </div>
         </div>
@@ -599,23 +599,23 @@
 
   let currentScreenId = 'login-screen';
   let activeEditingSlotIndex = -1;
-  let currentPickedHex = "#ffb8c6";
+  let currentPickedHex = "#ff9ebb";
   let currentSelectionMode = "wheel";
 
-  // ★4個前の基本12色パステル
+  // ★発色をもう一段階アップした鮮やかパステル12色
   const defaultCategorySlots12 = [
-    { color: '#ffb8c6', name: 'ミーティング' },
-    { color: '#ffd1dc', name: '企画準備' },
-    { color: '#ffc6b8', name: '衣装係' },
-    { color: '#ffd8a8', name: '買い出し' },
-    { color: '#fff3b0', name: '装飾係' },
-    { color: '#d9f99d', name: '清掃活動' },
-    { color: '#bbf2c8', name: '文化祭準備' },
-    { color: '#b4f8ff', name: '広報・SNS' },
-    { color: '#b4d9ff', name: 'リハーサル' },
-    { color: '#e0cffc', name: '音響・照明' },
-    { color: '#f0d9ff', name: 'ステージ' },
-    { color: '#ced4da', name: '提出締切' }
+    { color: '#ff9ebb', name: 'ミーティング' },
+    { color: '#ffb3c6', name: '企画準備' },
+    { color: '#ffa894', name: '衣装係' },
+    { color: '#ffc078', name: '買い出し' },
+    { color: '#ffe066', name: '装飾係' },
+    { color: '#bbf060', name: '清掃活動' },
+    { color: '#96f2a4', name: '文化祭準備' },
+    { color: '#8ce9ff', name: '広報・SNS' },
+    { color: '#94c8ff', name: 'リハーサル' },
+    { color: '#c7a8ff', name: '音響・照明' },
+    { color: '#e8a8ff', name: 'ステージ' },
+    { color: '#adb5bd', name: '提出締切' }
   ];
 
   function hsvToRgb(h, s, v) {
@@ -652,8 +652,8 @@
 
     const imgData = ctx.createImageData(width, height);
     const data = imgData.data;
-    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 35) / 100;
-    const value = 0.98;
+    const maxSat = (parseInt(document.getElementById('saturationSlider').value, 10) || 48) / 100;
+    const value = 0.97;
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -709,7 +709,7 @@
       
       const maxSat = parseInt(slider.value, 10) / 100;
       const sat = (dist / radius) * maxSat;
-      const value = 0.98;
+      const value = 0.97;
 
       const [r, g, b] = hsvToRgb(angle, sat, value);
       currentPickedHex = rgbToHex(r, g, b);
@@ -745,8 +745,9 @@
       document.getElementById('saturationValText').innerText = `${e.target.value}%`;
       
       if (currentSelectionMode === "black") {
+        // ★黒文字が読めるしっかり濃いめのグレー（RGB 120〜190）
         const val = parseInt(e.target.value, 10);
-        const grayVal = Math.round(140 + (val - 15) * (90 / 30));
+        const grayVal = Math.round(120 + (val - 25) * (70 / 40));
         currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
         document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
         updatePreviewBox(currentPickedHex);
@@ -773,8 +774,8 @@
   window.selectDirectColor = (type) => {
     currentSelectionMode = type;
     if (type === 'black') {
-      const sliderVal = parseInt(document.getElementById('saturationSlider').value, 10) || 35;
-      const grayVal = Math.round(140 + (sliderVal - 15) * (90 / 30));
+      const sliderVal = parseInt(document.getElementById('saturationSlider').value, 10) || 48;
+      const grayVal = Math.round(120 + (sliderVal - 25) * (70 / 40));
       currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
       document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
     } else {
@@ -787,7 +788,7 @@
     activeEditingSlotIndex = slotIndex;
     const btn = document.getElementById(`slot_btn_${slotIndex}`);
     if (btn) {
-      currentPickedHex = btn.dataset.color || "#ffb8c6";
+      currentPickedHex = btn.dataset.color || "#ff9ebb";
       updatePreviewBox(currentPickedHex);
     }
     currentSelectionMode = "wheel";
@@ -1201,16 +1202,16 @@
     return currentGroup.categorySlots;
   }
 
-  // ★パレット（凡例）の最新カラーと完全連動するヘルパー
+  // ★パレット（凡例）の最新カラーと完全連動
   function getEventDisplayColor(ev) {
-    if (!ev) return '#ffb8c6';
+    if (!ev) return '#ff9ebb';
     const slots = getGroupCategorySlots();
     const catName = ev.categoryTitle || ev.category;
     if (catName) {
       const matched = slots.find(s => s.name && s.name.trim() === catName.trim());
       if (matched && matched.color) return matched.color;
     }
-    return ev.color || (slots[0] ? slots[0].color : '#ffb8c6');
+    return ev.color || (slots[0] ? slots[0].color : '#ff9ebb');
   }
 
   function renderLegends() {
@@ -1342,7 +1343,7 @@
       if (userSnap.exists()) {
         const uData = userSnap.data();
         let memberGroupIds = Array.isArray(uData.memberGroupIds) ? uData.memberGroupIds : [];
-        let adminGroupIds = Array.isArray(uData.adminGroupIds) ? uData.adminGroupIds : [];
+        let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
 
         memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
         adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
@@ -1363,7 +1364,7 @@
     container.innerHTML = "";
 
     for (let i = 0; i < 12; i++) {
-      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ffb8c6', name: '' });
+      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ff9ebb', name: '' });
       const row = document.createElement('div');
       row.className = "color-slot-row";
       row.innerHTML = `
@@ -1395,7 +1396,7 @@
     for (let i = 0; i < 12; i++) {
       const btn = document.getElementById(`slot_btn_${i}`);
       const nameInput = document.getElementById(`name_slot_${i}`);
-      const color = btn ? (btn.dataset.color || '#ffb8c6') : '#ffb8c6';
+      const color = btn ? (btn.dataset.color || '#ff9ebb') : '#ff9ebb';
       const name = nameInput ? nameInput.value.trim() : '';
       newSlots.push({ color, name });
     }
@@ -1432,7 +1433,6 @@
     renderCalendar(mode);
   };
 
-  // ★カレンダー描画
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1465,7 +1465,6 @@
 
       if (dayEvents.length > 0) {
         const ev = dayEvents[0];
-        // ★現在のパレット・凡例の最新色と直接同期
         const eventColor = getEventDisplayColor(ev);
 
         const circle = document.createElement('div');
