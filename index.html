@@ -98,7 +98,7 @@
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
         
-        /* ★バッジ色設定（遅刻:ピンク、早退:緑、両方未定:オレンジ） */
+        /* バッジ色設定（遅刻:ピンク、早退:緑、両方未定:オレンジ） */
         .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-both-orange { background-color: #ffe0b2; color: #d9480f; border: 1px solid #ff922b; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
@@ -149,7 +149,7 @@
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">出欠連絡・管理システム</div>
         <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
-        <button class="submit-btn" id="loginBtn" onclick="window.doLogin()">ログイン</button>
+        <button class="submit-btn" id="loginBtn" onclick="window.handleLoginClick ? window.handleLoginClick() : (window.doLogin ? window.doLogin() : null)">ログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -269,7 +269,6 @@
         </div>
 
         <div id="formSection" style="opacity: 0.3; pointer-events: none;">
-            <!-- ★遅刻・早退（両方）ボタンを追加 -->
             <div class="status-group">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
                 <div class="btn-status" id="btnLate">遅刻</div>
@@ -281,7 +280,6 @@
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
-            <!-- 到着予定時刻（未定ボタンつき） -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定時刻</div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
@@ -290,7 +288,6 @@
                 </div>
             </div>
 
-            <!-- 早退予定時刻（未定ボタンつき） -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
@@ -599,7 +596,6 @@
 
   let currentStatus = "欠席";
   let selectedReason = "";
-  allEvents = [];
   let allEvents = [];
   let allReports = [];
   let allUsers = [];
@@ -1253,7 +1249,6 @@
     return ev.color || (slots[0] ? slots[0].color : '#ff9ebb');
   }
 
-  // ★時間パース関数（遅刻・早退・遅刻早退両方対応）
   function parseReportTimeInfo(report, dayEvents) {
     const status = report.status || "";
     const isBoth = status === '遅刻・早退' || (status.includes('遅刻') && status.includes('早退'));
@@ -1688,7 +1683,6 @@
     updateViewBoard(dateStr);
   }
 
-  // ★出欠状況の確認：遅刻・早退・遅刻早退両方のバッジ＆時間順ソート
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -1744,7 +1738,6 @@
         let badgeHtml = "";
 
         if (timeInfo.statusType === 'both') {
-          // ★両方未定ならオレンジ色
           if (timeInfo.bothUndecided) {
             badgeHtml = `<span class="badge-both-orange">遅刻・早退</span>`;
           } else {
