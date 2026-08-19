@@ -42,16 +42,18 @@
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
         .cal-head { font-size: 12px; font-weight: bold; padding-bottom: 4px; border-bottom: 1px solid #111111; color: #111111; }
         
-        .cal-day { min-height: clamp(32px, 8.5vw, 42px); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(12px, 3.2vw, 14px); cursor: default; border-radius: 4px; }
+        .cal-day { min-height: clamp(32px, 8.5vw, 42px); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: clamp(12px, 3.2vw, 14px); cursor: default; border-radius: 4px; color: #111111; }
         .cal-day.other-month { color: #cccccc; }
         .cal-day.selectable { cursor: pointer; }
         .cal-day.selectable:hover { text-decoration: underline; }
-        .cal-day.selected { background-color: #111111 !important; color: #ffffff !important; font-weight: bold; }
-        .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; }
+        
+        /* ★修正：選択時も文字を白にせず、枠線と背景色で分かりやすく強調 */
+        .cal-day.selected { background-color: #e9ecef !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
+        .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
-        /* パステル丸マーク（黒文字統一） */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; color: #222222 !important; transition: 0.15s; border: 1px solid rgba(0,0,0,0.1); }
-        .cal-day.selected .circle-mark { outline: 2px solid #ffffff; }
+        /* ★修正：パステル丸マーク（文字色を常に#111111に固定） */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.15); color: #111111 !important; }
+        .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
         /* 凡例 */
@@ -105,14 +107,14 @@
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         
+        /* 12色設定行 */
         .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
 
-        /* ★手書き図面を再現したカラーモーダル */
+        /* 手書き再現カラーモーダル */
         .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
         .swatch-modal { background: #fff; padding: 16px; border-radius: 10px; width: 94%; max-width: 420px; border: 1px solid #111; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
         
-        /* 左右レイアウト（左：色相環、右：黒・白ボタン） */
         .palette-flex-layout { display: flex; gap: 14px; align-items: center; justify-content: space-between; margin-top: 10px; }
         .palette-left { flex: 1; text-align: center; }
         .palette-right { width: 90px; display: flex; flex-direction: column; gap: 8px; }
@@ -121,10 +123,9 @@
         #colorWheelCanvas { width: 180px; height: 180px; border-radius: 50%; cursor: crosshair; border: 1px solid #ced4da; }
         .wheel-handle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #111111; box-shadow: 0 0 3px rgba(255,255,255,0.9); pointer-events: none; transform: translate(-50%, -50%); top: 90px; left: 90px; background: transparent; }
 
-        /* 右側の黒・白・プレビュータイル */
-        .preset-tile-btn { width: 100%; height: 48px; border-radius: 6px; border: 1px solid #111111; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        .preset-tile-btn { width: 100%; height: 44px; border-radius: 6px; border: 1px solid #111111; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.1s; }
         .preset-tile-btn:active { transform: scale(0.96); }
-        .tile-black { background-color: #ced4da; color: #111111; } /* 黒文字が読めるパステル黒 */
+        .tile-black { background-color: #adb5bd; color: #111111; }
         .tile-white { background-color: #ffffff; color: #111111; }
         
         .preview-tile-box { width: 100%; height: 40px; border-radius: 6px; border: 2px solid #111111; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; }
@@ -475,7 +476,6 @@
             <button type="button" class="btn-back" style="padding:2px 8px; margin-bottom:0;" onclick="closeSwatchModalDirect()">閉じる</button>
         </div>
 
-        <!-- 左右レイアウト（左：色相環、右：黒・白ボタン） -->
         <div class="palette-flex-layout">
             <!-- 左：色相環（中心が白） ＋ パステル具合スライダー -->
             <div class="palette-left">
@@ -486,26 +486,24 @@
 
                 <div style="margin-top: 6px;">
                     <div style="display:flex; justify-content:space-between; font-size:10px; color:#555; margin-bottom:2px;">
-                        <span>パステル具合</span>
+                        <span>パステルの濃淡</span>
                         <span id="saturationValText">35%</span>
                     </div>
-                    <input type="range" id="saturationSlider" min="15" max="50" value="35" style="width:100%; margin-bottom:0;">
+                    <input type="range" id="saturationSlider" min="15" max="45" value="35" style="width:100%; margin-bottom:0;">
                 </div>
             </div>
 
             <!-- 右：黒色・白色タイル ＆ プレビュー・決定ボタン -->
             <div class="palette-right">
-                <!-- 黒文字が読める薄墨黒 -->
-                <button type="button" class="preset-tile-btn tile-black" onclick="selectDirectColor('#ced4da')">
+                <button type="button" class="preset-tile-btn tile-black" id="tileBlackBtn" onclick="selectDirectColor('black')">
                     黒色
                 </button>
                 
-                <!-- 白色 -->
-                <button type="button" class="preset-tile-btn tile-white" onclick="selectDirectColor('#ffffff')">
+                <button type="button" class="preset-tile-btn tile-white" onclick="selectDirectColor('white')">
                     白色
                 </button>
 
-                <div class="preview-tile-box" id="wheelColorPreview" style="background-color: #ffb8c6;">選択中</div>
+                <div class="preview-tile-box" id="wheelColorPreview" style="background-color: #ffb8c6; color: #222222;">選択中</div>
                 <button class="submit-btn" style="width:100%; padding:8px 0; margin-top:0; font-size:12px;" onclick="applyWheelColor()">決定</button>
             </div>
         </div>
@@ -602,8 +600,8 @@
   let currentScreenId = 'login-screen';
   let activeEditingSlotIndex = -1;
   let currentPickedHex = "#ffb8c6";
+  let currentSelectionMode = "wheel";
 
-  // ★基本12色パステル（12番目は黒文字が読める薄墨黒）
   const defaultCategorySlots12 = [
     { color: '#ffb8c6', name: 'ミーティング' },
     { color: '#ffd1dc', name: '企画準備' },
@@ -616,7 +614,7 @@
     { color: '#b4d9ff', name: 'リハーサル' },
     { color: '#e0cffc', name: '音響・照明' },
     { color: '#f0d9ff', name: 'ステージ' },
-    { color: '#ced4da', name: '提出締切' } // 薄墨黒
+    { color: '#ced4da', name: '提出締切' }
   ];
 
   function hsvToRgb(h, s, v) {
@@ -641,7 +639,6 @@
     return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  // ★中心が「白」で外側が「虹色」の色相環描画
   function drawColorWheel() {
     const canvas = document.getElementById('colorWheelCanvas');
     if (!canvas) return;
@@ -668,7 +665,6 @@
           let angle = Math.atan2(dy, dx) * (180 / Math.PI);
           if (angle < 0) angle += 360;
           
-          // 中心(0)が白（彩度0）、外周(1)がパステル彩度
           const sat = (dist / radius) * maxSat;
 
           const [r, g, b] = hsvToRgb(angle, sat, value);
@@ -692,6 +688,7 @@
     let isDragging = false;
 
     function handleWheelInput(clientX, clientY) {
+      currentSelectionMode = "wheel";
       const rect = container.getBoundingClientRect();
       const cx = rect.width / 2;
       const cy = rect.height / 2;
@@ -720,8 +717,7 @@
       handle.style.left = `${cx + dx}px`;
       handle.style.top = `${cy + dy}px`;
 
-      const preview = document.getElementById('wheelColorPreview');
-      preview.style.backgroundColor = currentPickedHex;
+      updatePreviewBox(currentPickedHex);
     }
 
     container.addEventListener('mousedown', (e) => { isDragging = true; handleWheelInput(e.clientX, e.clientY); });
@@ -746,18 +742,42 @@
 
     slider.addEventListener('input', (e) => {
       document.getElementById('saturationValText').innerText = `${e.target.value}%`;
-      drawColorWheel();
-      const handle = document.getElementById('wheelHandle');
-      const rect = container.getBoundingClientRect();
-      const left = parseFloat(handle.style.left) || 90;
-      const top = parseFloat(handle.style.top) || 90;
-      handleWheelInput(rect.left + left, rect.top + top);
+      
+      if (currentSelectionMode === "black") {
+        const val = parseInt(e.target.value, 10);
+        const grayVal = Math.round(140 + (val - 15) * (90 / 30));
+        currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
+        document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
+        updatePreviewBox(currentPickedHex);
+      } else {
+        drawColorWheel();
+        const handle = document.getElementById('wheelHandle');
+        const rect = container.getBoundingClientRect();
+        const left = parseFloat(handle.style.left) || 90;
+        const top = parseFloat(handle.style.top) || 90;
+        handleWheelInput(rect.left + left, rect.top + top);
+      }
     });
   }
 
-  window.selectDirectColor = (hex) => {
-    currentPickedHex = hex;
-    document.getElementById('wheelColorPreview').style.backgroundColor = hex;
+  function updatePreviewBox(hex) {
+    const preview = document.getElementById('wheelColorPreview');
+    if (preview) {
+      preview.style.backgroundColor = hex;
+      preview.style.color = '#222222';
+    }
+  }
+
+  window.selectDirectColor = (type) => {
+    currentSelectionMode = type;
+    if (type === 'black') {
+      const sliderVal = parseInt(document.getElementById('saturationSlider').value, 10) || 35;
+      const grayVal = Math.round(140 + (sliderVal - 15) * (90 / 30));
+      currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
+    } else {
+      currentPickedHex = '#ffffff';
+    }
+    updatePreviewBox(currentPickedHex);
   };
 
   window.openSwatchModal = (slotIndex) => {
@@ -765,8 +785,9 @@
     const btn = document.getElementById(`slot_btn_${slotIndex}`);
     if (btn) {
       currentPickedHex = btn.dataset.color || "#ffb8c6";
-      document.getElementById('wheelColorPreview').style.backgroundColor = currentPickedHex;
+      updatePreviewBox(currentPickedHex);
     }
+    currentSelectionMode = "wheel";
     document.getElementById('swatchModalOverlay').style.display = 'flex';
     drawColorWheel();
   };
@@ -917,7 +938,6 @@
     }
   });
 
-  // 自動ログイン
   onAuthStateChanged(auth, async (user) => {
     const btn = document.getElementById('loginBtn');
     const notice = document.getElementById('loginNoticeText');
@@ -1368,7 +1388,7 @@
     try {
       await setDoc(doc(db, "groups", currentGroup.id), { categorySlots: newSlots }, { merge: true });
       currentGroup.categorySlots = newSlots;
-      alert("パステル12色のカテゴリ設定を保存しました。");
+      alert("12色のカテゴリ設定を保存しました。");
       window.showScreen('user-home');
     } catch (e) {
       alert("保存エラー: " + e.message);
@@ -1412,7 +1432,6 @@
 
     const firstDay = new Date(year, month, 1).getDay();
     const lastDate = new Date(year, month + 1, 0).getDate();
-    const prevLastDate = new Date(year, month, 0).getDate();
 
     container.innerHTML = "";
 
@@ -1706,7 +1725,7 @@
       arrivalInfo = isUndecided ? "未定" : timeVal;
     } else if (currentStatus === "早退") {
       const lTime = document.getElementById('leaveTime').value;
-      if (!lTime) return alert("早退予定時刻を入力してください");
+      if (!lTime) return alert("早退予定時刻を選択してください");
       leaveInfo = lTime;
     }
 
