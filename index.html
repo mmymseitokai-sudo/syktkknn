@@ -50,7 +50,7 @@
         .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
         .cal-day.add-selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
-        /* しっかり発色パステル丸マーク（黒文字固定） */
+        /* パステル丸マーク（黒文字固定） */
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); color: #111111 !important; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
@@ -97,7 +97,12 @@
         .report-item { padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 13px; line-height: 1.4; }
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
-        .time-highlight { font-size: 12px; font-weight: bold; color: #111111; margin-top: 2px; }
+        
+        /* ★遅刻（ピンク）＆ 早退（緑）のバッジ */
+        .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
+        .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
+
+        .time-highlight { font-size: 13px; font-weight: bold; color: #111111; margin-top: 3px; }
 
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; }
         .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
@@ -268,14 +273,16 @@
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
+            <!-- ★遅刻：時間での入力または未定 -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定時刻</div>
-                <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
                     <input type="time" id="arriveTime" style="flex: 1; margin-bottom: 0; font-size:16px;">
                     <div class="chip" id="btnUndecided" style="margin-bottom: 0; padding: 10px 14px; text-align: center; box-sizing: border-box;">未定</div>
                 </div>
             </div>
 
+            <!-- ★早退：時間での入力 -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
                 <input type="time" id="leaveTime" style="width: 100%; font-size:16px;">
@@ -476,7 +483,6 @@
         </div>
 
         <div class="palette-flex-layout">
-            <!-- 左：色相環（中心が白） ＋ パステル具合スライダー -->
             <div class="palette-left">
                 <div class="wheel-container" id="wheelContainer">
                     <canvas id="colorWheelCanvas" width="180" height="180"></canvas>
@@ -488,12 +494,10 @@
                         <span>パステルの濃淡</span>
                         <span id="saturationValText">48%</span>
                     </div>
-                    <!-- ★しっかり発色するパステルの濃淡スライダー（25%〜65%） -->
                     <input type="range" id="saturationSlider" min="25" max="65" value="48" style="width:100%; margin-bottom:0;">
                 </div>
             </div>
 
-            <!-- 右：黒色・白色タイル ＆ プレビュー・決定ボタン -->
             <div class="palette-right">
                 <button type="button" class="preset-tile-btn tile-black" id="tileBlackBtn" onclick="selectDirectColor('black')">
                     黒色
@@ -602,7 +606,6 @@
   let currentPickedHex = "#ff9ebb";
   let currentSelectionMode = "wheel";
 
-  // ★発色をもう一段階アップした鮮やかパステル12色
   const defaultCategorySlots12 = [
     { color: '#ff9ebb', name: 'ミーティング' },
     { color: '#ffb3c6', name: '企画準備' },
@@ -745,7 +748,6 @@
       document.getElementById('saturationValText').innerText = `${e.target.value}%`;
       
       if (currentSelectionMode === "black") {
-        // ★黒文字が読めるしっかり濃いめのグレー（RGB 120〜190）
         const val = parseInt(e.target.value, 10);
         const grayVal = Math.round(120 + (val - 25) * (70 / 40));
         currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
@@ -770,7 +772,6 @@
     }
   }
 
-  // ★黒色・白色ダイレクト選択
   window.selectDirectColor = (type) => {
     currentSelectionMode = type;
     if (type === 'black') {
@@ -1202,7 +1203,6 @@
     return currentGroup.categorySlots;
   }
 
-  // ★パレット（凡例）の最新カラーと完全連動
   function getEventDisplayColor(ev) {
     if (!ev) return '#ff9ebb';
     const slots = getGroupCategorySlots();
@@ -1343,7 +1343,7 @@
       if (userSnap.exists()) {
         const uData = userSnap.data();
         let memberGroupIds = Array.isArray(uData.memberGroupIds) ? uData.memberGroupIds : [];
-        let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
+        let adminGroupIds = Array.isArray(uData.adminGroupIds) ? uData.adminGroupIds : [];
 
         memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
         adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
@@ -1566,6 +1566,7 @@
     return '99:99';
   }
 
+  // ★出欠確認画面の表示更新（遅刻はピンク、早退は緑バッジ）
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -1617,20 +1618,33 @@
         const item = document.createElement('div');
         item.className = "report-item";
         
-        let badgeLabel = r.status === '早退' ? '早退' : '遅刻';
-        let timeStr = "";
-        if (r.status === '早退') {
-          timeStr = r.leaveTime ? (r.leaveTime.includes(':') ? `${r.leaveTime} 早退` : r.leaveTime) : '未定';
+        const isLate = r.status === '遅刻';
+        // ★遅刻はピンク、早退は緑
+        const badgeHtml = isLate
+          ? `<span class="badge-late">遅刻</span>`
+          : `<span class="badge-leave">早退</span>`;
+
+        let timeFormatted = "";
+        if (isLate) {
+          if (!r.arrival || r.arrival === '未定') {
+            timeFormatted = "到着予定：未定";
+          } else {
+            timeFormatted = r.arrival.includes('到着') ? r.arrival : `${r.arrival} 到着予定`;
+          }
         } else {
-          timeStr = r.arrival ? (r.arrival.includes(':') ? `${r.arrival} 到着予定` : r.arrival) : '未定';
+          if (!r.leaveTime || r.leaveTime === '未定') {
+            timeFormatted = "早退予定：未定";
+          } else {
+            timeFormatted = r.leaveTime.includes('早退') ? r.leaveTime : `${r.leaveTime} 早退予定`;
+          }
         }
 
         item.innerHTML = `
-          <div>
-            <span class="badge-text">${badgeLabel}</span>
-            <strong>${r.name}</strong>
+          <div style="display: flex; align-items: center; flex-wrap: wrap;">
+            ${badgeHtml}
+            <strong style="font-size: 14px;">${r.name}</strong>
           </div>
-          <div class="time-highlight">${timeStr}</div>
+          <div class="time-highlight">${timeFormatted}</div>
           <div style="font-size: 11px; color: #666; margin-top: 2px;">理由: ${r.reason === 'その他' ? r.otherReason : r.reason}</div>
         `;
         lateLeaveList.appendChild(item);
@@ -1638,6 +1652,7 @@
     }
   }
 
+  // ★送信済み表示のフォーマット統一
   function checkExistingReport() {
     if (!selectedEventForReport || !currentUser) return;
     existingReport = allReports.find(r => r.eventDate === selectedEventForReport.date && r.email === currentUser.email);
@@ -1648,8 +1663,15 @@
     if (existingReport) {
       alreadyBox.style.display = 'block';
       let detail = existingReport.status;
-      if (existingReport.status === '遅刻') detail += ` (${existingReport.arrival || ''})`;
-      if (existingReport.status === '早退') detail += ` (${existingReport.leaveTime || ''})`;
+      if (existingReport.status === '遅刻') {
+        const arr = existingReport.arrival || '未定';
+        const arrStr = (arr === '未定') ? '未定' : (arr.includes('到着') ? arr : `${arr} 到着予定`);
+        detail += ` (${arrStr})`;
+      } else if (existingReport.status === '早退') {
+        const lev = existingReport.leaveTime || '未定';
+        const levStr = (lev === '未定') ? '未定' : (lev.includes('早退') ? lev : `${lev} 早退予定`);
+        detail += ` (${levStr})`;
+      }
       detail += ` - 理由: ${existingReport.reason}`;
       document.getElementById('sentStatusText').innerText = detail;
 
@@ -1738,12 +1760,12 @@
     if (currentStatus === "遅刻") {
       const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
       const timeVal = document.getElementById('arriveTime').value;
-      if (!isUndecided && !timeVal) return alert("到着予定時刻を選択するか、未定を選択してください");
-      arrivalInfo = isUndecided ? "未定" : timeVal;
+      if (!isUndecided && !timeVal) return alert("到着予定時刻を入力するか、「未定」を選択してください");
+      arrivalInfo = isUndecided ? "未定" : `${timeVal} 到着予定`;
     } else if (currentStatus === "早退") {
       const lTime = document.getElementById('leaveTime').value;
-      if (!lTime) return alert("早退予定時刻を選択してください");
-      leaveInfo = lTime;
+      if (!lTime) return alert("早退予定時刻を入力してください");
+      leaveInfo = `${lTime} 早退予定`;
     }
 
     try {
