@@ -69,7 +69,7 @@
         .cancel-btn:hover { background: #111111; color: #ffffff; }
 
         .status-group { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 12px; }
-        .btn-status { flex: 1; padding: 10px; border: 1px solid #111111; border-radius: 4px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 13px; }
+        .btn-status { flex: 1; padding: 10px 4px; border: 1px solid #111111; border-radius: 4px; background: white; font-weight: bold; cursor: pointer; text-align: center; font-size: 12px; white-space: nowrap; }
         .btn-status.active { background: #111111; color: white; }
 
         .chip { padding: 6px 12px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; margin-bottom: 6px; display: inline-block; }
@@ -98,16 +98,22 @@
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
         
-        /* ★遅刻（ピンク）＆ 早退（緑）のバッジ */
+        /* ★バッジ色設定（遅刻:ピンク、早退:緑、両方未定:オレンジ） */
         .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
+        .badge-both-orange { background-color: #ffe0b2; color: #d9480f; border: 1px solid #ff922b; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
+        .badge-both { background-color: #ffe8cc; color: #111111; border: 1px solid #ffa94d; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
 
-        .time-highlight { font-size: 14px; font-weight: bold; color: #111111; margin-top: 3px; }
+        .time-highlight { font-size: 13px; font-weight: bold; color: #111111; margin-top: 3px; }
 
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; }
-        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; }
+        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f3f5; font-size: 12px; gap: 6px; }
         .member-row:last-child { border-bottom: none; }
-        .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 6px; font-size: 10px; cursor: pointer; font-weight: bold; margin-left: 6px; }
+        .btn-kick-member { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 3px; padding: 3px 6px; font-size: 10px; cursor: pointer; font-weight: bold; margin-left: 6px; flex-shrink: 0; }
+        
+        .btn-show-email { background: #f8f9fa; color: #495057; border: 1px solid #ced4da; border-radius: 3px; padding: 2px 6px; font-size: 10px; cursor: pointer; margin-left: 6px; }
+        .btn-show-email:hover { background: #e9ecef; }
+        .email-display-text { font-size: 11px; color: #333333; font-family: monospace; background: #f1f3f5; padding: 1px 5px; border-radius: 3px; margin-left: 6px; word-break: break-all; }
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         
@@ -263,17 +269,19 @@
         </div>
 
         <div id="formSection" style="opacity: 0.3; pointer-events: none;">
+            <!-- ★遅刻・早退（両方）ボタンを追加 -->
             <div class="status-group">
                 <div class="btn-status active" id="btnAbsent">欠席</div>
                 <div class="btn-status" id="btnLate">遅刻</div>
                 <div class="btn-status" id="btnLeave">早退</div>
+                <div class="btn-status" id="btnBoth">遅刻・早退</div>
             </div>
 
             <div class="info-text">理由</div>
             <div id="reasonContainer"></div>
             <input type="text" id="otherReason" placeholder="具体的な理由を入力" style="display:none;">
 
-            <!-- 到着予定時刻（時間での直接入力） -->
+            <!-- 到着予定時刻（未定ボタンつき） -->
             <div id="arrivalSection" style="display:none;">
                 <div class="info-text">到着予定時刻</div>
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
@@ -282,10 +290,13 @@
                 </div>
             </div>
 
-            <!-- 早退予定時刻（時間での直接入力） -->
+            <!-- 早退予定時刻（未定ボタンつき） -->
             <div id="leaveSection" style="display:none;">
                 <div class="info-text">早退予定時刻</div>
-                <input type="time" id="leaveTime" style="width: 100%; font-size:16px;">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px;">
+                    <input type="time" id="leaveTime" style="flex: 1; margin-bottom: 0; font-size:16px;">
+                    <div class="chip" id="btnLeaveUndecided" style="margin-bottom: 0; padding: 10px 14px; text-align: center; box-sizing: border-box;">未定</div>
+                </div>
             </div>
 
             <button class="submit-btn" id="submitBtn">報告を送信する</button>
@@ -588,6 +599,7 @@
 
   let currentStatus = "欠席";
   let selectedReason = "";
+  allEvents = [];
   let allEvents = [];
   let allReports = [];
   let allUsers = [];
@@ -1142,11 +1154,38 @@
 
   window.leaveCurrentMemberGroup = async () => {
     if (!currentGroup) return;
-    if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
 
     try {
       let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : [];
       let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
+
+      if (isCurrentAdmin) {
+        const choice = confirm(
+          `【管理者機能の変更・脱会】\n\n管理者権限のみを辞退して「一般メンバー」としてグループに残りますか？\n\n・[OK] ➡ 管理者を降りてメンバーとして残る\n・[キャンセル] ➡ 完全脱会へ進む`
+        );
+
+        if (choice) {
+          adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
+          if (!memberGroupIds.includes(currentGroup.id)) {
+            memberGroupIds.push(currentGroup.id);
+          }
+          await setDoc(doc(db, "users", currentUser.uid), {
+            memberGroupIds,
+            adminGroupIds,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+
+          alert(`管理者権限を辞退し、グループ「${currentGroup.name}」の一般メンバーになりました。`);
+          checkUserProfileAndGroups();
+          return;
+        } else {
+          if (!confirm(`グループ「${currentGroup.name}」から【完全に脱会】しますか？\n（管理者権限もメンバー所属もすべて解除されます）`)) {
+            return;
+          }
+        }
+      } else {
+        if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
+      }
 
       memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
       adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
@@ -1214,73 +1253,82 @@
     return ev.color || (slots[0] ? slots[0].color : '#ff9ebb');
   }
 
-  // ★「〇〇分後」などの古いデータを予定開始時刻から「HH:MM 到着予定」に自動変換＆ソートキー生成
+  // ★時間パース関数（遅刻・早退・遅刻早退両方対応）
   function parseReportTimeInfo(report, dayEvents) {
-    const isLate = report.status === '遅刻';
-    const raw = isLate ? (report.arrival || '') : (report.leaveTime || '');
+    const status = report.status || "";
+    const isBoth = status === '遅刻・早退' || (status.includes('遅刻') && status.includes('早退'));
+    const isLateOnly = status === '遅刻';
 
-    if (!raw || raw === '未定' || raw.includes('未定')) {
-      return {
-        displayText: isLate ? '到着予定：未定' : '早退予定：未定',
-        sortKey: '99:99',
-        isUndecided: true
-      };
-    }
-
-    // 1. すでに HH:MM 形式が含まれている場合
-    const timeMatch = raw.match(/(\d{1,2}):(\d{2})/);
-    if (timeMatch) {
-      const hh = timeMatch[1].padStart(2, '0');
-      const mm = timeMatch[2];
-      const timeFormatted = `${hh}:${mm}`;
-      return {
-        displayText: isLate ? `${timeFormatted} 到着予定` : `${timeFormatted} 早退予定`,
-        sortKey: timeFormatted,
-        isUndecided: false
-      };
-    }
-
-    // 2. 「〇〇分後」形式の過去データの場合
-    const minMatch = raw.match(/(\d+)\s*分/);
-    if (minMatch) {
-      const addMinutes = parseInt(minMatch[1], 10);
-      let startHH = null, startMM = null;
-      const ev = (dayEvents && dayEvents.length > 0) ? dayEvents[0] : null;
-      const timeSrc = (ev && ev.timeText) || report.timeText || "";
-      const evTimeMatch = timeSrc.match(/(\d{1,2}):(\d{2})/);
-
-      if (evTimeMatch) {
-        startHH = parseInt(evTimeMatch[1], 10);
-        startMM = parseInt(evTimeMatch[2], 10);
+    function parseSingleTime(raw, type) {
+      if (!raw || raw === '未定' || raw.includes('未定')) {
+        return { text: (type === 'arr' ? '到着予定：未定' : '早退予定：未定'), time: null, isUndecided: true };
       }
+      const timeMatch = raw.match(/(\d{1,2}):(\d{2})/);
+      if (timeMatch) {
+        const hh = timeMatch[1].padStart(2, '0');
+        const mm = timeMatch[2];
+        return { text: (type === 'arr' ? `${hh}:${mm} 到着予定` : `${hh}:${mm} 早退予定`), time: `${hh}:${mm}`, isUndecided: false };
+      }
+      const minMatch = raw.match(/(\d+)\s*分/);
+      if (minMatch) {
+        const addMinutes = parseInt(minMatch[1], 10);
+        let startHH = null, startMM = null;
+        const ev = (dayEvents && dayEvents.length > 0) ? dayEvents[0] : null;
+        const timeSrc = (ev && ev.timeText) || report.timeText || "";
+        const evTimeMatch = timeSrc.match(/(\d{1,2}):(\d{2})/);
+        if (evTimeMatch) {
+          startHH = parseInt(evTimeMatch[1], 10);
+          startMM = parseInt(evTimeMatch[2], 10);
+        }
+        if (startHH !== null && startMM !== null) {
+          const total = startHH * 60 + startMM + addMinutes;
+          const calcH = Math.floor(total / 60) % 24;
+          const calcM = total % 60;
+          const formatted = `${String(calcH).padStart(2, '0')}:${String(calcM).padStart(2, '0')}`;
+          return { text: (type === 'arr' ? `${formatted} 到着予定` : `${formatted} 早退予定`), time: formatted, isUndecided: false };
+        } else {
+          const vH = String(Math.floor(addMinutes / 60)).padStart(2, '0');
+          const vM = String(addMinutes % 60).padStart(2, '0');
+          return { text: (type === 'arr' ? `${addMinutes}分後 到着予定` : `${addMinutes}分後 早退予定`), time: `${vH}:${vM}`, isUndecided: false };
+        }
+      }
+      return { text: raw, time: '99:98', isUndecided: false };
+    }
 
-      if (startHH !== null && startMM !== null) {
-        const totalMinutes = startHH * 60 + startMM + addMinutes;
-        const calcH = Math.floor(totalMinutes / 60) % 24;
-        const calcM = totalMinutes % 60;
-        const timeFormatted = `${String(calcH).padStart(2, '0')}:${String(calcM).padStart(2, '0')}`;
-        return {
-          displayText: isLate ? `${timeFormatted} 到着予定` : `${timeFormatted} 早退予定`,
-          sortKey: timeFormatted,
-          isUndecided: false
-        };
+    if (isBoth) {
+      const arrRes = parseSingleTime(report.arrival, 'arr');
+      const leaveRes = parseSingleTime(report.leaveTime, 'leave');
+      const bothUndecided = arrRes.isUndecided && leaveRes.isUndecided;
+      let displayText = "";
+      if (bothUndecided) {
+        displayText = "到着・早退ともに未定";
       } else {
-        // 開始時刻が未設定の場合は分数をそのまま時分に換算してソート
-        const vH = String(Math.floor(addMinutes / 60)).padStart(2, '0');
-        const vM = String(addMinutes % 60).padStart(2, '0');
-        return {
-          displayText: isLate ? `${addMinutes}分後 到着予定` : `${addMinutes}分後 早退予定`,
-          sortKey: `${vH}:${vM}`,
-          isUndecided: false
-        };
+        displayText = `${arrRes.text} / ${leaveRes.text}`;
       }
+      const sortKey = (arrRes.time || leaveRes.time || '99:99');
+      return {
+        statusType: 'both',
+        displayText,
+        sortKey,
+        bothUndecided
+      };
+    } else if (isLateOnly) {
+      const arrRes = parseSingleTime(report.arrival, 'arr');
+      return {
+        statusType: 'late',
+        displayText: arrRes.text,
+        sortKey: arrRes.time || '99:99',
+        bothUndecided: false
+      };
+    } else {
+      const leaveRes = parseSingleTime(report.leaveTime, 'leave');
+      return {
+        statusType: 'leave',
+        displayText: leaveRes.text,
+        sortKey: leaveRes.time || '99:99',
+        bothUndecided: false
+      };
     }
-
-    return {
-      displayText: raw,
-      sortKey: '99:98',
-      isUndecided: false
-    };
   }
 
   function renderLegends() {
@@ -1383,23 +1431,39 @@
 
       const isSelf = currentUser && m.id === currentUser.uid;
       const kickBtnHtml = (isCurrentAdmin && !isSelf) ? `<button class="btn-kick-member" onclick="kickMember('${m.id}', '${name}')">除名</button>` : '';
-      const emailHtml = isCurrentAdmin ? `<span style="font-size:11px; color:#666; margin-right:6px;">${m.email || ''}</span>` : '';
+
+      let emailSlotHtml = '';
+      if (isCurrentAdmin) {
+        const emailVal = m.email || '未設定';
+        emailSlotHtml = `
+          <span id="email_slot_${m.id}">
+            <button class="btn-show-email" onclick="showMemberEmail('${m.id}', '${emailVal}')">メールアドレスを表示</button>
+          </span>
+        `;
+      }
 
       const row = document.createElement('div');
       row.className = "member-row";
       row.innerHTML = `
-        <div style="display:flex; align-items:center;">
+        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
           ${roleBadge}
-          <strong>${name}</strong>
+          <strong style="font-size:13px;">${name}</strong>
+          ${emailSlotHtml}
         </div>
-        <div style="display:flex; align-items:center;">
-          ${emailHtml}
+        <div>
           ${kickBtnHtml}
         </div>
       `;
       container.appendChild(row);
     });
   }
+
+  window.showMemberEmail = (uid, email) => {
+    const slot = document.getElementById(`email_slot_${uid}`);
+    if (slot) {
+      slot.innerHTML = `<span class="email-display-text">${email}</span>`;
+    }
+  };
 
   window.kickMember = async (targetUid, targetName) => {
     if (!currentGroup || !isCurrentAdmin) return;
@@ -1624,7 +1688,7 @@
     updateViewBoard(dateStr);
   }
 
-  // ★出欠状況の確認：時間順（早い順）ソート & 自動フォーマット統一
+  // ★出欠状況の確認：遅刻・早退・遅刻早退両方のバッジ＆時間順ソート
   function updateViewBoard(dateStr) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     const dayReports = allReports.filter(r => r.eventDate === dateStr);
@@ -1647,9 +1711,8 @@
     lateLeaveList.innerHTML = "";
 
     const absents = dayReports.filter(r => r.status === '欠席');
-    const lateLeaves = dayReports.filter(r => r.status === '遅刻' || r.status === '早退');
+    const lateLeaves = dayReports.filter(r => r.status !== '欠席');
 
-    // ★各報告の時間情報を解析し、正確な早い順（昇順）にソート
     lateLeaves.sort((a, b) => {
       const infoA = parseReportTimeInfo(a, dayEvents);
       const infoB = parseReportTimeInfo(b, dayEvents);
@@ -1677,13 +1740,21 @@
         const item = document.createElement('div');
         item.className = "report-item";
         
-        const isLate = r.status === '遅刻';
-        const badgeHtml = isLate
-          ? `<span class="badge-late">遅刻</span>`
-          : `<span class="badge-leave">早退</span>`;
-
-        // ★「〇〇分後」データもすべて「〇〇:〇〇 到着予定」に自動換算して表示
         const timeInfo = parseReportTimeInfo(r, dayEvents);
+        let badgeHtml = "";
+
+        if (timeInfo.statusType === 'both') {
+          // ★両方未定ならオレンジ色
+          if (timeInfo.bothUndecided) {
+            badgeHtml = `<span class="badge-both-orange">遅刻・早退</span>`;
+          } else {
+            badgeHtml = `<span class="badge-both">遅刻・早退</span>`;
+          }
+        } else if (timeInfo.statusType === 'late') {
+          badgeHtml = `<span class="badge-late">遅刻</span>`;
+        } else {
+          badgeHtml = `<span class="badge-leave">早退</span>`;
+        }
 
         item.innerHTML = `
           <div style="display: flex; align-items: center; flex-wrap: wrap;">
@@ -1733,9 +1804,7 @@
   };
 
   function updateReasons() {
-    const reasons = (currentStatus === "欠席" || currentStatus === "早退")
-        ? ["体調不良", "部活動", "委員会", "家庭の用事", "その他"]
-        : ["部活動", "委員会", "家庭の用事", "その他"];
+    const reasons = ["体調不良", "部活動", "委員会", "家庭の用事", "その他"];
 
     const container = document.getElementById('reasonContainer');
     container.innerHTML = "";
@@ -1759,14 +1828,16 @@
   document.getElementById('btnAbsent').onclick = () => { currentStatus = "欠席"; updateStatusUI(); };
   document.getElementById('btnLate').onclick = () => { currentStatus = "遅刻"; updateStatusUI(); };
   document.getElementById('btnLeave').onclick = () => { currentStatus = "早退"; updateStatusUI(); };
+  document.getElementById('btnBoth').onclick = () => { currentStatus = "遅刻・早退"; updateStatusUI(); };
 
   function updateStatusUI() {
     document.getElementById('btnAbsent').className = currentStatus === "欠席" ? "btn-status active" : "btn-status";
     document.getElementById('btnLate').className = currentStatus === "遅刻" ? "btn-status active" : "btn-status";
     document.getElementById('btnLeave').className = currentStatus === "早退" ? "btn-status active" : "btn-status";
+    document.getElementById('btnBoth').className = currentStatus === "遅刻・早退" ? "btn-status active" : "btn-status";
 
-    document.getElementById('arrivalSection').style.display = currentStatus === "遅刻" ? "block" : "none";
-    document.getElementById('leaveSection').style.display = currentStatus === "早退" ? "block" : "none";
+    document.getElementById('arrivalSection').style.display = (currentStatus === "遅刻" || currentStatus === "遅刻・早退") ? "block" : "none";
+    document.getElementById('leaveSection').style.display = (currentStatus === "早退" || currentStatus === "遅刻・早退") ? "block" : "none";
 
     updateReasons();
   }
@@ -1774,6 +1845,17 @@
   document.getElementById('btnUndecided').onclick = (e) => {
     e.target.classList.toggle('active');
     const inputTime = document.getElementById('arriveTime');
+    if (e.target.classList.contains('active')) {
+      inputTime.value = "";
+      inputTime.disabled = true;
+    } else {
+      inputTime.disabled = false;
+    }
+  };
+
+  document.getElementById('btnLeaveUndecided').onclick = (e) => {
+    e.target.classList.toggle('active');
+    const inputTime = document.getElementById('leaveTime');
     if (e.target.classList.contains('active')) {
       inputTime.value = "";
       inputTime.disabled = true;
@@ -1793,15 +1875,18 @@
     let arrivalInfo = "";
     let leaveInfo = "";
 
-    if (currentStatus === "遅刻") {
+    if (currentStatus === "遅刻" || currentStatus === "遅刻・早退") {
       const isUndecided = document.getElementById('btnUndecided').classList.contains('active');
       const timeVal = document.getElementById('arriveTime').value;
-      if (!isUndecided && !timeVal) return alert("到着予定時刻を選択するか、「未定」を選択してください");
+      if (!isUndecided && !timeVal) return alert("到着予定時刻を入力するか、「未定」を選択してください");
       arrivalInfo = isUndecided ? "未定" : `${timeVal} 到着予定`;
-    } else if (currentStatus === "早退") {
+    }
+
+    if (currentStatus === "早退" || currentStatus === "遅刻・早退") {
+      const isLeaveUndecided = document.getElementById('btnLeaveUndecided').classList.contains('active');
       const lTime = document.getElementById('leaveTime').value;
-      if (!lTime) return alert("早退予定時刻を選択してください");
-      leaveInfo = `${lTime} 早退予定`;
+      if (!isLeaveUndecided && !lTime) return alert("早退予定時刻を入力するか、「未定」を選択してください");
+      leaveInfo = isLeaveUndecided ? "未定" : `${lTime} 早退予定`;
     }
 
     try {
