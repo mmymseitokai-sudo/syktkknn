@@ -6,11 +6,27 @@
     <title>出欠連絡・管理システム</title>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; background: #ffffff; margin: 0; padding: clamp(8px, 2.5vw, 20px); display: flex; justify-content: center; color: #111111; -webkit-text-size-adjust: 100%; }
-        .app-container { background: #ffffff; width: 100%; max-width: 540px; border: 1px solid #111111; border-radius: clamp(6px, 2vw, 10px); padding: clamp(12px, 3.5vw, 22px); }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; background: #f8f9fa; margin: 0; padding: 0; display: flex; justify-content: center; color: #111111; -webkit-text-size-adjust: 100%; }
+        .app-container { background: #ffffff; width: 100%; max-width: 540px; min-height: 100vh; border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef; padding: clamp(12px, 3.5vw, 20px); position: relative; }
         
+        /* ★上部ナビゲーションヘッダー */
+        .top-navbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111111; padding-bottom: 10px; margin-bottom: 15px; }
+        .btn-hamburger { background: transparent; border: none; font-size: 22px; cursor: pointer; padding: 2px 8px; line-height: 1; border-radius: 4px; }
+        .btn-hamburger:hover { background: #f1f1f1; }
+        .nav-app-title { font-size: 16px; font-weight: bold; }
+
+        /* ★スライドイン・サイドメニュー（ドロワー） */
+        .drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99998; backdrop-filter: blur(2px); }
+        .drawer-menu { position: fixed; top: 0; left: 0; width: 280px; height: 100%; background: #ffffff; z-index: 99999; transform: translateX(-100%); transition: transform 0.25s ease; box-shadow: 2px 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; }
+        .drawer-menu.open { transform: translateX(0); }
+        .drawer-header { padding: 18px 16px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; }
+        .drawer-links { padding: 10px 0; overflow-y: auto; flex: 1; }
+        .drawer-item { display: flex; align-items: center; gap: 10px; padding: 12px 20px; font-size: 14px; font-weight: bold; color: #111; cursor: pointer; text-decoration: none; border-bottom: 1px solid #f8f9fa; transition: 0.1s; }
+        .drawer-item:hover { background: #f1f3f5; }
+        .drawer-divider { height: 1px; background: #dee2e6; margin: 8px 0; }
+
         .screen { display: none; }
-        .header-title { border-bottom: 2px solid #111111; padding-bottom: 8px; margin-bottom: 12px; text-align: center; font-size: clamp(16px, 4vw, 19px); font-weight: bold; }
+        .header-title { border-bottom: 1px solid #dee2e6; padding-bottom: 8px; margin-bottom: 12px; text-align: center; font-size: clamp(15px, 4vw, 18px); font-weight: bold; }
         .info-text { font-size: 13px; margin-bottom: 6px; font-weight: bold; color: #111111; }
         
         .btn-back { background: white; border: 1px solid #111111; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: inline-block; font-size: 12px; }
@@ -28,7 +44,7 @@
         .btn-mini-copy { background: #111111; color: white; border: none; padding: 3px 7px; border-radius: 3px; font-size: 11px; cursor: pointer; }
         .btn-mini-regen { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 2px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; }
 
-        /* メニュー */
+        /* メニューカード */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(8px, 2vw, 12px); margin-top: 10px; }
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: clamp(15px, 4vw, 22px) 8px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
@@ -98,7 +114,6 @@
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
         
-        /* バッジ色設定（遅刻:ピンク、早退:緑、両方未定:オレンジ） */
         .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-both-orange { background-color: #ffe0b2; color: #d9480f; border: 1px solid #ff922b; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
@@ -117,12 +132,16 @@
 
         .group-setup-card { border: 1px solid #111111; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #ffffff; }
         
-        /* 12色設定行 */
-        .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .swatch-btn { width: 34px; height: 34px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
+        /* 動的カテゴリ設定スタイル */
+        .color-slot-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .swatch-btn { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #111111; cursor: pointer; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4); }
+        .btn-del-slot { background: #ffffff; color: #dc3545; border: 1px solid #dc3545; border-radius: 4px; padding: 8px 10px; font-size: 11px; cursor: pointer; font-weight: bold; flex-shrink: 0; }
+        .btn-del-slot:hover { background: #dc3545; color: white; }
+        .btn-add-slot { width: 100%; padding: 10px; background: #ffffff; color: #111111; border: 1px dashed #111111; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 6px; margin-bottom: 12px; }
+        .btn-add-slot:hover { background: #f1f3f5; }
 
-        /* 手書き再現カラーモーダル */
-        .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+        /* カラーモーダル */
+        .swatch-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center; }
         .swatch-modal { background: #fff; padding: 16px; border-radius: 10px; width: 94%; max-width: 420px; border: 1px solid #111; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
         
         .palette-flex-layout { display: flex; gap: 14px; align-items: center; justify-content: space-between; margin-top: 10px; }
@@ -139,15 +158,29 @@
         .tile-white { background-color: #ffffff; color: #111111; }
         
         .preview-tile-box { width: 100%; height: 40px; border-radius: 6px; border: 2px solid #111111; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #111111; }
+
+        /* ★脱会3択モーダル */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center; }
+        .modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 90%; max-width: 380px; border: 1px solid #111; text-align: center; }
+        .modal-btn-member { width: 100%; padding: 12px; background: #212529; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; margin-bottom: 8px; }
+        .modal-btn-leave { width: 100%; padding: 12px; background: #dc3545; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; margin-bottom: 8px; }
+        .modal-btn-cancel { width: 100%; padding: 10px; background: #ffffff; color: #555; border: 1px solid #ced4da; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
 
+    <!-- ★常設トップナビゲーションヘッダー（サイドメニュー開閉ボタン付き） -->
+    <div class="top-navbar" id="topNavbar">
+        <button type="button" class="btn-hamburger" onclick="window.openDrawer()">☰</button>
+        <span class="nav-app-title">出欠連絡・管理システム</span>
+        <div style="width: 34px;"></div> <!-- レイアウト均等用 -->
+    </div>
+
     <!-- 画面0: ログイン画面 -->
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
-        <div class="header-title">出欠連絡・管理システム</div>
+        <div class="header-title">ログイン</div>
         <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
         <button class="submit-btn" id="loginBtn" onclick="window.handleLoginClick ? window.handleLoginClick() : (window.doLogin ? window.doLogin() : null)">ログイン</button>
     </div>
@@ -163,7 +196,7 @@
 
     <!-- 画面0.6: 共通グループ参加・作成画面 -->
     <div id="join-group-screen" class="screen">
-        <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.goBackOrHome()">← メニューへ戻る</button>
+        <button class="btn-back" id="joinBackBtn" style="display:none;" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">グループの参加・追加</div>
 
         <div class="group-setup-card">
@@ -185,7 +218,7 @@
         </div>
     </div>
 
-    <!-- 画面1: ホーム画面 -->
+    <!-- 画面1: ホーム画面（メニュー） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
@@ -234,14 +267,14 @@
             </div>
             <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
-                <div class="menu-sub">パステルカラーパレットで項目名・配色変更</div>
+                <div class="menu-sub">自由に追加・削除して項目名・配色変更</div>
             </div>
         </div>
     </div>
 
     <!-- 画面2: 連絡送信画面 -->
     <div id="user-report" class="screen">
-        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">欠席・遅刻・早退の連絡</div>
 
         <div class="cal-box">
@@ -302,7 +335,7 @@
 
     <!-- 画面3: 出欠確認画面 -->
     <div id="user-view" class="screen">
-        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">出欠状況の確認</div>
 
         <div class="cal-box">
@@ -341,7 +374,7 @@
 
     <!-- 画面4: メンバー一覧画面 -->
     <div id="user-members" class="screen">
-        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">所属メンバー一覧</div>
 
         <div style="font-size: 13px; margin-bottom: 12px;">
@@ -355,7 +388,7 @@
 
     <!-- 画面5: （管理者用）予定の追加・削除画面 -->
     <div id="admin-add-events" class="screen">
-        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
+        <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">活動予定の追加・削除（管理者機能）</div>
         
         <div class="cal-box">
@@ -463,26 +496,68 @@
         <button class="add-btn" id="addEventBtn">この予定をカレンダーに登録</button>
     </div>
 
-    <!-- 画面6: （管理者用）パステル12色設定画面 -->
+    <!-- 画面6: （管理者用）カテゴリ・色設定画面 -->
     <div id="admin-color-settings" class="screen">
-        <button class="btn-back" onclick="window.goBackOrHome()">← メニューへ戻る</button>
-        <div class="header-title">カテゴリ・色設定（最大12色）</div>
+        <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
+        <div class="header-title">カテゴリ・色設定</div>
         <p style="font-size: 12px; color: #555; margin-bottom: 12px;">
-            四角をタップして<strong>パステルカラーパレットから色を選択</strong>し、項目名を入力してください。
+            色ボタンを押してパレットから配色を変更し、項目名を入力してください。<strong>必要な数だけ自由に追加・削除</strong>できます。
         </p>
 
         <div style="border: 1px solid #ced4da; padding: 12px; border-radius: 6px; background: #fafafa;">
             <div id="colorSlotsContainer"></div>
-            <div style="display: flex; gap: 8px; margin-top: 15px;">
+            
+            <button type="button" class="btn-add-slot" onclick="addNewCategorySlot()">＋ 新しいカテゴリを追加</button>
+
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
                 <button class="add-btn" id="saveCustomCategoriesBtn" style="flex: 2; margin-top: 0;">設定を保存する</button>
-                <button type="button" class="btn-back" style="flex: 1; margin-bottom: 0; padding: 10px 0; font-size: 12px;" onclick="resetToDefault12Colors()">基本12色にリセット</button>
+                <button type="button" class="btn-back" style="flex: 1; margin-bottom: 0; padding: 10px 0; font-size: 12px;" onclick="resetToDefault12Colors()">基本セットにリセット</button>
             </div>
         </div>
     </div>
 
 </div>
 
-<!-- ★手書き図面を再現したカラーモーダル -->
+<!-- ★サイドメニュー（ドロワー）本体 -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="window.closeDrawer()"></div>
+<div class="drawer-menu" id="drawerMenu">
+    <div class="drawer-header">
+        <strong style="font-size: 15px;">メニュー案内</strong>
+        <button type="button" class="btn-back" style="padding: 2px 8px; margin-bottom: 0;" onclick="window.closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-links">
+        <div class="drawer-item" onclick="window.navigateFromDrawer('user-home')">🏠 メニューTOP</div>
+        <div class="drawer-item" onclick="window.navigateFromDrawer('user-report')">📝 連絡をする</div>
+        <div class="drawer-item" onclick="window.navigateFromDrawer('user-view')">📊 出欠の確認</div>
+        <div class="drawer-item" onclick="window.navigateFromDrawer('user-members')">👥 メンバー一覧</div>
+        
+        <div class="admin-only-feature" style="display: none;">
+            <div class="drawer-divider"></div>
+            <div style="padding: 6px 20px; font-size: 11px; color: #888; font-weight: bold;">管理者メニュー</div>
+            <div class="drawer-item" onclick="window.navigateFromDrawer('admin-add-events')">📅 予定の追加・削除</div>
+            <div class="drawer-item" onclick="window.navigateFromDrawer('admin-color-settings')">🎨 カテゴリ・色設定</div>
+        </div>
+
+        <div class="drawer-divider"></div>
+        <div class="drawer-item" onclick="window.navigateFromDrawer('join-group-screen')">＋ グループ追加・作成</div>
+    </div>
+</div>
+
+<!-- ★脱会3択モーダル（誤タップ救済） -->
+<div class="modal-overlay" id="leaveGroupModalOverlay" onclick="window.closeLeaveModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="font-weight: bold; font-size: 15px; margin-bottom: 8px;">グループの脱会・権限変更</div>
+        <p style="font-size: 12px; color: #555; margin-bottom: 16px; line-height: 1.5;">
+            管理者権限のみを辞退して「一般メンバー」としてグループに残るか、完全に脱会するかを選択してください。
+        </p>
+
+        <button type="button" class="modal-btn-member" onclick="window.confirmLeaveAsMember()">① 一般メンバーとして残る</button>
+        <button type="button" class="modal-btn-leave" onclick="window.confirmLeaveCompletely()">② グループから完全に脱会する</button>
+        <button type="button" class="modal-btn-cancel" onclick="window.closeLeaveModalDirect()">キャンセル（何もしない）</button>
+    </div>
+</div>
+
+<!-- ★カラーモーダル -->
 <div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
     <div class="swatch-modal" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -614,7 +689,9 @@
   let currentPickedHex = "#ff9ebb";
   let currentSelectionMode = "wheel";
 
-  const defaultCategorySlots12 = [
+  let currentEditingSlots = [];
+
+  const defaultCategorySlots = [
     { color: '#ff9ebb', name: 'ミーティング' },
     { color: '#ffb3c6', name: '企画準備' },
     { color: '#ffa894', name: '衣装係' },
@@ -628,6 +705,22 @@
     { color: '#e8a8ff', name: 'ステージ' },
     { color: '#adb5bd', name: '提出締切' }
   ];
+
+  /* ★サイドメニュー操作 */
+  window.openDrawer = () => {
+    document.getElementById('drawerOverlay').style.display = 'block';
+    document.getElementById('drawerMenu').classList.add('open');
+  };
+
+  window.closeDrawer = () => {
+    document.getElementById('drawerOverlay').style.display = 'none';
+    document.getElementById('drawerMenu').classList.remove('open');
+  };
+
+  window.navigateFromDrawer = (screenId) => {
+    window.closeDrawer();
+    window.showScreen(screenId);
+  };
 
   function hsvToRgb(h, s, v) {
     let r, g, b;
@@ -795,9 +888,8 @@
 
   window.openSwatchModal = (slotIndex) => {
     activeEditingSlotIndex = slotIndex;
-    const btn = document.getElementById(`slot_btn_${slotIndex}`);
-    if (btn) {
-      currentPickedHex = btn.dataset.color || "#ff9ebb";
+    if (currentEditingSlots[slotIndex]) {
+      currentPickedHex = currentEditingSlots[slotIndex].color || "#ff9ebb";
       updatePreviewBox(currentPickedHex);
     }
     currentSelectionMode = "wheel";
@@ -815,12 +907,9 @@
   };
 
   window.applyWheelColor = () => {
-    if (activeEditingSlotIndex >= 0) {
-      const btn = document.getElementById(`slot_btn_${activeEditingSlotIndex}`);
-      if (btn) {
-        btn.style.backgroundColor = currentPickedHex;
-        btn.dataset.color = currentPickedHex;
-      }
+    if (activeEditingSlotIndex >= 0 && currentEditingSlots[activeEditingSlotIndex]) {
+      currentEditingSlots[activeEditingSlotIndex].color = currentPickedHex;
+      renderColorSlotsUI();
     }
     closeSwatchModalDirect();
   };
@@ -896,6 +985,10 @@
     }
   };
 
+  window.goHome = () => {
+    window.showScreen('user-home');
+  };
+
   window.showScreen = (screenId, pushHistory = true) => {
     if (currentScreenId === screenId && document.getElementById(screenId).style.display === 'block') return;
     
@@ -926,11 +1019,7 @@
   };
 
   window.goBackOrHome = () => {
-    if (history.state && history.state.screen) {
-      history.back();
-    } else {
-      window.showScreen('user-home');
-    }
+    window.goHome();
   };
 
   window.addEventListener('popstate', (e) => {
@@ -938,16 +1027,7 @@
       window.showScreen(e.state.screen, false);
     } else {
       const topScreen = currentUser ? 'user-home' : 'login-screen';
-      if (isLineEntry) {
-        history.pushState({ isHomeGuard: true }, '', location.href);
-        window.showScreen(topScreen, false);
-      } else {
-        if (currentScreenId === topScreen) {
-          history.back();
-        } else {
-          window.showScreen(topScreen, false);
-        }
-      }
+      window.showScreen(topScreen, false);
     }
   });
 
@@ -1126,7 +1206,7 @@
         name: groupName,
         memberCode: memberCode,
         adminCode: adminCode,
-        categorySlots: defaultCategorySlots12,
+        categorySlots: defaultCategorySlots,
         ownerUid: currentUser.uid,
         createdAt: serverTimestamp()
       });
@@ -1148,40 +1228,64 @@
     }
   };
 
-  window.leaveCurrentMemberGroup = async () => {
+  /* ★脱会処理（管理者の場合は3択モーダル表示） */
+  window.leaveCurrentMemberGroup = () => {
     if (!currentGroup) return;
 
+    if (isCurrentAdmin) {
+      // 管理者の場合は3択モーダルを開く
+      document.getElementById('leaveGroupModalOverlay').style.display = 'flex';
+    } else {
+      // メンバーの場合は確実な確認
+      if (confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) {
+        executeCompleteLeave();
+      }
+    }
+  };
+
+  window.closeLeaveModal = (e) => {
+    if (e.target.id === 'leaveGroupModalOverlay') window.closeLeaveModalDirect();
+  };
+
+  window.closeLeaveModalDirect = () => {
+    document.getElementById('leaveGroupModalOverlay').style.display = 'none';
+  };
+
+  /* ① 管理者権限を辞退してメンバーとして残る */
+  window.confirmLeaveAsMember = async () => {
+    window.closeLeaveModalDirect();
     try {
       let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : [];
       let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
 
-      if (isCurrentAdmin) {
-        const choice = confirm(
-          `【管理者機能の変更・脱会】\n\n管理者権限のみを辞退して「一般メンバー」としてグループに残りますか？\n\n・[OK] ➡ 管理者を降りてメンバーとして残る\n・[キャンセル] ➡ 完全脱会へ進む`
-        );
-
-        if (choice) {
-          adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
-          if (!memberGroupIds.includes(currentGroup.id)) {
-            memberGroupIds.push(currentGroup.id);
-          }
-          await setDoc(doc(db, "users", currentUser.uid), {
-            memberGroupIds,
-            adminGroupIds,
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-
-          alert(`管理者権限を辞退し、グループ「${currentGroup.name}」の一般メンバーになりました。`);
-          checkUserProfileAndGroups();
-          return;
-        } else {
-          if (!confirm(`グループ「${currentGroup.name}」から【完全に脱会】しますか？\n（管理者権限もメンバー所属もすべて解除されます）`)) {
-            return;
-          }
-        }
-      } else {
-        if (!confirm(`グループ「${currentGroup.name}」を脱会しますか？`)) return;
+      adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
+      if (!memberGroupIds.includes(currentGroup.id)) {
+        memberGroupIds.push(currentGroup.id);
       }
+
+      await setDoc(doc(db, "users", currentUser.uid), {
+        memberGroupIds,
+        adminGroupIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`管理者権限を辞退し、グループ「${currentGroup.name}」の一般メンバーになりました。`);
+      checkUserProfileAndGroups();
+    } catch (e) {
+      alert("エラー: " + e.message);
+    }
+  };
+
+  /* ② 完全に脱会する */
+  window.confirmLeaveCompletely = () => {
+    window.closeLeaveModalDirect();
+    executeCompleteLeave();
+  };
+
+  async function executeCompleteLeave() {
+    try {
+      let memberGroupIds = Array.isArray(userData.memberGroupIds) ? userData.memberGroupIds : [];
+      let adminGroupIds = Array.isArray(userData.adminGroupIds) ? userData.adminGroupIds : [];
 
       memberGroupIds = memberGroupIds.filter(id => id !== currentGroup.id);
       adminGroupIds = adminGroupIds.filter(id => id !== currentGroup.id);
@@ -1198,7 +1302,7 @@
     } catch (e) {
       alert("脱会エラー: " + e.message);
     }
-  };
+  }
 
   document.getElementById('editProfileBtn').onclick = () => {
     document.getElementById('regName').value = (userData && (userData.name || userData.kanjiName)) || "";
@@ -1234,7 +1338,9 @@
   }
 
   function getGroupCategorySlots() {
-    if (!currentGroup || !currentGroup.categorySlots) return defaultCategorySlots12;
+    if (!currentGroup || !currentGroup.categorySlots || !Array.isArray(currentGroup.categorySlots)) {
+      return defaultCategorySlots;
+    }
     return currentGroup.categorySlots;
   }
 
@@ -1486,54 +1592,73 @@
   };
 
   function loadColorSettingsScreen() {
-    const slots = getGroupCategorySlots();
+    currentEditingSlots = JSON.parse(JSON.stringify(getGroupCategorySlots()));
+    renderColorSlotsUI();
+  }
+
+  function renderColorSlotsUI() {
     const container = document.getElementById('colorSlotsContainer');
     if (!container) return;
     container.innerHTML = "";
 
-    for (let i = 0; i < 12; i++) {
-      const slot = slots[i] || (defaultCategorySlots12[i] || { color: '#ff9ebb', name: '' });
+    if (currentEditingSlots.length === 0) {
+      container.innerHTML = '<p style="color:#888; font-size:12px; text-align:center; padding:10px;">カテゴリが登録されていません。「＋ 新しいカテゴリを追加」から作成してください。</p>';
+      return;
+    }
+
+    currentEditingSlots.forEach((slot, index) => {
       const row = document.createElement('div');
       row.className = "color-slot-row";
       row.innerHTML = `
-        <button type="button" class="swatch-btn" id="slot_btn_${i}" data-color="${slot.color}" style="background-color: ${slot.color};" onclick="openSwatchModal(${i})"></button>
-        <span style="font-size:12px; font-weight:bold; color:#555; width:22px;">${i + 1}</span>
-        <input type="text" id="name_slot_${i}" value="${slot.name || ''}" placeholder="項目名（例：全体MTG）" style="flex: 1; margin-bottom: 0;">
+        <button type="button" class="swatch-btn" id="slot_btn_${index}" style="background-color: ${slot.color || '#ff9ebb'};" onclick="openSwatchModal(${index})"></button>
+        <span style="font-size:12px; font-weight:bold; color:#555; width:20px; text-align:center;">${index + 1}</span>
+        <input type="text" id="name_slot_${index}" value="${slot.name || ''}" placeholder="項目名（例：全体ミーティング）" style="flex: 1; margin-bottom: 0;" oninput="updateSlotName(${index}, this.value)">
+        <button type="button" class="btn-del-slot" onclick="deleteCategorySlot(${index})">削除</button>
       `;
       container.appendChild(row);
-    }
+    });
   }
 
-  window.resetToDefault12Colors = () => {
-    if (!confirm("基本の12色セットにリセットしますか？")) return;
-    for (let i = 0; i < 12; i++) {
-      const def = defaultCategorySlots12[i];
-      const btn = document.getElementById(`slot_btn_${i}`);
-      const nameInput = document.getElementById(`name_slot_${i}`);
-      if (btn) {
-        btn.style.backgroundColor = def.color;
-        btn.dataset.color = def.color;
-      }
-      if (nameInput) nameInput.value = def.name;
+  window.updateSlotName = (index, value) => {
+    if (currentEditingSlots[index]) {
+      currentEditingSlots[index].name = value;
     }
+  };
+
+  window.addNewCategorySlot = () => {
+    const presetPalette = ['#ff9ebb', '#ffb3c6', '#ffa894', '#ffc078', '#ffe066', '#bbf060', '#96f2a4', '#8ce9ff', '#94c8ff', '#c7a8ff', '#e8a8ff', '#adb5bd'];
+    const nextColor = presetPalette[currentEditingSlots.length % presetPalette.length];
+    currentEditingSlots.push({ color: nextColor, name: '' });
+    renderColorSlotsUI();
+  };
+
+  window.deleteCategorySlot = (index) => {
+    if (currentEditingSlots.length <= 1) {
+      if (!confirm("最後の1件です。本当に削除しますか？")) return;
+    }
+    currentEditingSlots.splice(index, 1);
+    renderColorSlotsUI();
+  };
+
+  window.resetToDefault12Colors = () => {
+    if (!confirm("基本セット（12色）にリセットしますか？")) return;
+    currentEditingSlots = JSON.parse(JSON.stringify(defaultCategorySlots));
+    renderColorSlotsUI();
   };
 
   document.getElementById('saveCustomCategoriesBtn').onclick = async () => {
     if (!currentGroup || !isCurrentAdmin) return;
-    const newSlots = [];
-    for (let i = 0; i < 12; i++) {
-      const btn = document.getElementById(`slot_btn_${i}`);
-      const nameInput = document.getElementById(`name_slot_${i}`);
-      const color = btn ? (btn.dataset.color || '#ff9ebb') : '#ff9ebb';
-      const name = nameInput ? nameInput.value.trim() : '';
-      newSlots.push({ color, name });
+
+    const cleanedSlots = currentEditingSlots.filter(s => s && s.name && s.name.trim() !== "");
+    if (cleanedSlots.length === 0) {
+      return alert("少なくとも1つ以上のカテゴリ名を入力してください。");
     }
 
     try {
-      await setDoc(doc(db, "groups", currentGroup.id), { categorySlots: newSlots }, { merge: true });
-      currentGroup.categorySlots = newSlots;
-      alert("12色のカテゴリ設定を保存しました。");
-      window.showScreen('user-home');
+      await setDoc(doc(db, "groups", currentGroup.id), { categorySlots: cleanedSlots }, { merge: true });
+      currentGroup.categorySlots = cleanedSlots;
+      alert("カテゴリ設定を保存しました。");
+      window.goHome();
     } catch (e) {
       alert("保存エラー: " + e.message);
     }
@@ -1899,7 +2024,7 @@
         timestamp: serverTimestamp()
       });
       alert("送信が完了しました。");
-      window.showScreen('user-home');
+      window.goHome();
     } catch (e) {
       alert("送信エラー: " + e.message);
     }
@@ -2120,7 +2245,7 @@
       updateSelectedDatesUI();
       document.getElementById('eventTitle').value = "";
       document.getElementById('eventDescription').value = "";
-      window.showScreen('user-home');
+      window.goHome();
     } catch (e) {
       alert("登録エラー: " + e.message);
     }
