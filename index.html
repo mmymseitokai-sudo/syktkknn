@@ -47,18 +47,18 @@
         .cal-day.selectable { cursor: pointer; }
         .cal-day.selectable:hover { text-decoration: underline; }
         
-        .cal-day.selected { background-color: #e9ecef !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
-        .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
+        .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
+        .cal-day.add-selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
-        /* 丸マーク（文字色は常に黒色に固定） */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.15); color: #111111 !important; }
+        /* パステル丸マーク（選んだ通りの淡い色で表示・黒文字固定） */
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.1); color: #111111 !important; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
         /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: clamp(6px, 1.8vw, 10px); font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.15); }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
 
         .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 12px; margin-bottom: 12px; text-align: center; }
         .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; line-height: 1.4; }
@@ -124,7 +124,7 @@
 
         .preset-tile-btn { width: 100%; height: 44px; border-radius: 6px; border: 1px solid #111111; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.1s; }
         .preset-tile-btn:active { transform: scale(0.96); }
-        .tile-black { background-color: #8c9399; color: #111111; }
+        .tile-black { background-color: #ced4da; color: #111111; }
         .tile-white { background-color: #ffffff; color: #111111; }
         
         .preview-tile-box { width: 100%; height: 40px; border-radius: 6px; border: 2px solid #111111; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #111111; }
@@ -492,9 +492,8 @@
                 </div>
             </div>
 
-            <!-- 右：黒色・白色タイル ＆ プレビュー・決定ボタン -->
+            <!-- 右：黒色（淡いアッシュグレー）・白色タイル ＆ プレビュー・決定ボタン -->
             <div class="palette-right">
-                <!-- ★黒文字が読める限界の濃さまで設定可能な黒色タイル -->
                 <button type="button" class="preset-tile-btn tile-black" id="tileBlackBtn" onclick="selectDirectColor('black')">
                     黒色
                 </button>
@@ -602,7 +601,7 @@
   let currentPickedHex = "#ffb8c6";
   let currentSelectionMode = "wheel";
 
-  // 基本12色パステル（12番目は黒文字がしっかり読める濃いダークグレー）
+  // 基本12色パステル（12番目は上品で淡いパステルグレー）
   const defaultCategorySlots12 = [
     { color: '#ffb8c6', name: 'ミーティング' },
     { color: '#ffd1dc', name: '企画準備' },
@@ -615,7 +614,7 @@
     { color: '#b4d9ff', name: 'リハーサル' },
     { color: '#e0cffc', name: '音響・照明' },
     { color: '#f0d9ff', name: 'ステージ' },
-    { color: '#8c9399', name: '提出締切' }
+    { color: '#ced4da', name: '提出締切' }
   ];
 
   function hsvToRgb(h, s, v) {
@@ -640,6 +639,7 @@
     return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
+  // ★中心が「白」で外側が「淡いパステル」の色相環描画
   function drawColorWheel() {
     const canvas = document.getElementById('colorWheelCanvas');
     if (!canvas) return;
@@ -746,9 +746,9 @@
       document.getElementById('saturationValText').innerText = `${e.target.value}%`;
       
       if (currentSelectionMode === "black") {
-        // ★黒文字が読める限界ギリギリの濃さ（RGB 95〜175）へマッピング
+        // ★淡く優しいアッシュグレー〜シルバー系（RGB 180〜225）
         const val = parseInt(e.target.value, 10);
-        const grayVal = Math.round(95 + (val - 15) * (80 / 30));
+        const grayVal = Math.round(180 + (val - 15) * (45 / 30));
         currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
         document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
         updatePreviewBox(currentPickedHex);
@@ -763,7 +763,6 @@
     });
   }
 
-  // ★プレビュー枠の文字色は常に黒色に固定
   function updatePreviewBox(hex) {
     const preview = document.getElementById('wheelColorPreview');
     if (preview) {
@@ -776,9 +775,9 @@
   window.selectDirectColor = (type) => {
     currentSelectionMode = type;
     if (type === 'black') {
-      document.getElementById('sliderLabelText').innerText = "黒の濃淡（明度）";
+      document.getElementById('sliderLabelText').innerText = "グレーの濃淡";
       const sliderVal = parseInt(document.getElementById('saturationSlider').value, 10) || 35;
-      const grayVal = Math.round(95 + (sliderVal - 15) * (80 / 30));
+      const grayVal = Math.round(180 + (sliderVal - 15) * (45 / 30));
       currentPickedHex = rgbToHex(grayVal, grayVal, grayVal);
       document.getElementById('tileBlackBtn').style.backgroundColor = currentPickedHex;
     } else {
@@ -1463,7 +1462,6 @@
         const circle = document.createElement('div');
         circle.className = "circle-mark";
         circle.style.backgroundColor = eventColor;
-        // ★文字色は常に黒色に固定
         circle.style.color = '#111111';
         circle.innerText = d;
 
