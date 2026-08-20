@@ -10,7 +10,7 @@
         .app-container { background: #ffffff; width: 100%; max-width: 540px; min-height: 100vh; border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef; padding: clamp(12px, 3.5vw, 20px); position: relative; }
         
         /* 上部ナビゲーションヘッダー */
-        .top-navbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111111; padding-bottom: 10px; margin-bottom: 15px; }
+        .top-navbar { display: none; justify-content: space-between; align-items: center; border-bottom: 2px solid #111111; padding-bottom: 10px; margin-bottom: 15px; }
         .btn-hamburger { background: transparent; border: none; font-size: 22px; cursor: pointer; padding: 2px 8px; line-height: 1; border-radius: 4px; }
         .btn-hamburger:hover { background: #f1f1f1; }
         .nav-app-title { font-size: 16px; font-weight: bold; }
@@ -65,7 +65,6 @@
         .cal-day.selectable:hover { background-color: #f8f9fa; }
         
         .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
-        /* ★追加選択中の太枠強調（既存予定がある日も黒太枠で確実に強調） */
         .cal-day.add-selected { background-color: #e9ecef !important; outline: 3px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
         /* パステル丸マーク */
@@ -242,7 +241,7 @@
         </div>
     </div>
 
-    <!-- 画面1: ホーム画面 -->
+    <!-- 画面1: ホーム画面（手書き図面レイアウト ＆ 以前の分かりやすいボタン文字） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
@@ -271,7 +270,7 @@
             </div>
         </div>
 
-        <!-- 手書き図面配置メニュー -->
+        <!-- 手書き図面の配置 ＆ 以前の文字に復元したメニュー -->
         <div class="menu-grid" id="homeMenuGrid">
             <!-- 1. 予定一覧（常に全幅） -->
             <div class="menu-card menu-card-full" onclick="window.showScreen('all-events-view')">
@@ -361,6 +360,7 @@
             <div class="cal-legend" id="reportCalLegend"></div>
         </div>
 
+        <!-- 同日に複数予定がある場合の選択ボタン群 -->
         <div id="reportMultiEventSelectBox" class="multi-event-select-box" style="display: none;"></div>
 
         <div class="selected-event-card" id="reportSelectedEventCard">
@@ -470,7 +470,6 @@
         <div class="header-title">活動予定の追加・削除（管理者機能）</div>
         
         <div class="cal-box">
-            <!-- わかりやすい操作ガイド -->
             <div style="font-size: 11px; text-align:center; margin-bottom:5px; color:#555;">
                 日付マスをタップして選択（同日追加も可能） / 選択中の予定は削除可能
             </div>
@@ -740,6 +739,7 @@
 
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
     } catch (e) {
       if (btn) {
@@ -747,7 +747,9 @@
         btn.disabled = false;
       }
       if (notice) notice.innerText = "Googleアカウントでログインしてください。";
-      if (e.code !== 'auth/popup-closed-by-user') {
+      if (e.code === 'auth/popup-blocked') {
+        alert("ポップアップがブロックされました。ブラウザの設定でポップアップを許可するか、Safari/Chromeなどの通常ブラウザでお試しください。");
+      } else if (e.code !== 'auth/popup-closed-by-user') {
         alert("ログインエラー: " + e.message);
       }
     }
@@ -1155,6 +1157,12 @@
       history.pushState({ screen: screenId }, '', '');
     }
     currentScreenId = screenId;
+
+    // ログイン前画面（ログイン・初期登録）ではヘッダーバーを非表示にする
+    const topNav = document.getElementById('topNavbar');
+    if (topNav) {
+      topNav.style.display = (screenId === 'login-screen' || screenId === 'profile-screen') ? 'none' : 'flex';
+    }
 
     if (screenId === 'user-report') renderCalendar('report');
     if (screenId === 'user-view') renderCalendar('view');
@@ -1647,9 +1655,11 @@
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        // 現在のグループ用
         if (data.groupId === currentGroup.id) {
           allEvents.push({ id: docSnap.id, ...data });
         }
+        // 全参加グループ横断用
         if (myGroupMap.has(data.groupId)) {
           const gInfo = myGroupMap.get(data.groupId);
           allMyGroupEvents.push({
@@ -1901,7 +1911,6 @@
       });
     }
 
-    // カレンダー選択ラジオをアクティブにする
     const calRadio = document.querySelector('input[name="repeatType"][value="calendar"]');
     if (calRadio) calRadio.checked = true;
     document.getElementById('boxCalendar').style.display = 'block';
@@ -1949,7 +1958,6 @@
         circle.className = "circle-mark";
         circle.innerText = d;
 
-        // 複数予定がある場合は白丸、1件ならカテゴリ色
         if (dayEvents.length > 1) {
           circle.classList.add('circle-multi');
         } else {
@@ -1965,7 +1973,7 @@
           if (selectedDateForView === dateStr) div.classList.add('selected');
           div.onclick = () => selectDateForView(dateStr, div);
         } else {
-          // ★予定の追加・削除画面：マスのどこを押しても確実に日付追加選択できる！
+          // 予定の追加・削除画面：マスのどこを押しても確実に日付追加選択できる
           if (selectedDatesForAdd.has(dateStr)) div.classList.add('add-selected');
 
           const hasSelectedForDel = dayEvents.some(ev => selectedEventIdsForDelete.has(ev.id));
@@ -2453,4 +2461,217 @@
 
     if (count === 0) {
       listEl.innerText = "上のカレンダーの日付をタップして選んでください（すでに予定がある日も選択可能）";
-      addBtn.innerText = "この予定を登録する"
+      addBtn.innerText = "この予定を登録する";
+    } else {
+      const sortedDates = Array.from(selectedDatesForAdd).sort();
+      listEl.innerText = sortedDates.join(', ');
+      addBtn.innerText = `この予定を登録する（${count}件一括）`;
+    }
+  }
+
+  window.clearSelectedDatesForAdd = () => {
+    selectedDatesForAdd.clear();
+    updateSelectedDatesUI();
+    renderCalendar('add');
+  };
+
+  function updateActionBar() {
+    const delBtn = document.getElementById('deleteEventsBtn');
+    const copyBtn = document.getElementById('copyEventBtn');
+    const count = selectedEventIdsForDelete.size;
+
+    if (count > 0) {
+      delBtn.disabled = false;
+      delBtn.innerText = `選択した予定を削除（${count}件）`;
+      copyBtn.disabled = false;
+      copyBtn.innerText = `この予定の内容をコピー`;
+    } else {
+      delBtn.disabled = true;
+      delBtn.innerText = "選択した予定を削除";
+      copyBtn.disabled = true;
+      copyBtn.innerText = "この予定の内容をコピー";
+    }
+  }
+
+  function applyEventToForm(ev) {
+    if (!ev) return;
+    if (ev.year) document.getElementById('eventYear').value = ev.year;
+    if (ev.color) document.getElementById('eventCategorySelect').value = ev.color;
+    if (ev.title) document.getElementById('eventTitle').value = ev.title;
+    if (ev.description) document.getElementById('eventDescription').value = ev.description;
+
+    if (ev.timeType) {
+      const radio = document.querySelector(`input[name="timeType"][value="${ev.timeType}"]`);
+      if (radio) radio.checked = true;
+      document.getElementById('customTimeBox').style.display = (ev.timeType === 'custom') ? 'flex' : 'none';
+
+      if (ev.timeType === 'custom' && ev.timeText && ev.timeText.includes('〜')) {
+        const parts = ev.timeText.split('〜');
+        document.getElementById('startTime').value = parts[0];
+        document.getElementById('endTime').value = parts[1];
+      }
+    }
+    alert(`予定「${ev.title}」の内容をコピーしました。\nカレンダーから日付を選択して登録してください。`);
+  }
+
+  document.getElementById('copyEventBtn').onclick = () => {
+    if (!lastSelectedEventForCopy) return;
+    applyEventToForm(lastSelectedEventForCopy);
+  };
+
+  function updateQuickCopySelect() {
+    const sel = document.getElementById('quickCopySelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">選択してください...</option>';
+    const seenTitles = new Set();
+    allEvents.forEach((ev, idx) => {
+      if (ev.title && !seenTitles.has(ev.title)) {
+        seenTitles.add(ev.title);
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = `[${ev.categoryTitle || ev.category}] ${ev.title} (${ev.timeText || ''})`;
+        sel.appendChild(opt);
+      }
+    });
+  }
+
+  document.getElementById('quickCopySelect').onchange = (e) => {
+    const idx = e.target.value;
+    if (idx === "") return;
+    const ev = allEvents[parseInt(idx, 10)];
+    if (ev) applyEventToForm(ev);
+    e.target.value = "";
+  };
+
+  document.getElementById('deleteEventsBtn').onclick = async () => {
+    const count = selectedEventIdsForDelete.size;
+    if (count === 0) return;
+    if (!confirm(`選択した ${count} 件の予定をカレンダーから削除しますか？`)) return;
+
+    try {
+      const promises = Array.from(selectedEventIdsForDelete).map(id => deleteDoc(doc(db, "events", id)));
+      await Promise.all(promises);
+      selectedEventIdsForDelete.clear();
+      lastSelectedEventForCopy = null;
+      updateActionBar();
+      alert("選択した予定を削除しました。");
+    } catch (e) {
+      alert("削除エラー: " + e.message);
+    }
+  };
+
+  function getDatesBetween(startDateStr, endDateStr) {
+    const dates = [];
+    let current = new Date(startDateStr + "T00:00:00");
+    const end = new Date(endDateStr + "T00:00:00");
+    while (current <= end) {
+      const y = current.getFullYear();
+      const m = String(current.getMonth() + 1).padStart(2, '0');
+      const d = String(current.getDate()).padStart(2, '0');
+      dates.push(`${y}-${m}-${d}`);
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }
+
+  document.getElementById('addEventBtn').onclick = async () => {
+    if (!currentGroup || !isCurrentAdmin) return alert("管理者権限がありません");
+
+    const year = document.getElementById('eventYear').value;
+    const colorSelect = document.getElementById('eventCategorySelect');
+    const selectedColorHex = colorSelect.value;
+    const selectedOption = colorSelect.options[colorSelect.selectedIndex];
+    const categoryTitle = selectedOption ? selectedOption.dataset.categoryName : "予定";
+
+    const title = document.getElementById('eventTitle').value.trim();
+    const description = document.getElementById('eventDescription').value.trim();
+    const repeatType = document.querySelector('input[name="repeatType"]:checked').value;
+    const timeType = document.querySelector('input[name="timeType"]:checked').value;
+
+    if (!title) return alert("予定タイトルを入力してください");
+
+    let targetDates = [];
+
+    if (repeatType === 'calendar') {
+      if (selectedDatesForAdd.size === 0) {
+        return alert("カレンダーから登録したい日付をタップして選択してください。");
+      }
+      targetDates = Array.from(selectedDatesForAdd);
+    } else if (repeatType === 'weekly') {
+      const start = document.getElementById('weeklyStartDate').value;
+      const end = document.getElementById('weeklyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const checkedDays = Array.from(document.querySelectorAll('.chk-weekday:checked')).map(c => parseInt(c.value, 10));
+      if (checkedDays.length === 0) return alert("くり返す曜日にチェックを入れてください");
+
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayOfWeek = new Date(dStr + "T00:00:00").getDay();
+        return checkedDays.includes(dayOfWeek);
+      });
+    } else if (repeatType === 'monthly') {
+      const start = document.getElementById('monthlyStartDate').value;
+      const end = document.getElementById('monthlyEndDate').value;
+      if (!start || !end) return alert("開始日と終了日を選択してください");
+      if (start > end) return alert("終了日は開始日より後の日付にしてください");
+
+      const targetDayNum = parseInt(document.getElementById('monthlyDaySelect').value, 10);
+      const allDays = getDatesBetween(start, end);
+      targetDates = allDays.filter(dStr => {
+        const dayNum = parseInt(dStr.split('-')[2], 10);
+        return dayNum === targetDayNum;
+      });
+    }
+
+    if (targetDates.length === 0) {
+      return alert("指定された期間・条件に該当する日付がありませんでした。");
+    }
+
+    let timeText = "";
+    if (timeType === "custom") {
+      const s = document.getElementById('startTime').value;
+      const e = document.getElementById('endTime').value;
+      if (!s || !e) return alert("開始時間と終了時間を指定してください");
+      timeText = `${s}〜${e}`;
+    } else if (timeType === "lunch") {
+      timeText = "昼休み";
+    } else if (timeType === "afterschool") {
+      timeText = "放課後";
+    }
+
+    if (!confirm(`合計 ${targetDates.length} 件の予定を一括登録しますか？`)) return;
+
+    try {
+      const promises = targetDates.map(dateStr => {
+        return addDoc(collection(db, "events"), {
+          groupId: currentGroup.id,
+          year,
+          color: selectedColorHex,
+          category: categoryTitle,
+          categoryTitle: categoryTitle,
+          title,
+          description,
+          date: dateStr,
+          timeType,
+          timeText,
+          createdAt: serverTimestamp()
+        });
+      });
+
+      await Promise.all(promises);
+      alert(`${targetDates.length} 件の予定を一括登録しました。`);
+      
+      selectedDatesForAdd.clear();
+      updateSelectedDatesUI();
+      document.getElementById('eventTitle').value = "";
+      document.getElementById('eventDescription').value = "";
+      window.goHome();
+    } catch (e) {
+      alert("登録エラー: " + e.message);
+    }
+  };
+</script>
+</body>
+</html>
