@@ -45,12 +45,13 @@
         .btn-mini-copy { background: #111111; color: white; border: none; padding: 3px 7px; border-radius: 3px; font-size: 11px; cursor: pointer; }
         .btn-mini-regen { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 2px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; }
 
-        /* メニューカード */
+        /* ★手書き図面を再現したメニューカードグリッド */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(8px, 2vw, 12px); margin-top: 10px; }
-        .menu-card { border: 1px solid #111111; border-radius: 6px; padding: clamp(15px, 4vw, 22px) 8px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
+        .menu-card { border: 1px solid #111111; border-radius: 6px; padding: clamp(14px, 3.5vw, 18px) 8px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
-        .menu-title { font-size: clamp(13px, 3.5vw, 15px); font-weight: bold; margin-bottom: 4px; }
-        .menu-sub { font-size: 11px; color: #555555; line-height: 1.3; }
+        .menu-card-full { grid-column: span 2; }
+        .menu-title { font-size: clamp(14px, 3.8vw, 16px); font-weight: bold; margin-bottom: 3px; }
+        .menu-sub { font-size: 11px; color: #666666; line-height: 1.3; }
 
         /* カレンダー */
         .cal-box { border: 1px solid #111111; border-radius: 6px; padding: clamp(6px, 2vw, 10px); margin: 0 auto 12px auto; background: #ffffff; width: 100%; }
@@ -72,7 +73,7 @@
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
-        /* ★複数予定がある日の白丸マーク */
+        /* 複数予定がある日の白丸マーク */
         .circle-mark.circle-multi { background-color: #ffffff !important; border: 2px solid #111111 !important; color: #111111 !important; box-shadow: inset 0 0 0 1px #fff; }
 
         /* 凡例 */
@@ -241,7 +242,7 @@
         </div>
     </div>
 
-    <!-- 画面1: ホーム画面（メニュー） -->
+    <!-- 画面1: ホーム画面（手書き図面を再現したレイアウト） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
@@ -270,36 +271,47 @@
             </div>
         </div>
 
-        <div class="menu-grid">
-            <div class="menu-card" onclick="window.showScreen('user-report')">
-                <div class="menu-title">連絡をする</div>
-                <div class="menu-sub">欠席・遅刻・早退の送信と取り消し</div>
-            </div>
-            <div class="menu-card" onclick="window.showScreen('user-view')">
-                <div class="menu-title">出欠の確認</div>
-                <div class="menu-sub">日ごとの欠席者・遅刻早退者一覧</div>
-            </div>
-            <div class="menu-card" onclick="window.showScreen('all-events-view')">
+        <!-- ★図面配置メニュー：管理者時は2列、メンバー時は縦1列 -->
+        <div class="menu-grid" id="homeMenuGrid">
+            <!-- 1. 予定一覧（常に全幅） -->
+            <div class="menu-card menu-card-full" onclick="window.showScreen('all-events-view')">
                 <div class="menu-title">予定一覧</div>
                 <div class="menu-sub">全グループの予定確認＆直接連絡</div>
             </div>
-            <div class="menu-card" onclick="window.showScreen('user-members')">
-                <div class="menu-title">メンバー一覧</div>
-                <div class="menu-sub">グループ所属メンバー名簿</div>
+
+            <!-- 2. 連絡 -->
+            <div class="menu-card" id="cardReport" onclick="window.showScreen('user-report')">
+                <div class="menu-title">連絡</div>
+                <div class="menu-sub">欠席・遅刻・早退の送信と取り消し</div>
             </div>
 
-            <div class="menu-card admin-only-feature" style="display:none;" onclick="window.showScreen('admin-add-events')">
-                <div class="menu-title">予定の追加・削除</div>
-                <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
+            <!-- 3. 確認 -->
+            <div class="menu-card" id="cardView" onclick="window.showScreen('user-view')">
+                <div class="menu-title">確認</div>
+                <div class="menu-sub">日ごとの出欠状況一覧</div>
             </div>
-            <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
-                <div class="menu-title">カテゴリ・色設定</div>
-                <div class="menu-sub">自由に追加・削除して項目名・配色変更</div>
+
+            <!-- 4. メンバー -->
+            <div class="menu-card" id="cardMembers" onclick="window.showScreen('user-members')">
+                <div class="menu-title">メンバー</div>
+                <div class="menu-sub">所属メンバー名簿</div>
+            </div>
+
+            <!-- 5. カテゴリー（管理者のみ・右列） -->
+            <div class="menu-card admin-only-feature" id="cardCategory" style="display:none;" onclick="window.showScreen('admin-color-settings')">
+                <div class="menu-title">カテゴリー</div>
+                <div class="menu-sub">配色・項目名の変更</div>
+            </div>
+
+            <!-- 6. 予定追加・削除（管理者のみ・最下部全幅） -->
+            <div class="menu-card menu-card-full admin-only-feature" id="cardAddEvents" style="display:none;" onclick="window.showScreen('admin-add-events')">
+                <div class="menu-title">予定追加・削除</div>
+                <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
             </div>
         </div>
     </div>
 
-    <!-- 画面1.5: 参加グループの予定一覧画面（全グループ横断 ＆ 連絡リンク付き） -->
+    <!-- 画面1.5: 参加グループの予定一覧画面 -->
     <div id="all-events-view" class="screen">
         <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">参加グループの予定一覧</div>
@@ -328,7 +340,7 @@
         </div>
     </div>
 
-    <!-- 画面2: 連絡送信画面（同日複数予定の切り替え対応） -->
+    <!-- 画面2: 連絡送信画面 -->
     <div id="user-report" class="screen">
         <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">欠席・遅刻・早退の連絡</div>
@@ -395,7 +407,7 @@
         </div>
     </div>
 
-    <!-- 画面3: 出欠確認画面（同日複数予定の切り替え対応） -->
+    <!-- 画面3: 出欠確認画面 -->
     <div id="user-view" class="screen">
         <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">出欠状況の確認</div>
@@ -416,7 +428,6 @@
             <div class="cal-legend" id="viewCalLegend"></div>
         </div>
 
-        <!-- 同日に複数予定がある場合の切り替えタブ -->
         <div id="viewMultiEventSelectBox" class="multi-event-select-box" style="display: none;"></div>
 
         <div id="viewSelectedInfo" style="text-align: center; font-weight: bold; margin-bottom: 12px; font-size: 13px;">
@@ -1465,6 +1476,21 @@
       adminCodeSec.style.display = 'none';
     }
 
+    // ★手書き図面のレイアウト切り替え（管理者時は2列、メンバー時は縦1列全幅）
+    const cardReport = document.getElementById('cardReport');
+    const cardView = document.getElementById('cardView');
+    const cardMembers = document.getElementById('cardMembers');
+
+    if (isCurrentAdmin) {
+      if (cardReport) cardReport.classList.remove('menu-card-full');
+      if (cardView) cardView.classList.remove('menu-card-full');
+      if (cardMembers) cardMembers.classList.remove('menu-card-full');
+    } else {
+      if (cardReport) cardReport.classList.add('menu-card-full');
+      if (cardView) cardView.classList.add('menu-card-full');
+      if (cardMembers) cardMembers.classList.add('menu-card-full');
+    }
+
     window.showScreen('user-home', false);
     listenGroupData();
   }
@@ -1603,9 +1629,11 @@
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        // 現在のグループ用
         if (data.groupId === currentGroup.id) {
           allEvents.push({ id: docSnap.id, ...data });
         }
+        // 全参加グループ横断用
         if (myGroupMap.has(data.groupId)) {
           const gInfo = myGroupMap.get(data.groupId);
           allMyGroupEvents.push({
@@ -1640,7 +1668,7 @@
         }
       });
       if (selectedEventForReport) checkExistingReport();
-      if (selectedDateForView) updateViewBoard(selectedDateForView);
+      if (selectedDateForView) updateViewBoard(selectedDateForView, selectedEventForView);
     });
 
     onSnapshot(query(collection(db, "users")), (snap) => {
@@ -1743,6 +1771,7 @@
     }
   };
 
+  /* 動的カテゴリ設定画面 */
   function loadColorSettingsScreen() {
     currentEditingSlots = JSON.parse(JSON.stringify(getGroupCategorySlots()));
     renderColorSlotsUI();
@@ -1843,7 +1872,7 @@
     }
   };
 
-  /* ★単一グループ用カレンダー（複数予定日は白丸） */
+  /* 単一グループ用カレンダー（複数予定日は白丸） */
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1895,7 +1924,6 @@
           if (selectedDateForView === dateStr) div.classList.add('selected');
           div.onclick = () => selectDateForView(dateStr, div);
         } else {
-          // 削除・追加画面
           const hasSelected = dayEvents.some(ev => selectedEventIdsForDelete.has(ev.id));
           if (hasSelected) circle.classList.add('is-selected');
           div.onclick = () => {
