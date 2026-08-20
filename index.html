@@ -45,7 +45,7 @@
         .btn-mini-copy { background: #111111; color: white; border: none; padding: 3px 7px; border-radius: 3px; font-size: 11px; cursor: pointer; }
         .btn-mini-regen { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 2px 6px; border-radius: 3px; font-size: 11px; cursor: pointer; }
 
-        /* ★手書き図面を再現したメニューカードグリッド */
+        /* 手書き図面配置のメニューカードグリッド */
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(8px, 2vw, 12px); margin-top: 10px; }
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: clamp(14px, 3.5vw, 18px) 8px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
@@ -66,10 +66,11 @@
         .cal-day.selectable:hover { text-decoration: underline; }
         
         .cal-day.selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; color: #111111 !important; font-weight: bold; }
-        .cal-day.add-selected { background-color: #f1f3f5 !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
+        /* ★追加選択中の枠線強調（既存予定がある日もない日も共通で綺麗に表示） */
+        .cal-day.add-selected { background-color: #e9ecef !important; outline: 2px solid #111111 !important; outline-offset: -2px; font-weight: bold; color: #111111 !important; }
 
         /* パステル丸マーク */
-        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); color: #111111 !important; }
+        .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); color: #111111 !important; cursor: pointer; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
@@ -130,7 +131,7 @@
         .badge-both-orange { background-color: #ffe0b2; color: #d9480f; border: 1px solid #ff922b; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-both { background-color: #ffe8cc; color: #111111; border: 1px solid #ffa94d; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
 
-        /* グループ名バッジ（予定一覧用） */
+        /* グループ名バッジ */
         .badge-group-name { background-color: #212529; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-right: 6px; }
 
         .time-highlight { font-size: 13px; font-weight: bold; color: #111111; margin-top: 3px; }
@@ -271,7 +272,7 @@
             </div>
         </div>
 
-        <!-- ★手書き図面の配置 ＆ 以前の文字に復元したメニュー -->
+        <!-- 図面配置レイアウト（文字は分かりやすい表記） -->
         <div class="menu-grid" id="homeMenuGrid">
             <!-- 1. 予定一覧（常に全幅） -->
             <div class="menu-card menu-card-full" onclick="window.showScreen('all-events-view')">
@@ -471,8 +472,9 @@
         <div class="header-title">活動予定の追加・削除（管理者機能）</div>
         
         <div class="cal-box">
+            <!-- ★案内文を分かりやすく更新 -->
             <div style="font-size: 11px; text-align:center; margin-bottom:5px; color:#555;">
-                日付をタップして複数日選択 / 丸をタップして削除・コピー
+                日付マスをタップして複数日選択（同日追加も可能） / 丸をタップして削除・コピー
             </div>
             <div class="cal-nav">
                 <button onclick="window.changeMonth(-1, 'add')">前月</button>
@@ -523,7 +525,7 @@
                 <button type="button" class="btn-back" style="padding: 2px 8px; font-size: 11px; margin-bottom: 0;" onclick="clearSelectedDatesForAdd()">クリア</button>
             </div>
             <div id="selectedDatesList" style="margin-top: 5px; color: #495057; font-size: 12px; word-break: break-all;">
-                上のカレンダーの日付をタップして選んでください（複数日選択可能）
+                上のカレンダーの日付をタップして選んでください（すでに予定がある日も選択可能）
             </div>
         </div>
 
@@ -832,12 +834,11 @@
     window.closeDrawer();
   };
 
-  /* ★全体予定一覧から欠席連絡へ直接ジャンプする関数 */
+  /* 全体予定一覧から欠席連絡へ直接ジャンプ */
   window.jumpToReportFromAllEvents = (eventId) => {
     const targetEv = allMyGroupEvents.find(e => e.id === eventId);
     if (!targetEv) return;
 
-    // グループを自動切り替え
     const targetG = myGroups.find(g => g.id === targetEv.groupId);
     if (targetG) {
       currentGroup = targetG;
@@ -847,7 +848,6 @@
     selectedEventForReport = targetEv;
     selectedDateForReport = targetEv.date || "";
 
-    // 連絡画面へ遷移
     window.showScreen('user-report');
     renderCalendar('report');
     selectEventForReport(targetEv);
@@ -1872,7 +1872,7 @@
     }
   };
 
-  /* 単一グループ用カレンダー（複数予定日は白丸） */
+  /* ★単一グループ用カレンダー（すでに予定がある日も追加選択可能に完全対応） */
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1908,7 +1908,7 @@
         circle.className = "circle-mark";
         circle.innerText = d;
 
-        // ★複数予定がある場合は白丸、1件ならカテゴリ色
+        // 複数予定がある場合は白丸、1件ならカテゴリ色
         if (dayEvents.length > 1) {
           circle.classList.add('circle-multi');
         } else {
@@ -1924,9 +1924,15 @@
           if (selectedDateForView === dateStr) div.classList.add('selected');
           div.onclick = () => selectDateForView(dateStr, div);
         } else {
-          const hasSelected = dayEvents.some(ev => selectedEventIdsForDelete.has(ev.id));
-          if (hasSelected) circle.classList.add('is-selected');
-          div.onclick = () => {
+          // ★予定の追加・削除画面（すでに予定が入っている日でも追加日付として選択可能！）
+          if (selectedDatesForAdd.has(dateStr)) div.classList.add('add-selected');
+
+          const hasSelectedForDel = dayEvents.some(ev => selectedEventIdsForDelete.has(ev.id));
+          if (hasSelectedForDel) circle.classList.add('is-selected');
+
+          // 丸をタップした時は「削除・コピー用」
+          circle.onclick = (e) => {
+            e.stopPropagation();
             dayEvents.forEach(ev => {
               if (selectedEventIdsForDelete.has(ev.id)) {
                 selectedEventIdsForDelete.delete(ev.id);
@@ -1936,6 +1942,22 @@
               }
             });
             updateActionBar();
+            renderCalendar('add');
+          };
+
+          // マス全体をタップした時は「追加用日付の選択/解除」
+          div.onclick = () => {
+            if (selectedDatesForAdd.has(dateStr)) {
+              selectedDatesForAdd.delete(dateStr);
+            } else {
+              selectedDatesForAdd.add(dateStr);
+            }
+            document.querySelector('input[name="repeatType"][value="calendar"]').checked = true;
+            document.getElementById('boxCalendar').style.display = 'block';
+            document.getElementById('boxWeekly').style.display = 'none';
+            document.getElementById('boxMonthly').style.display = 'none';
+
+            updateSelectedDatesUI();
             renderCalendar('add');
           };
         }
@@ -2007,7 +2029,7 @@
         circle.className = "circle-mark";
         circle.innerText = d;
 
-        // ★複数予定がある場合は白丸、1件ならカテゴリ色
+        // 複数予定がある場合は白丸、1件ならカテゴリ色
         if (dayEvents.length > 1) {
           circle.classList.add('circle-multi');
         } else {
@@ -2101,14 +2123,14 @@
         <div style="font-size: 14px; font-weight: bold; margin-top: 2px;">${ev.title}</div>
         <div style="font-size: 12px; color: #333; margin-top: 2px;">時間：${ev.timeText || '時間指定なし'}</div>
         ${descHtml}
-        <!-- ★全体予定から直接連絡を入れるボタン -->
+        <!-- 全体予定から直接連絡を入れるボタン -->
         <button type="button" class="btn-card-report" onclick="window.jumpToReportFromAllEvents('${ev.id}')">この予定の出欠連絡をする</button>
       `;
       container.appendChild(card);
     });
   }
 
-  /* ★連絡画面：日付選択（同日複数予定の選択対応） */
+  /* 連絡画面：日付選択 */
   function selectDateForReport(dateStr, dayElement) {
     selectedDateForReport = dateStr;
     document.querySelectorAll('#reportCalDays .cal-day').forEach(el => el.classList.remove('selected'));
@@ -2162,7 +2184,7 @@
     updateStatusUI();
   }
 
-  /* ★出欠確認画面：日付選択（同日複数予定の選択対応） */
+  /* 出欠確認画面：日付選択 */
   function selectDateForView(dateStr, dayElement) {
     selectedDateForView = dateStr;
     document.querySelectorAll('#viewCalDays .cal-day').forEach(el => el.classList.remove('selected'));
@@ -2433,7 +2455,7 @@
     countEl.innerText = count;
 
     if (count === 0) {
-      listEl.innerText = "上のカレンダーの日付をタップして選んでください（複数日選択可能）";
+      listEl.innerText = "上のカレンダーの日付をタップして選んでください（すでに予定がある日も選択可能）";
       addBtn.innerText = "この予定を登録する";
     } else {
       const sortedDates = Array.from(selectedDatesForAdd).sort();
