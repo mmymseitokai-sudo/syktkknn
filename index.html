@@ -23,7 +23,7 @@
         .drawer-links { padding: 10px 0; overflow-y: auto; flex: 1; }
         .drawer-item { display: block; padding: 12px 20px; font-size: 14px; font-weight: bold; color: #111; cursor: pointer; text-decoration: none; border-bottom: 1px solid #f8f9fa; transition: 0.1s; }
         .drawer-item:hover { background: #f1f3f5; }
-        .drawer-group-select-box { padding: 8px 20px 12px 20px; border-bottom: 1px solid #f1f3f5; }
+        .drawer-group-select-box { padding: 10px 20px 12px 20px; border-bottom: 1px solid #f1f3f5; background: #fafbfc; }
         .drawer-divider { height: 1px; background: #dee2e6; margin: 8px 0; }
 
         .screen { display: none; }
@@ -120,6 +120,9 @@
         .badge-both-orange { background-color: #ffe0b2; color: #d9480f; border: 1px solid #ff922b; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-both { background-color: #ffe8cc; color: #111111; border: 1px solid #ffa94d; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
 
+        /* ★グループ名バッジ（予定一覧用） */
+        .badge-group-name { background-color: #212529; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-right: 6px; }
+
         .time-highlight { font-size: 13px; font-weight: bold; color: #111111; margin-top: 3px; }
 
         .member-list-container { border: 1px solid #111111; border-radius: 6px; padding: 12px; background: #ffffff; }
@@ -153,7 +156,6 @@
         #colorWheelCanvas { width: 170px; height: 170px; border-radius: 50%; cursor: crosshair; border: 1px solid #ced4da; }
         .wheel-handle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #111111; box-shadow: 0 0 3px rgba(255,255,255,0.9); pointer-events: none; transform: translate(-50%, -50%); top: 85px; left: 85px; background: transparent; }
 
-        /* ★プリセットパレット集 */
         .preset-grid-section { margin-top: 12px; border-top: 1px solid #e9ecef; padding-top: 8px; }
         .preset-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 6px; }
         .preset-swatch { width: 100%; aspect-ratio: 1; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15); cursor: pointer; transition: 0.1s; }
@@ -164,6 +166,10 @@
         .tile-black { background-color: #9aa0a6; color: #111111; }
         
         .preview-tile-box { width: 100%; height: 38px; border-radius: 6px; border: 2px solid #111111; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #111111; }
+
+        /* 全グループ予定カードリスト */
+        .all-event-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; margin-bottom: 10px; background: #ffffff; }
+        .all-event-group-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
 
         /* 脱会3択モーダル */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center; }
@@ -262,6 +268,10 @@
                 <div class="menu-title">出欠の確認</div>
                 <div class="menu-sub">日ごとの欠席者・遅刻早退者一覧</div>
             </div>
+            <div class="menu-card" onclick="window.showScreen('all-events-view')">
+                <div class="menu-title">予定一覧</div>
+                <div class="menu-sub">全グループの予定をまとめて確認</div>
+            </div>
             <div class="menu-card" onclick="window.showScreen('user-members')">
                 <div class="menu-title">メンバー一覧</div>
                 <div class="menu-sub">グループ所属メンバー名簿</div>
@@ -271,10 +281,37 @@
                 <div class="menu-title">予定の追加・削除</div>
                 <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
             </div>
-            <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
+            <div class="menu-card admin-only-feature" style="display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
                 <div class="menu-sub">自由に追加・削除して項目名・配色変更</div>
             </div>
+        </div>
+    </div>
+
+    <!-- ★新設 画面1.5: 参加グループの予定一覧画面（全グループ横断） -->
+    <div id="all-events-view" class="screen">
+        <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
+        <div class="header-title">参加グループの予定一覧</div>
+
+        <div class="cal-box">
+            <div class="cal-nav">
+                <button onclick="window.changeMonth(-1, 'all')">前月</button>
+                <span id="allCalMonthDisplay">0月</span>
+                <button onclick="window.changeMonth(1, 'all')">翌月</button>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-head">日</div><div class="cal-head">月</div><div class="cal-head">火</div><div class="cal-head">水</div><div class="cal-head">木</div><div class="cal-head">金</div><div class="cal-head">土</div>
+            </div>
+            <div class="cal-grid" id="allCalDays" style="margin-top: 4px;"></div>
+        </div>
+
+        <div id="allViewSelectedDateText" style="font-weight: bold; font-size: 14px; margin-bottom: 10px; border-left: 3px solid #111; padding-left: 8px;">
+            選択日の予定
+        </div>
+
+        <!-- 選択した日、または今月の全グループ予定カード一覧 -->
+        <div id="allEventsContainer">
+            <p style="color:#888; font-size:12px; text-align:center;">予定を読み込み中...</p>
         </div>
     </div>
 
@@ -524,7 +561,7 @@
 
 </div>
 
-<!-- ★サイドメニュー（ドロワー）本体（絵文字なし・TOP下グループ選択・＋付き） -->
+<!-- ★サイドメニュー（ドロワー）本体 -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="window.closeDrawer()"></div>
 <div class="drawer-menu" id="drawerMenu">
     <div class="drawer-header">
@@ -534,7 +571,10 @@
     <div class="drawer-links">
         <div class="drawer-item" onclick="window.navigateFromDrawer('user-home')">TOP</div>
         
-        <!-- TOPのすぐ下にグループの選択項目 -->
+        <!-- ★TOPのすぐ下に「予定一覧」を配置 -->
+        <div class="drawer-item" style="background:#f8f9fa; border-left:3px solid #111;" onclick="window.navigateFromDrawer('all-events-view')">予定一覧</div>
+
+        <!-- グループの選択項目 -->
         <div class="drawer-group-select-box">
             <div style="font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #555;">グループの選択</div>
             <select id="drawerGroupSelect" style="font-weight: bold; width: 100%; margin-bottom: 0; padding: 6px 8px; font-size: 13px;" onchange="window.handleDrawerGroupChange(this.value)"></select>
@@ -570,7 +610,7 @@
     </div>
 </div>
 
-<!-- ★カラーモーダル（白色なし・プリセットパレット集付き） -->
+<!-- カラーモーダル（白色なし・プリセットパレット集付き） -->
 <div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
     <div class="swatch-modal" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -603,7 +643,6 @@
             </div>
         </div>
 
-        <!-- 事前パレット集（ワンタップで選べるおすすめパステル） -->
         <div class="preset-grid-section">
             <div style="font-size: 11px; font-weight: bold; color: #555;">おすすめパレットから選択：</div>
             <div class="preset-grid">
@@ -700,9 +739,11 @@
   let allEvents = [];
   let allReports = [];
   let allUsers = [];
+  let allMyGroupEvents = []; // ★全参加グループ横断の予定リスト
   
   let selectedEventForReport = null;
   let selectedDateForView = "";
+  let selectedDateForAllView = "";
   let existingReport = null;
   let viewDate = new Date();
 
@@ -1044,6 +1085,11 @@
 
     if (screenId === 'user-report') renderCalendar('report');
     if (screenId === 'user-view') renderCalendar('view');
+    if (screenId === 'all-events-view') {
+      selectedDateForAllView = "";
+      renderAllEventsCalendar();
+      renderAllEventsList();
+    }
     if (screenId === 'user-members') renderUserMemberList();
     if (screenId === 'admin-add-events') {
       selectedEventIdsForDelete.clear();
@@ -1272,7 +1318,7 @@
     }
   };
 
-  /* 脱会処理（管理者の場合は3択モーダル表示） */
+  /* 脱会処理 */
   window.leaveCurrentMemberGroup = () => {
     if (!currentGroup) return;
 
@@ -1388,7 +1434,7 @@
 
   function getEventDisplayColor(ev) {
     if (!ev) return '#ff9ebb';
-    const slots = getGroupCategorySlots();
+    const slots = (ev.groupCategorySlots && Array.isArray(ev.groupCategorySlots)) ? ev.groupCategorySlots : getGroupCategorySlots();
     const catName = ev.categoryTitle || ev.category;
     if (catName) {
       const matched = slots.find(s => s.name && s.name.trim() === catName.trim());
@@ -1506,15 +1552,37 @@
 
     onSnapshot(query(collection(db, "events")), (snapshot) => {
       allEvents = [];
+      allMyGroupEvents = [];
+
+      const myGroupMap = new Map();
+      myGroups.forEach(g => myGroupMap.set(g.id, g));
+
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
+        // 現在のグループ用
         if (data.groupId === currentGroup.id) {
           allEvents.push({ id: docSnap.id, ...data });
         }
+        // ★全参加グループ横断用
+        if (myGroupMap.has(data.groupId)) {
+          const gInfo = myGroupMap.get(data.groupId);
+          allMyGroupEvents.push({
+            id: docSnap.id,
+            ...data,
+            groupName: gInfo.name || 'グループ',
+            groupCategorySlots: gInfo.categorySlots || []
+          });
+        }
       });
+
       allEvents.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      allMyGroupEvents.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
       renderCalendar('report');
       renderCalendar('view');
+      renderAllEventsCalendar();
+      renderAllEventsList(selectedDateForAllView);
+
       if (isCurrentAdmin) {
         renderCalendar('add');
         updateQuickCopySelect();
@@ -1726,9 +1794,15 @@
 
   window.changeMonth = (diff, mode) => {
     viewDate.setMonth(viewDate.getMonth() + diff);
-    renderCalendar(mode);
+    if (mode === 'all') {
+      renderAllEventsCalendar();
+      renderAllEventsList(selectedDateForAllView);
+    } else {
+      renderCalendar(mode);
+    }
   };
 
+  /* 単一グループ用カレンダー */
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1822,6 +1896,134 @@
       div.innerText = i;
       container.appendChild(div);
     }
+  }
+
+  /* ★全参加グループ横断用カレンダー描画 */
+  function renderAllEventsCalendar() {
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const displayEl = document.getElementById('allCalMonthDisplay');
+    const container = document.getElementById('allCalDays');
+    if (!displayEl || !container) return;
+
+    displayEl.innerText = `${year}年 ${month + 1}月`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+
+    container.innerHTML = "";
+
+    for (let i = 0; i < firstDay; i++) {
+      const div = document.createElement('div');
+      div.className = "cal-day";
+      container.appendChild(div);
+    }
+
+    for (let d = 1; d <= lastDate; d++) {
+      const div = document.createElement('div');
+      div.className = "cal-day selectable";
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dayEvents = allMyGroupEvents.filter(e => e.date === dateStr);
+
+      if (dayEvents.length > 0) {
+        const ev = dayEvents[0];
+        const eventColor = getEventDisplayColor(ev);
+
+        const circle = document.createElement('div');
+        circle.className = "circle-mark";
+        circle.style.backgroundColor = eventColor;
+        circle.style.color = '#111111';
+        circle.innerText = d;
+
+        if (selectedDateForAllView === dateStr) {
+          div.classList.add('selected');
+        }
+
+        div.onclick = () => {
+          selectedDateForAllView = (selectedDateForAllView === dateStr) ? "" : dateStr;
+          renderAllEventsCalendar();
+          renderAllEventsList(selectedDateForAllView);
+        };
+
+        div.appendChild(circle);
+      } else {
+        div.innerText = d;
+        if (selectedDateForAllView === dateStr) {
+          div.classList.add('selected');
+        }
+        div.onclick = () => {
+          selectedDateForAllView = (selectedDateForAllView === dateStr) ? "" : dateStr;
+          renderAllEventsCalendar();
+          renderAllEventsList(selectedDateForAllView);
+        };
+      }
+
+      container.appendChild(div);
+    }
+
+    const totalCells = firstDay + lastDate;
+    const nextDays = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
+    for (let i = 1; i <= nextDays; i++) {
+      const div = document.createElement('div');
+      div.className = "cal-day other-month";
+      div.innerText = i;
+      container.appendChild(div);
+    }
+  }
+
+  /* ★全参加グループ横断の予定一覧リスト描画（グループ名付き） */
+  function renderAllEventsList(filterDate = "") {
+    const container = document.getElementById('allEventsContainer');
+    const titleTextEl = document.getElementById('allViewSelectedDateText');
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    const year = viewDate.getFullYear();
+    const month = String(viewDate.getMonth() + 1).padStart(2, '0');
+    const monthPrefix = `${year}-${month}`;
+
+    let targetEvents = [];
+
+    if (filterDate) {
+      targetEvents = allMyGroupEvents.filter(e => e.date === filterDate);
+      if (titleTextEl) titleTextEl.innerText = `${filterDate} の予定一覧（${targetEvents.length}件）`;
+    } else {
+      // 選択されていない場合は表示中の月の全予定
+      targetEvents = allMyGroupEvents.filter(e => e.date && e.date.startsWith(monthPrefix));
+      if (titleTextEl) titleTextEl.innerText = `${year}年${parseInt(month,10)}月の予定一覧（${targetEvents.length}件）`;
+    }
+
+    if (targetEvents.length === 0) {
+      container.innerHTML = '<p style="color:#888; font-size:12px; text-align:center; padding:15px;">登録された予定はありません</p>';
+      return;
+    }
+
+    targetEvents.forEach(ev => {
+      const eventColor = getEventDisplayColor(ev);
+      const card = document.createElement('div');
+      card.className = "all-event-card";
+
+      let descHtml = "";
+      if (ev.description && ev.description.trim() !== "") {
+        descHtml = `<div style="font-size: 11px; color: #555; background: #f8f9fa; padding: 6px 8px; border-radius: 4px; margin-top: 6px; white-space: pre-wrap;">${ev.description}</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="all-event-group-row">
+          <div>
+            <span class="badge-group-name">${ev.groupName}</span>
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${eventColor}; border: 1px solid rgba(0,0,0,0.2); vertical-align: middle; margin-right: 4px;"></span>
+            <span style="font-size: 11px; font-weight: bold; color: #555;">[${ev.categoryTitle || ev.category || '予定'}]</span>
+          </div>
+          <span style="font-size: 12px; font-weight: bold; color: #111;">${ev.date}</span>
+        </div>
+        <div style="font-size: 14px; font-weight: bold; margin-top: 2px;">${ev.title}</div>
+        <div style="font-size: 12px; color: #333; margin-top: 2px;">時間：${ev.timeText || '時間指定なし'}</div>
+        ${descHtml}
+      `;
+      container.appendChild(card);
+    });
   }
 
   function selectEventForReport(ev, dayElement) {
