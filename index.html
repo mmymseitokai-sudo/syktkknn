@@ -50,8 +50,8 @@
         .menu-card { border: 1px solid #111111; border-radius: 6px; padding: clamp(14px, 3.5vw, 18px) 8px; text-align: center; cursor: pointer; background: #ffffff; user-select: none; transition: 0.15s; }
         .menu-card:hover { background: #f1f1f1; }
         .menu-card-full { grid-column: span 2; }
-        .menu-title { font-size: clamp(14px, 3.8vw, 16px); font-weight: bold; margin-bottom: 3px; }
-        .menu-sub { font-size: 11px; color: #666666; line-height: 1.3; }
+        .menu-title { font-size: clamp(14px, 3.8vw, 16px); font-weight: bold; margin-bottom: 4px; }
+        .menu-sub { font-size: 11px; color: #555555; line-height: 1.3; }
 
         /* カレンダー */
         .cal-box { border: 1px solid #111111; border-radius: 6px; padding: clamp(6px, 2vw, 10px); margin: 0 auto 12px auto; background: #ffffff; width: 100%; }
@@ -242,7 +242,7 @@
         </div>
     </div>
 
-    <!-- 画面1: ホーム画面（手書き図面を再現したレイアウト） -->
+    <!-- 画面1: ホーム画面（手書き図面レイアウト ＆ 以前の分かりやすいボタン文字） -->
     <div id="user-home" class="screen">
         <div class="header-title">メニュー</div>
         
@@ -271,41 +271,41 @@
             </div>
         </div>
 
-        <!-- ★図面配置メニュー：管理者時は2列、メンバー時は縦1列 -->
+        <!-- ★手書き図面の配置 ＆ 以前の文字に復元したメニュー -->
         <div class="menu-grid" id="homeMenuGrid">
             <!-- 1. 予定一覧（常に全幅） -->
             <div class="menu-card menu-card-full" onclick="window.showScreen('all-events-view')">
                 <div class="menu-title">予定一覧</div>
-                <div class="menu-sub">全グループの予定確認＆直接連絡</div>
+                <div class="menu-sub">全グループの予定をまとめて確認</div>
             </div>
 
-            <!-- 2. 連絡 -->
+            <!-- 2. 連絡をする -->
             <div class="menu-card" id="cardReport" onclick="window.showScreen('user-report')">
-                <div class="menu-title">連絡</div>
+                <div class="menu-title">連絡をする</div>
                 <div class="menu-sub">欠席・遅刻・早退の送信と取り消し</div>
             </div>
 
-            <!-- 3. 確認 -->
+            <!-- 3. 出欠の確認 -->
             <div class="menu-card" id="cardView" onclick="window.showScreen('user-view')">
-                <div class="menu-title">確認</div>
-                <div class="menu-sub">日ごとの出欠状況一覧</div>
+                <div class="menu-title">出欠の確認</div>
+                <div class="menu-sub">日ごとの欠席者・遅刻早退者一覧</div>
             </div>
 
-            <!-- 4. メンバー -->
+            <!-- 4. メンバー一覧 -->
             <div class="menu-card" id="cardMembers" onclick="window.showScreen('user-members')">
-                <div class="menu-title">メンバー</div>
-                <div class="menu-sub">所属メンバー名簿</div>
+                <div class="menu-title">メンバー一覧</div>
+                <div class="menu-sub">グループ所属メンバー名簿</div>
             </div>
 
-            <!-- 5. カテゴリー（管理者のみ・右列） -->
+            <!-- 5. カテゴリ・色設定（管理者のみ・右列） -->
             <div class="menu-card admin-only-feature" id="cardCategory" style="display:none;" onclick="window.showScreen('admin-color-settings')">
-                <div class="menu-title">カテゴリー</div>
-                <div class="menu-sub">配色・項目名の変更</div>
+                <div class="menu-title">カテゴリ・色設定</div>
+                <div class="menu-sub">自由に追加・削除して項目名・配色変更</div>
             </div>
 
-            <!-- 6. 予定追加・削除（管理者のみ・最下部全幅） -->
+            <!-- 6. 予定の追加・削除（管理者のみ・最下部全幅） -->
             <div class="menu-card menu-card-full admin-only-feature" id="cardAddEvents" style="display:none;" onclick="window.showScreen('admin-add-events')">
-                <div class="menu-title">予定追加・削除</div>
+                <div class="menu-title">予定の追加・削除</div>
                 <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
             </div>
         </div>
