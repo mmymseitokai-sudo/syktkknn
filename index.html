@@ -72,6 +72,9 @@
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
 
+        /* ★複数予定がある日の白丸マーク */
+        .circle-mark.circle-multi { background-color: #ffffff !important; border: 2px solid #111111 !important; color: #111111 !important; box-shadow: inset 0 0 0 1px #fff; }
+
         /* 凡例 */
         .cal-legend { display: flex; justify-content: center; gap: clamp(6px, 1.8vw, 10px); font-size: 11px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6; color: #495057; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
@@ -80,6 +83,11 @@
         .selected-event-card { border: 1px solid #111111; border-radius: 4px; padding: 12px; margin-bottom: 12px; text-align: center; }
         .selected-event-title { font-size: 14px; font-weight: bold; margin-top: 4px; line-height: 1.4; }
         .event-desc-box { font-size: 12px; color: #333333; margin-top: 8px; white-space: pre-wrap; background: #f8f9fa; padding: 8px 10px; border-radius: 4px; text-align: left; border: 1px solid #e9ecef; line-height: 1.4; }
+
+        /* 同日複数予定の切り替えチップ */
+        .multi-event-select-box { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; justify-content: center; }
+        .event-select-chip { padding: 6px 10px; border: 1px solid #111111; border-radius: 4px; font-size: 12px; background: white; cursor: pointer; transition: 0.1s; font-weight: bold; }
+        .event-select-chip.active { background: #111111; color: white; }
 
         .already-sent-box { border: 1px solid #111111; padding: 10px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; text-align: center; }
         .cancel-btn { background: #ffffff; color: #111111; border: 1px solid #111111; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: bold; }
@@ -115,12 +123,13 @@
         .report-item:last-child { border-bottom: none; }
         .badge-text { font-size: 10px; font-weight: bold; border: 1px solid #111111; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
         
+        /* バッジ色設定 */
         .badge-late { background-color: #ffc9d6; color: #111111; border: 1px solid #ff7b99; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-leave { background-color: #cbf3d2; color: #111111; border: 1px solid #70e687; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-both-orange { background-color: #ffe0b2; color: #d9480f; border: 1px solid #ff922b; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
         .badge-both { background-color: #ffe8cc; color: #111111; border: 1px solid #ffa94d; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-right: 6px; display: inline-block; }
 
-        /* ★グループ名バッジ（予定一覧用） */
+        /* グループ名バッジ（予定一覧用） */
         .badge-group-name { background-color: #212529; color: #ffffff; font-size: 11px; font-weight: bold; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-right: 6px; }
 
         .time-highlight { font-size: 13px; font-weight: bold; color: #111111; margin-top: 3px; }
@@ -170,6 +179,8 @@
         /* 全グループ予定カードリスト */
         .all-event-card { border: 1px solid #111111; border-radius: 6px; padding: 12px; margin-bottom: 10px; background: #ffffff; }
         .all-event-group-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
+        .btn-card-report { background: #111111; color: #ffffff; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .btn-card-report:hover { background: #333333; }
 
         /* 脱会3択モーダル */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center; }
@@ -270,7 +281,7 @@
             </div>
             <div class="menu-card" onclick="window.showScreen('all-events-view')">
                 <div class="menu-title">予定一覧</div>
-                <div class="menu-sub">全グループの予定をまとめて確認</div>
+                <div class="menu-sub">全グループの予定確認＆直接連絡</div>
             </div>
             <div class="menu-card" onclick="window.showScreen('user-members')">
                 <div class="menu-title">メンバー一覧</div>
@@ -281,19 +292,22 @@
                 <div class="menu-title">予定の追加・削除</div>
                 <div class="menu-sub">カレンダーへの予定登録・一括削除</div>
             </div>
-            <div class="menu-card admin-only-feature" style="display:none;" onclick="window.showScreen('admin-color-settings')">
+            <div class="menu-card admin-only-feature" style="grid-column: span 2; display:none;" onclick="window.showScreen('admin-color-settings')">
                 <div class="menu-title">カテゴリ・色設定</div>
                 <div class="menu-sub">自由に追加・削除して項目名・配色変更</div>
             </div>
         </div>
     </div>
 
-    <!-- ★新設 画面1.5: 参加グループの予定一覧画面（全グループ横断） -->
+    <!-- 画面1.5: 参加グループの予定一覧画面（全グループ横断 ＆ 連絡リンク付き） -->
     <div id="all-events-view" class="screen">
         <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">参加グループの予定一覧</div>
 
         <div class="cal-box">
+            <div style="font-size: 11px; text-align: center; margin-bottom: 4px; color: #666;">
+                ※同日に複数予定がある日は「白丸」で表示されます
+            </div>
             <div class="cal-nav">
                 <button onclick="window.changeMonth(-1, 'all')">前月</button>
                 <span id="allCalMonthDisplay">0月</span>
@@ -306,21 +320,23 @@
         </div>
 
         <div id="allViewSelectedDateText" style="font-weight: bold; font-size: 14px; margin-bottom: 10px; border-left: 3px solid #111; padding-left: 8px;">
-            選択日の予定
+            予定一覧
         </div>
 
-        <!-- 選択した日、または今月の全グループ予定カード一覧 -->
         <div id="allEventsContainer">
             <p style="color:#888; font-size:12px; text-align:center;">予定を読み込み中...</p>
         </div>
     </div>
 
-    <!-- 画面2: 連絡送信画面 -->
+    <!-- 画面2: 連絡送信画面（同日複数予定の切り替え対応） -->
     <div id="user-report" class="screen">
         <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">欠席・遅刻・早退の連絡</div>
 
         <div class="cal-box">
+            <div style="font-size: 11px; text-align: center; margin-bottom: 4px; color: #666;">
+                ※同日に複数予定がある日は「白丸」で表示されます
+            </div>
             <div class="cal-nav">
                 <button onclick="window.changeMonth(-1, 'report')">前月</button>
                 <span id="reportCalMonthDisplay">0月</span>
@@ -332,6 +348,9 @@
             <div class="cal-grid" id="reportCalDays" style="margin-top: 4px;"></div>
             <div class="cal-legend" id="reportCalLegend"></div>
         </div>
+
+        <!-- 同日に複数予定がある場合の選択ボタン群 -->
+        <div id="reportMultiEventSelectBox" class="multi-event-select-box" style="display: none;"></div>
 
         <div class="selected-event-card" id="reportSelectedEventCard">
             <div style="font-size: 12px; color: #555;">カレンダーの日付を選択してください</div>
@@ -376,12 +395,15 @@
         </div>
     </div>
 
-    <!-- 画面3: 出欠確認画面 -->
+    <!-- 画面3: 出欠確認画面（同日複数予定の切り替え対応） -->
     <div id="user-view" class="screen">
         <button class="btn-back" onclick="window.goHome()">← メニューへ戻る</button>
         <div class="header-title">出欠状況の確認</div>
 
         <div class="cal-box">
+            <div style="font-size: 11px; text-align: center; margin-bottom: 4px; color: #666;">
+                ※同日に複数予定がある日は「白丸」で表示されます
+            </div>
             <div class="cal-nav">
                 <button onclick="window.changeMonth(-1, 'view')">前月</button>
                 <span id="viewCalMonthDisplay">0月</span>
@@ -393,6 +415,9 @@
             <div class="cal-grid" id="viewCalDays" style="margin-top: 4px;"></div>
             <div class="cal-legend" id="viewCalLegend"></div>
         </div>
+
+        <!-- 同日に複数予定がある場合の切り替えタブ -->
+        <div id="viewMultiEventSelectBox" class="multi-event-select-box" style="display: none;"></div>
 
         <div id="viewSelectedInfo" style="text-align: center; font-weight: bold; margin-bottom: 12px; font-size: 13px;">
             カレンダーの日付を選択してください
@@ -561,7 +586,7 @@
 
 </div>
 
-<!-- ★サイドメニュー（ドロワー）本体 -->
+<!-- サイドメニュー（ドロワー）本体 -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="window.closeDrawer()"></div>
 <div class="drawer-menu" id="drawerMenu">
     <div class="drawer-header">
@@ -570,11 +595,8 @@
     </div>
     <div class="drawer-links">
         <div class="drawer-item" onclick="window.navigateFromDrawer('user-home')">TOP</div>
-        
-        <!-- ★TOPのすぐ下に「予定一覧」を配置 -->
         <div class="drawer-item" style="background:#f8f9fa; border-left:3px solid #111;" onclick="window.navigateFromDrawer('all-events-view')">予定一覧</div>
 
-        <!-- グループの選択項目 -->
         <div class="drawer-group-select-box">
             <div style="font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #555;">グループの選択</div>
             <select id="drawerGroupSelect" style="font-weight: bold; width: 100%; margin-bottom: 0; padding: 6px 8px; font-size: 13px;" onchange="window.handleDrawerGroupChange(this.value)"></select>
@@ -610,7 +632,7 @@
     </div>
 </div>
 
-<!-- カラーモーダル（白色なし・プリセットパレット集付き） -->
+<!-- カラーモーダル -->
 <div id="swatchModalOverlay" class="swatch-modal-overlay" onclick="closeSwatchModal(event)">
     <div class="swatch-modal" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -739,10 +761,12 @@
   let allEvents = [];
   let allReports = [];
   let allUsers = [];
-  let allMyGroupEvents = []; // ★全参加グループ横断の予定リスト
+  let allMyGroupEvents = []; // 全グループ横断予定リスト
   
   let selectedEventForReport = null;
+  let selectedDateForReport = "";
   let selectedDateForView = "";
+  let selectedEventForView = null;
   let selectedDateForAllView = "";
   let existingReport = null;
   let viewDate = new Date();
@@ -795,6 +819,27 @@
     updateUserGroupSelectUI();
     showUserHome();
     window.closeDrawer();
+  };
+
+  /* ★全体予定一覧から欠席連絡へ直接ジャンプする関数 */
+  window.jumpToReportFromAllEvents = (eventId) => {
+    const targetEv = allMyGroupEvents.find(e => e.id === eventId);
+    if (!targetEv) return;
+
+    // グループを自動切り替え
+    const targetG = myGroups.find(g => g.id === targetEv.groupId);
+    if (targetG) {
+      currentGroup = targetG;
+      updateUserGroupSelectUI();
+    }
+
+    selectedEventForReport = targetEv;
+    selectedDateForReport = targetEv.date || "";
+
+    // 連絡画面へ遷移
+    window.showScreen('user-report');
+    renderCalendar('report');
+    selectEventForReport(targetEv);
   };
 
   function hsvToRgb(h, s, v) {
@@ -959,7 +1004,6 @@
     updatePreviewBox(currentPickedHex);
   };
 
-  /* プリセットパレットから選択 */
   window.pickPresetColor = (hex) => {
     currentSelectionMode = "preset";
     currentPickedHex = hex;
@@ -1559,11 +1603,9 @@
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        // 現在のグループ用
         if (data.groupId === currentGroup.id) {
           allEvents.push({ id: docSnap.id, ...data });
         }
-        // ★全参加グループ横断用
         if (myGroupMap.has(data.groupId)) {
           const gInfo = myGroupMap.get(data.groupId);
           allMyGroupEvents.push({
@@ -1701,7 +1743,6 @@
     }
   };
 
-  /* 動的カテゴリ設定画面 */
   function loadColorSettingsScreen() {
     currentEditingSlots = JSON.parse(JSON.stringify(getGroupCategorySlots()));
     renderColorSlotsUI();
@@ -1802,7 +1843,7 @@
     }
   };
 
-  /* 単一グループ用カレンダー */
+  /* ★単一グループ用カレンダー（複数予定日は白丸） */
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1834,30 +1875,38 @@
       const dayEvents = allEvents.filter(e => e.date === dateStr);
 
       if (dayEvents.length > 0) {
-        const ev = dayEvents[0];
-        const eventColor = getEventDisplayColor(ev);
-
         const circle = document.createElement('div');
         circle.className = "circle-mark";
-        circle.style.backgroundColor = eventColor;
-        circle.style.color = '#111111';
         circle.innerText = d;
 
+        // ★複数予定がある場合は白丸、1件ならカテゴリ色
+        if (dayEvents.length > 1) {
+          circle.classList.add('circle-multi');
+        } else {
+          const eventColor = getEventDisplayColor(dayEvents[0]);
+          circle.style.backgroundColor = eventColor;
+          circle.style.color = '#111111';
+        }
+
         if (mode === 'report') {
-          if (selectedEventForReport && selectedEventForReport.id === ev.id) div.classList.add('selected');
-          div.onclick = () => selectEventForReport(ev, div);
+          if (selectedDateForReport === dateStr) div.classList.add('selected');
+          div.onclick = () => selectDateForReport(dateStr, div);
         } else if (mode === 'view') {
           if (selectedDateForView === dateStr) div.classList.add('selected');
-          div.onclick = () => selectEventForView(dateStr, div);
+          div.onclick = () => selectDateForView(dateStr, div);
         } else {
-          if (selectedEventIdsForDelete.has(ev.id)) circle.classList.add('is-selected');
+          // 削除・追加画面
+          const hasSelected = dayEvents.some(ev => selectedEventIdsForDelete.has(ev.id));
+          if (hasSelected) circle.classList.add('is-selected');
           div.onclick = () => {
-            if (selectedEventIdsForDelete.has(ev.id)) {
-              selectedEventIdsForDelete.delete(ev.id);
-            } else {
-              selectedEventIdsForDelete.add(ev.id);
-              lastSelectedEventForCopy = ev;
-            }
+            dayEvents.forEach(ev => {
+              if (selectedEventIdsForDelete.has(ev.id)) {
+                selectedEventIdsForDelete.delete(ev.id);
+              } else {
+                selectedEventIdsForDelete.add(ev.id);
+                lastSelectedEventForCopy = ev;
+              }
+            });
             updateActionBar();
             renderCalendar('add');
           };
@@ -1898,7 +1947,7 @@
     }
   }
 
-  /* ★全参加グループ横断用カレンダー描画 */
+  /* ★全参加グループ横断用カレンダー（複数予定日は白丸） */
   function renderAllEventsCalendar() {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -1926,14 +1975,18 @@
       const dayEvents = allMyGroupEvents.filter(e => e.date === dateStr);
 
       if (dayEvents.length > 0) {
-        const ev = dayEvents[0];
-        const eventColor = getEventDisplayColor(ev);
-
         const circle = document.createElement('div');
         circle.className = "circle-mark";
-        circle.style.backgroundColor = eventColor;
-        circle.style.color = '#111111';
         circle.innerText = d;
+
+        // ★複数予定がある場合は白丸、1件ならカテゴリ色
+        if (dayEvents.length > 1) {
+          circle.classList.add('circle-multi');
+        } else {
+          const eventColor = getEventDisplayColor(dayEvents[0]);
+          circle.style.backgroundColor = eventColor;
+          circle.style.color = '#111111';
+        }
 
         if (selectedDateForAllView === dateStr) {
           div.classList.add('selected');
@@ -1971,7 +2024,7 @@
     }
   }
 
-  /* ★全参加グループ横断の予定一覧リスト描画（グループ名付き） */
+  /* ★全参加グループ横断の予定一覧リスト描画（直接連絡ボタン付き） */
   function renderAllEventsList(filterDate = "") {
     const container = document.getElementById('allEventsContainer');
     const titleTextEl = document.getElementById('allViewSelectedDateText');
@@ -1989,7 +2042,6 @@
       targetEvents = allMyGroupEvents.filter(e => e.date === filterDate);
       if (titleTextEl) titleTextEl.innerText = `${filterDate} の予定一覧（${targetEvents.length}件）`;
     } else {
-      // 選択されていない場合は表示中の月の全予定
       targetEvents = allMyGroupEvents.filter(e => e.date && e.date.startsWith(monthPrefix));
       if (titleTextEl) titleTextEl.innerText = `${year}年${parseInt(month,10)}月の予定一覧（${targetEvents.length}件）`;
     }
@@ -2021,16 +2073,53 @@
         <div style="font-size: 14px; font-weight: bold; margin-top: 2px;">${ev.title}</div>
         <div style="font-size: 12px; color: #333; margin-top: 2px;">時間：${ev.timeText || '時間指定なし'}</div>
         ${descHtml}
+        <!-- ★全体予定から直接連絡を入れるボタン -->
+        <button type="button" class="btn-card-report" onclick="window.jumpToReportFromAllEvents('${ev.id}')">この予定の出欠連絡をする</button>
       `;
       container.appendChild(card);
     });
   }
 
-  function selectEventForReport(ev, dayElement) {
-    selectedEventForReport = ev;
+  /* ★連絡画面：日付選択（同日複数予定の選択対応） */
+  function selectDateForReport(dateStr, dayElement) {
+    selectedDateForReport = dateStr;
     document.querySelectorAll('#reportCalDays .cal-day').forEach(el => el.classList.remove('selected'));
-    dayElement.classList.add('selected');
+    if (dayElement) dayElement.classList.add('selected');
 
+    const dayEvents = allEvents.filter(e => e.date === dateStr);
+    const chipBox = document.getElementById('reportMultiEventSelectBox');
+
+    if (dayEvents.length > 1) {
+      chipBox.style.display = 'flex';
+      chipBox.innerHTML = '';
+      dayEvents.forEach((ev, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'event-select-chip';
+        chip.innerText = `${ev.timeText ? ev.timeText + ' ' : ''}${ev.title}`;
+        chip.onclick = () => {
+          document.querySelectorAll('#reportMultiEventSelectBox .event-select-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          selectEventForReport(ev);
+        };
+        if (idx === 0) {
+          chip.classList.add('active');
+          selectEventForReport(ev);
+        }
+        chipBox.appendChild(chip);
+      });
+    } else if (dayEvents.length === 1) {
+      chipBox.style.display = 'none';
+      selectEventForReport(dayEvents[0]);
+    } else {
+      chipBox.style.display = 'none';
+      selectedEventForReport = null;
+      document.getElementById('reportSelectedEventTitle').innerText = '予定が未選択です';
+      document.getElementById('reportSelectedEventDesc').style.display = 'none';
+    }
+  }
+
+  function selectEventForReport(ev) {
+    selectedEventForReport = ev;
     document.getElementById('reportSelectedEventTitle').innerText = `${ev.date} (${ev.timeText || '時間指定なし'}) - [${ev.categoryTitle || ev.category}] ${ev.title}`;
 
     const descBox = document.getElementById('reportSelectedEventDesc');
@@ -2045,26 +2134,59 @@
     updateStatusUI();
   }
 
-  function selectEventForView(dateStr, dayElement) {
+  /* ★出欠確認画面：日付選択（同日複数予定の選択対応） */
+  function selectDateForView(dateStr, dayElement) {
     selectedDateForView = dateStr;
     document.querySelectorAll('#viewCalDays .cal-day').forEach(el => el.classList.remove('selected'));
-    dayElement.classList.add('selected');
+    if (dayElement) dayElement.classList.add('selected');
 
-    updateViewBoard(dateStr);
+    const dayEvents = allEvents.filter(e => e.date === dateStr);
+    const chipBox = document.getElementById('viewMultiEventSelectBox');
+
+    if (dayEvents.length > 1) {
+      chipBox.style.display = 'flex';
+      chipBox.innerHTML = '';
+      dayEvents.forEach((ev, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'event-select-chip';
+        chip.innerText = `${ev.timeText ? ev.timeText + ' ' : ''}${ev.title}`;
+        chip.onclick = () => {
+          document.querySelectorAll('#viewMultiEventSelectBox .event-select-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          selectedEventForView = ev;
+          updateViewBoard(dateStr, ev);
+        };
+        if (idx === 0) {
+          chip.classList.add('active');
+          selectedEventForView = ev;
+          updateViewBoard(dateStr, ev);
+        }
+        chipBox.appendChild(chip);
+      });
+    } else if (dayEvents.length === 1) {
+      chipBox.style.display = 'none';
+      selectedEventForView = dayEvents[0];
+      updateViewBoard(dateStr, dayEvents[0]);
+    } else {
+      chipBox.style.display = 'none';
+      selectedEventForView = null;
+      updateViewBoard(dateStr, null);
+    }
   }
 
-  function updateViewBoard(dateStr) {
+  function updateViewBoard(dateStr, singleEv = null) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
-    const dayReports = allReports.filter(r => r.eventDate === dateStr);
+    const dayReports = allReports.filter(r => r.eventDate === dateStr && (!singleEv || r.eventTitle === singleEv.title));
 
     const infoEl = document.getElementById('viewSelectedInfo');
-    if (dayEvents.length > 0) {
-      const ev = dayEvents[0];
-      let eventSummary = `${dateStr} ${ev.title} (${ev.timeText || '時間指定なし'})`;
-      if (ev.description && ev.description.trim() !== "") {
-        eventSummary += `\n【連絡事項】${ev.description}`;
+    if (singleEv) {
+      let eventSummary = `${dateStr} ${singleEv.title} (${singleEv.timeText || '時間指定なし'})`;
+      if (singleEv.description && singleEv.description.trim() !== "") {
+        eventSummary += `\n【連絡事項】${singleEv.description}`;
       }
       infoEl.innerText = eventSummary;
+    } else if (dayEvents.length > 0) {
+      infoEl.innerText = `${dateStr} （${dayEvents.length}件の予定）`;
     } else {
       infoEl.innerText = `${dateStr} （登録された予定はありません）`;
     }
@@ -2134,7 +2256,7 @@
 
   function checkExistingReport() {
     if (!selectedEventForReport || !currentUser) return;
-    existingReport = allReports.find(r => r.eventDate === selectedEventForReport.date && r.email === currentUser.email);
+    existingReport = allReports.find(r => r.eventDate === selectedEventForReport.date && r.email === currentUser.email && r.eventTitle === selectedEventForReport.title);
 
     const alreadyBox = document.getElementById('alreadySentBox');
     const formSection = document.getElementById('formSection');
