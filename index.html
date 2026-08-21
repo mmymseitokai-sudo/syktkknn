@@ -71,8 +71,6 @@
         .circle-mark { width: clamp(24px, 6.8vw, 32px); height: clamp(24px, 6.8vw, 32px); line-height: clamp(24px, 6.8vw, 32px); border-radius: 50%; font-weight: bold; text-align: center; transition: 0.15s; border: 1px solid rgba(0,0,0,0.12); color: #111111 !important; pointer-events: none; }
         .cal-day.selected .circle-mark { outline: 2px solid #111111; }
         .circle-mark.is-selected { outline: 2px solid #111111; outline-offset: 1px; box-shadow: 0 0 0 2px #ffffff; }
-
-        /* 複数予定がある日の白丸マーク */
         .circle-mark.circle-multi { background-color: #ffffff !important; border: 2px solid #111111 !important; color: #111111 !important; box-shadow: inset 0 0 0 1px #fff; }
 
         /* 凡例 */
@@ -103,11 +101,12 @@
         input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="time"], select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #111111; border-radius: 4px; margin-bottom: 12px; font-size: 16px; -webkit-appearance: none; appearance: none; background-color: #fff; }
         .submit-btn, .add-btn { width: 100%; padding: 12px; background: #111111; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 15px; cursor: pointer; margin-top: 5px; }
 
-        /* ★メールログイン用の小さなトグル・スタイル */
+        /* メールログイン用のスタイル */
         .link-other-auth { font-size: 12px; color: #555555; text-decoration: underline; cursor: pointer; margin-top: 18px; display: inline-block; }
         .link-other-auth:hover { color: #111111; }
         .email-auth-card { margin-top: 15px; border-top: 1px solid #dee2e6; padding-top: 15px; text-align: left; display: none; }
-        .email-btn-secondary { width: 100%; padding: 10px; background: #ffffff; color: #111111; border: 1px solid #111111; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 6px; }
+        .email-btn-secondary { width: 100%; padding: 11px; background: #f8f9fa; color: #111111; border: 1px solid #111111; border-radius: 4px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 12px; }
+        .email-btn-secondary:hover { background: #e9ecef; }
 
         .form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
         .radio-group { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 10px 0; font-size: 13px; font-weight: bold; }
@@ -207,26 +206,43 @@
         <div style="width: 34px;"></div>
     </div>
 
-    <!-- 画面0: ログイン画面（Google ＋ その他のメールログイン対応） -->
+    <!-- 画面0: ログイン画面 -->
     <div id="login-screen" class="screen" style="display: block; text-align: center;">
         <div class="header-title">ログイン</div>
-        <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">Googleアカウントでログインしてください。</p>
+        <p id="loginNoticeText" style="margin-bottom: 20px; font-size: 13px; color: #555;">アカウントでログインしてください。</p>
+        
         <button class="submit-btn" id="loginBtn" onclick="window.handleLoginClick ? window.handleLoginClick() : (window.doLogin ? window.doLogin() : null)">Googleでログイン</button>
         
-        <!-- ★小さく表示するその他のログイン方法リンク -->
         <div>
             <span class="link-other-auth" onclick="window.toggleEmailAuthBox()">その他のログイン方法（メールアドレス）</span>
         </div>
 
-        <!-- ★メールアドレス・パスワードログイン用展開フォーム -->
+        <!-- 再ログイン用メールフォーム ＆ 新規登録画面への案内ボタン -->
         <div class="email-auth-card" id="emailAuthBox">
+            <div style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">登録済みのアカウントでログイン</div>
             <div class="info-text">メールアドレス</div>
             <input type="email" id="emailInput" placeholder="example@email.com">
-            <div class="info-text">パスワード（6文字以上）</div>
+            <div class="info-text">パスワード</div>
             <input type="password" id="passwordInput" placeholder="パスワードを入力">
-            <button class="submit-btn" id="emailSignInBtn" onclick="window.doEmailSignIn()">メールアドレスでログイン</button>
-            <button class="email-btn-secondary" id="emailSignUpBtn" onclick="window.doEmailSignUp()">新規アカウント作成</button>
+            <button class="submit-btn" id="emailSignInBtn" onclick="window.doEmailSignIn()">ログイン</button>
+            
+            <button class="email-btn-secondary" id="goToSignUpBtn" onclick="window.showScreen('signup-screen')">新規登録はこちらから</button>
         </div>
+    </div>
+
+    <!-- ★新設 画面0.2: メール新規登録専用画面 -->
+    <div id="signup-screen" class="screen">
+        <button class="btn-back" onclick="window.showScreen('login-screen')">← ログイン画面に戻る</button>
+        <div class="header-title">新規アカウント作成</div>
+        <p style="font-size: 13px; margin-bottom: 15px; color: #555;">メールアドレスとパスワードを設定してください。</p>
+        
+        <div class="info-text">メールアドレス</div>
+        <input type="email" id="signupEmailInput" placeholder="example@email.com">
+        
+        <div class="info-text">パスワード（6文字以上）</div>
+        <input type="password" id="signupPasswordInput" placeholder="パスワードを設定">
+        
+        <button class="submit-btn" id="emailSignUpBtn" onclick="window.doEmailSignUp()">アカウントを作成してログイン</button>
     </div>
 
     <!-- 画面0.4: 氏名登録画面 -->
@@ -291,7 +307,7 @@
             </div>
         </div>
 
-        <!-- 手書き図面配置メニュー -->
+        <!-- 手書き図面配置のメニュー -->
         <div class="menu-grid" id="homeMenuGrid">
             <!-- 1. 予定一覧（常に全幅） -->
             <div class="menu-card menu-card-full" onclick="window.showScreen('all-events-view')">
@@ -381,6 +397,7 @@
             <div class="cal-legend" id="reportCalLegend"></div>
         </div>
 
+        <!-- 同日に複数予定がある場合の選択ボタン群 -->
         <div id="reportMultiEventSelectBox" class="multi-event-select-box" style="display: none;"></div>
 
         <div class="selected-event-card" id="reportSelectedEventCard">
@@ -767,7 +784,7 @@
         btn.innerText = "Googleでログイン";
         btn.disabled = false;
       }
-      if (notice) notice.innerText = "Googleアカウントでログインしてください。";
+      if (notice) notice.innerText = "アカウントでログインしてください。";
       if (e.code === 'auth/popup-blocked') {
         alert("ポップアップがブロックされました。ブラウザの設定でポップアップを許可するか、Safari/Chromeなどの通常ブラウザでお試しください。");
       } else if (e.code !== 'auth/popup-closed-by-user') {
@@ -796,7 +813,7 @@
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (e) {
-      if (btn) { btn.innerText = "メールアドレスでログイン"; btn.disabled = false; }
+      if (btn) { btn.innerText = "ログイン"; btn.disabled = false; }
       if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
         alert("メールアドレスまたはパスワードが正しくありません。");
       } else if (e.code === 'auth/invalid-email') {
@@ -809,21 +826,21 @@
 
   /* ★メールアドレス＋パスワードでの新規登録 */
   window.doEmailSignUp = async () => {
-    const email = document.getElementById('emailInput').value.trim();
-    const password = document.getElementById('passwordInput').value;
+    const email = document.getElementById('signupEmailInput').value.trim();
+    const password = document.getElementById('signupPasswordInput').value;
     if (!email || !password) return alert("メールアドレスとパスワードを入力してください");
     if (password.length < 6) return alert("パスワードは6文字以上で入力してください");
 
     const btn = document.getElementById('emailSignUpBtn');
-    if (btn) { btn.innerText = "登録中..."; btn.disabled = true; }
+    if (btn) { btn.innerText = "作成中..."; btn.disabled = true; }
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("アカウントを作成しました！続けて初期登録を行ってください。");
     } catch (e) {
-      if (btn) { btn.innerText = "新規アカウント作成"; btn.disabled = false; }
+      if (btn) { btn.innerText = "アカウントを作成してログイン"; btn.disabled = false; }
       if (e.code === 'auth/email-already-in-use') {
-        alert("このメールアドレスは既に登録されています。そのままログインをお試しください。");
+        alert("このメールアドレスは既に登録されています。ログイン画面からお入りください。");
       } else if (e.code === 'auth/invalid-email') {
         alert("有効なメールアドレスを入力してください。");
       } else {
@@ -1236,7 +1253,7 @@
 
     const topNav = document.getElementById('topNavbar');
     if (topNav) {
-      topNav.style.display = (screenId === 'login-screen' || screenId === 'profile-screen') ? 'none' : 'flex';
+      topNav.style.display = (screenId === 'login-screen' || screenId === 'signup-screen' || screenId === 'profile-screen') ? 'none' : 'flex';
     }
 
     if (screenId === 'user-report') {
@@ -1298,7 +1315,7 @@
         btn.innerText = "Googleでログイン";
         btn.disabled = false;
       }
-      if (notice) notice.innerText = "Googleアカウントでログインしてください。";
+      if (notice) notice.innerText = "アカウントでログインしてください。";
       window.showScreen('login-screen', false);
     }
   });
@@ -1982,7 +1999,7 @@
     }
   };
 
-  /* ★日付タップで追加選択／解除を制御（予定有無に関係なく確実に動作） */
+  /* 日付タップで追加選択／解除を制御 */
   function toggleDateSelectionForAdd(dateStr, dayEvents) {
     if (selectedDatesForAdd.has(dateStr)) {
       selectedDatesForAdd.delete(dateStr);
@@ -2006,7 +2023,7 @@
     renderCalendar('add');
   }
 
-  /* ★単一グループ用カレンダー（複数予定日は白丸 ＆ 追加選択の完全対応） */
+  /* 単一グループ用カレンダー */
   function renderCalendar(mode) {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -2057,7 +2074,6 @@
           if (selectedDateForView === dateStr) div.classList.add('selected');
           div.onclick = () => selectDateForView(dateStr, div);
         } else {
-          // 予定の追加・削除画面：マスのどこを押しても確実に日付追加選択できる
           if (selectedDatesForAdd.has(dateStr)) div.classList.add('add-selected');
 
           const hasSelectedForDel = dayEvents.some(ev => selectedEventIdsForDelete.has(ev.id));
@@ -2088,7 +2104,7 @@
     }
   }
 
-  /* 全参加グループ横断用カレンダー（複数予定日は白丸） */
+  /* 全参加グループ横断用カレンダー */
   function renderAllEventsCalendar() {
     const year = viewDate.getFullYear();
     const month = viewDate.getMonth();
@@ -2164,7 +2180,7 @@
     }
   }
 
-  /* 全参加グループ横断の予定一覧リスト描画（直接連絡ボタン付き） */
+  /* 全参加グループ横断の予定一覧リスト描画 */
   function renderAllEventsList(filterDate = "") {
     const container = document.getElementById('allEventsContainer');
     const titleTextEl = document.getElementById('allViewSelectedDateText');
@@ -2415,7 +2431,7 @@
     }
   }
 
-  /* 連絡取り消し後も画面を維持し、続けて操作可能に */
+  /* 連絡取り消し後も画面を維持 */
   document.getElementById('cancelReportBtn').onclick = async () => {
     if (!existingReport) return;
     if (!confirm("この連絡を取り消しますか？")) return;
